@@ -1,5 +1,5 @@
-// copyright 2008 paul@ant.sbrk.co.uk. released under GPLv3
-// vers 0.4t
+// copyright 2008-2009 paul@ant.sbrk.co.uk. released under GPLv3
+// vers 0.6t
 typedef unsigned char uchar;
 typedef uchar (*RESPONSE_FUNC)(uchar chan, uchar msgid);
 typedef uchar (*CHANNEL_EVENT_FUNC)(uchar chan, uchar event);
@@ -24,7 +24,7 @@ typedef uchar (*CHANNEL_EVENT_FUNC)(uchar chan, uchar event);
 #define MESG_CHANNEL_SEARCH_TIMEOUT_ID	0x44
 #define MESG_CHANNEL_STATUS_ID		0x52
 #define MESG_CLOSE_CHANNEL_ID		0x4c
-#define MESG_DATA_SIZE			13 // due to dodgy msg from suunto
+#define MESG_DATA_SIZE			30
 #define MESG_EXT_ACKNOWLEDGED_DATA_ID	0x5e
 #define MESG_EXT_BROADCAST_DATA_ID	0x5d
 #define MESG_EXT_BURST_DATA_ID		0x5f

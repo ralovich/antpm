@@ -16,7 +16,7 @@
 
 #include "antdefs.h"
 
-char *releasetime = "Jan 24 2009, 16:10:12";
+char *releasetime = "Jan 21 2008, 12:00:00";
 uint majorrelease = 0;
 uint minorrelease = 6;
 
@@ -461,9 +461,10 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 					default: fprintf(tcxfile, "unknown value: %d", lapbuf[lap][40]);
 				}
 				fprintf(tcxfile, "</Intensity>\n");
-				// for bike the average cadence of this lap is here
-				if (sporttyp_track[track_id-firsttrack_id] == 1) {
-					if (cad != 255) {
+				if (cad != 255) {
+					if (sporttyp_track[track_id-firsttrack_id] == 0) {
+						fprintf(tcxfile, "        <RunCadence>%d</RunCadence>\n", cad);
+					} else {
 						fprintf(tcxfile, "        <Cadence>%d</Cadence>\n", cad);
 					}
 				}
@@ -477,26 +478,22 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 					default: fprintf(tcxfile, "unknown value: %d", lapbuf[lap][42]);
 				}
 				fprintf(tcxfile, "</TriggerMethod>\n");
-				// I prefere the average run cadence here than at the end of this lap according windows ANTagent
-				if (sporttyp_track[track_id-firsttrack_id] == 0) {
-					if (cad != 255) {
-						fprintf(tcxfile, "        <Extensions>\n");
-						fprintf(tcxfile, "          <LX xmlns=\"http://www.garmin.com/xmlschemas/ActivityExtension/v2\">\n");
-						fprintf(tcxfile, "            <AvgRunCadence>%d</AvgRunCadence>\n", cad);
-						fprintf(tcxfile, "          </LX>\n");
-						fprintf(tcxfile, "        </Extensions>\n");
-					}
-				}
 				fprintf(tcxfile, "        <Track>\n");
 				lap++;
+				track_pause = 0;
 				// if the previous trackpoint has same second as lap time display the trackpoint again
 				if (dbg) printf("i %u tv %d tv_lap %d tv_previous %d\n", i, tv, tv_lap, tv_previous);
 				if (tv_previous == tv_lap) {
 					i -= 24;
 					tv = tv_previous;
 				}
-				track_pause = 0;
 			} // end of if (tv >= tv_lap && lap <= lastlap)
+			if (track_pause) {
+				fprintf(tcxfile, "        </Track>\n");
+				fprintf(tcxfile, "        <Track>\n");
+				track_pause = 0;
+				if (dbg) printf("track pause (stop and go)\n");
+			}
 			ttv = tv+631065600; // garmin epoch offset
 			tmp = gmtime(&ttv);
 			strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", tmp);  // format for printing
@@ -512,11 +509,6 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 			u2 = data[doff+i+23];
 			if (dbg) printf("lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %d %s alt %f dist %f %02x %02x%02x%02x%02x\n", lat, lon,
 				hr, cad, u1, u2, tv, tbuf, alt, dist, data[doff+i+3], data[doff+i+16], data[doff+i+17], data[doff+i+18], data[doff+i+19]);
-			// track pause only if following trackpoint is aswell 'timemarker' with utopic distance
-			if (track_pause && dist > (float)40000000) {
-				fprintf(tcxfile, "        </Track>\n");
-				fprintf(tcxfile, "        <Track>\n");
-			}
 			fprintf(tcxfile, "          <Trackpoint>\n");
 			fprintf(tcxfile, "            <Time>%s</Time>\n",tbuf);
 			if (lat < 90) {
@@ -537,40 +529,33 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 				fprintf(tcxfile, "              <Value>%d</Value>\n", hr);
 				fprintf(tcxfile, "            </HeartRateBpm>\n");
 			}
-			// for bikes the cadence is written here and for the footpod in <Extensions>, why garmin?
-			if (sporttyp_track[track_id-firsttrack_id] == 1) {
-				if (cad != 255) {
-					fprintf(tcxfile, "            <Cadence>%d</Cadence>\n", cad);
-				}
+			if (u1 > 0 && cad != 255) {
+				fprintf(tcxfile, "            <Cadence>%d</Cadence>\n", cad);
 			}
 			if (dist < (float)40000000) {
 				fprintf(tcxfile, "            <SensorState>%s</SensorState>\n", u1 ? "Present" : "Absent");
 				fprintf(tcxfile, "            <Extensions>\n");
 				fprintf(tcxfile, "              <TPX xmlns=\"http://www.garmin.com/xmlschemas/ActivityExtension/v2\" CadenceSensor=\"");
 				// get type of pod from data, could not figure it out, so using sporttyp of first track
-				if (sporttyp_track[track_id-firsttrack_id] == 1) {
-					fprintf(tcxfile, "Bike\"/>\n");
+				switch(sporttyp_track[track_id-firsttrack_id]) {
+					case 1: fprintf(tcxfile, "Bike\""); break;
+					case 0:
+					default: fprintf(tcxfile, "Footpod\""); break;
+				}
+				if (u1 == 0 && cad != 255) {
+					fprintf(tcxfile, ">\n");
+					fprintf(tcxfile, "                <RunCadence>%d</RunCadence>\n", cad);
+					fprintf(tcxfile, "              </TPX>\n");
 				} else {
-					fprintf(tcxfile, "Footpod\"");
-					if (cad != 255) {
-						fprintf(tcxfile, ">\n");
-						fprintf(tcxfile, "                <RunCadence>%d</RunCadence>\n", cad);
-						fprintf(tcxfile, "              </TPX>\n");
-					} else {
-						fprintf(tcxfile, "/>\n");
-					}
+					fprintf(tcxfile, "/>\n");
 				}
 				fprintf(tcxfile, "            </Extensions>\n");
-				track_pause = 0;
+			} else {
+				// maybe if we recieve utopic position and distance this tells pause in the run (stop and go)
+				if (track_pause == 0) track_pause = 1;
+				else                  track_pause = 0;
 			}
 			fprintf(tcxfile, "          </Trackpoint>\n");
-			// maybe if we recieve utopic position and distance this tells pause in the run (stop and go) if not begin or end of lap
-			if (dist > (float)40000000 && track_pause == 0) {
-				track_pause = 1;
-				if (dbg) printf("track pause (stop and go)\n");
-			} else {
-				track_pause = 0;
-			}
 			tv_previous = tv;
 		} // end of for (i = 4; i < pktlen; i += 24)
 		previoustrack_id = track_id;
@@ -1195,4 +1180,3 @@ main(int ac, char *av[])
 	for(;;)
 		sleep(10);
 }
-

@@ -1,5 +1,5 @@
 // copyright 2008 paul@ant.sbrk.co.uk. released under GPLv3
-// vers 0.4t
+// vers 0.6t
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
