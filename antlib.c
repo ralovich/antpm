@@ -257,7 +257,7 @@ get_data(int fd)
 									memcpy(burstbuf[chan], buf+i+4, 8);
 									bused[chan] = 8;
 									lseq[chan] = seq;
-									fprintf(stderr, "reinit ch# %d %d\n", chan, lseq);
+									fprintf(stderr, "reinit ch# %d %d\n", chan, lseq[chan]);
 								}
 							} else {
 								if ((bused[chan] % BSIZE) == 0) {
@@ -277,7 +277,7 @@ get_data(int fd)
 						if (burstbuf[chan] && last) {
 							blast = burstbuf[chan];
 							blsize = bused[chan];
-							if (dbg) fprintf(stderr, "BU %d %lx\n", blsize, blast);
+							if (dbg) fprintf(stderr, "BU %d %lx\n", blsize, (long)blast);
 							if (dbg) {
 								fprintf(stderr, "bused ch# %d %d\n", chan, bused[chan]);
 								for (k = 0; k < bused[chan]; k++)
@@ -329,14 +329,14 @@ get_data(int fd)
 					}
 					memcpy(cbufp, buf+i+4, dlen);
 					if (dbg) {
-						fprintf(stderr, "xch0#%d %d %lx\n", chan, blsize, blast);
+						fprintf(stderr, "xch0#%d %d %lx\n", chan, blsize, (long)blast);
 						for (j = 0; j < blsize; j++)
 							fprintf(stderr, "%02x", *(blast+j));
 						fprintf(stderr, "\n");
 					}
 					(*cfn)(chan, event);
 					if (dbg) {
-						fprintf(stderr, "xch1#%d %d %lx\n", chan, blsize, blast);
+						fprintf(stderr, "xch1#%d %d %lx\n", chan, blsize, (long)blast);
 						for (j = 0; j < blsize; j++)
 							fprintf(stderr, "%02x", *(blast+j));
 						fprintf(stderr, "\n");
@@ -344,7 +344,7 @@ get_data(int fd)
 					// FAKE BURST message
 					if (event == EVENT_RX_BURST_PACKET && blast && blsize) {
 						if (dbg) {
-							fprintf(stderr, "Fake burst ch#%d %d %lx\n", chan, blsize, blast);
+							fprintf(stderr, "Fake burst ch#%d %d %lx\n", chan, blsize, (long)blast);
 							for (j = 0; j < blsize; j++)
 								fprintf(stderr, "%02x", *(blast+j));
 							fprintf(stderr, "\n");
