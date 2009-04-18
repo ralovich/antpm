@@ -404,7 +404,7 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 			tv_lap = lapbuf[lap][4] + lapbuf[lap][5]*256 +
 					lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
 			ttv = tv_lap + 631065600; // garmin epoch offset
-			strftime(tbuf, sizeof tbuf, "%d.%m.%Y %H%M%S.TCX", localtime(&ttv));
+			strftime(tbuf, sizeof tbuf, "%Y.%m.%d %H%M%S.TCX", localtime(&ttv));
 			// open file and start with header of xml file
 			tcxfile = fopen(tbuf, "wt");
 			print_tcx_header(tcxfile);
