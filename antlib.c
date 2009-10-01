@@ -68,6 +68,13 @@ msg_send(uchar mesg, uchar *inbuf, uchar len)
 		if (dbg) {
 			perror("failed write");
 		}
+	} else if (dbg == 2) {
+		// Wali: additional raw data output
+		printf(">>>\n    00000000:");
+		for (i = 0; i < (len + 4); i++) {
+			printf(" %02x", buf[i]);
+		}
+		putchar('\n');
 	}
 	return 1;
 }
@@ -142,8 +149,14 @@ get_data(int fd)
 			fprintf(stderr, "%02x", buf[j]);
 		fprintf(stderr, "\n");
 		exit(1);
+	} else if (dbg == 2) {
+		// Wali: additional raw data output
+		printf("<<<\n    00000000:");
+		for (i = 0; i < bufc; i++) {
+			printf(" %02x", buf[i]);
+		}
+		putchar('\n');
 	}
-
 	// some data in buf
 	// search for possible valid messages
   srch = 0;

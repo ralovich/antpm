@@ -16,9 +16,12 @@
 
 #include "antdefs.h"
 
-char *releasetime = "Jan 24 2009, 16:10:12";
-uint majorrelease = 0;
-uint minorrelease = 6;
+// all version numbering according ant agent for windows 2.2.1
+char *releasetime = "Jul 30 2009, 17:42:56";
+uint majorrelease = 2;
+uint minorrelease = 2;
+uint majorbuild = 7;
+uint minorbuild = 0;
 
 double round(double);
 
@@ -38,7 +41,7 @@ int donebind = 0;
 int sentgetv;
 char *fname = "garmin";
 
-static char  ANTSPT_KEY[] = "A8A423B9F55E63C1"; // ANT+Sport key
+static char ANTSPT_KEY[] = "A8A423B9F55E63C1"; // ANT+Sport key
 
 static uchar ebuf[MESG_DATA_SIZE]; // response event data gets stored here
 static uchar cbuf[MESG_DATA_SIZE]; // channel event data gets stored here
@@ -64,6 +67,7 @@ uint isa405;
 uint waitauth;
 int nphase0;
 char modelname[256];
+char devname[256];
 ushort part = 0;
 ushort ver = 0;
 uint unitid = 0;
@@ -98,9 +102,10 @@ int outfd; // output file
 char *fn = "default_output_file";
 char *progname;
 
-#define BSIZE 8*100
-uchar *burstbuf = 0;
-uchar *blast = 0;
+#define BSIZE 8*10000
+//uchar blast[BSIZE]; // should be like that, but not working
+uchar *blast = 0; // first time reading not initialized, but why it is working reading from adr 0?
+
 int blsize = 0;
 int bused = 0;
 int lseq = -1;
@@ -110,24 +115,24 @@ int lseq = -1;
 char *
 ground(double d)
 {
-  int neg = 0;
-  static char res[30];
-  ulong ival;
-  ulong l; /* hope it doesn't overflow */
+	int neg = 0;
+	static char res[30];
+	ulong ival;
+	ulong l; /* hope it doesn't overflow */
 
-  if (d < 0) {
-    neg = 1;
-    d = -d;
-  }
-  ival = floor(d);
-  d -= ival;
-  l = floor(d*100000000);
-  if (l % 10 >= 5)
-    l = l/10+1;
-  else
-    l = l/10;
-  sprintf(res,"%s%ld.%07ld", neg?"-":"", ival, l);
-  return res;
+	if (d < 0) {
+		neg = 1;
+		d = -d;
+	}
+	ival = floor(d);
+	d -= ival;
+	l = floor(d*100000000);
+	if (l % 10 >= 5)
+		l = l/10+1;
+	else
+		l = l/10;
+	sprintf(res,"%s%ld.%07ld", neg?"-":"", ival, l);
+	return res;
 }
 
 char *
@@ -173,7 +178,7 @@ print_tcx_footer(FILE *tcxfile)
 	fprintf(tcxfile, "        </Track>\n");
 	fprintf(tcxfile, "      </Lap>\n");
 	fprintf(tcxfile, "      <Creator xsi:type=\"Device_t\">\n");
-	fprintf(tcxfile, "        <Name>%s</Name>\n", modelname);
+	fprintf(tcxfile, "        <Name>%s</Name>\n", devname);
 	fprintf(tcxfile, "        <UnitId>%u</UnitId>\n", unitid);
 	fprintf(tcxfile, "        <ProductID>%u</ProductID>\n", part);
 	fprintf(tcxfile, "        <Version>\n");
@@ -186,20 +191,20 @@ print_tcx_footer(FILE *tcxfile)
 	fprintf(tcxfile, "    </Activity>\n");
 	fprintf(tcxfile, "  </Activities>\n\n");
 	fprintf(tcxfile, "  <Author xsi:type=\"Application_t\">\n");
-	fprintf(tcxfile, "    <Name>Garmin ANT for Linux</Name>\n");
+	fprintf(tcxfile, "    <Name>Garmin ANT Agent(tm)</Name>\n");
 	fprintf(tcxfile, "    <Build>\n");
 	fprintf(tcxfile, "      <Version>\n");
 	fprintf(tcxfile, "        <VersionMajor>%u</VersionMajor>\n", majorrelease);
 	fprintf(tcxfile, "        <VersionMinor>%u</VersionMinor>\n", minorrelease);
-	fprintf(tcxfile, "        <BuildMajor>0</BuildMajor>\n");
-	fprintf(tcxfile, "        <BuildMinor>0</BuildMinor>\n");
+	fprintf(tcxfile, "        <BuildMajor>%u</BuildMajor>\n", majorbuild);
+	fprintf(tcxfile, "        <BuildMinor>%u</BuildMinor>\n", minorbuild);
 	fprintf(tcxfile, "      </Version>\n");
 	fprintf(tcxfile, "      <Type>Release</Type>\n");
 	fprintf(tcxfile, "      <Time>%s</Time>\n", releasetime);
-	fprintf(tcxfile, "      <Builder>make</Builder>\n");
+	fprintf(tcxfile, "      <Builder>sqa</Builder>\n");
 	fprintf(tcxfile, "    </Build>\n");
 	fprintf(tcxfile, "    <LangID>EN</LangID>\n");
-	fprintf(tcxfile, "    <PartNumber>006-A0XXX-00</PartNumber>\n");
+	fprintf(tcxfile, "    <PartNumber>006-A0214-00</PartNumber>\n");
 	fprintf(tcxfile, "  </Author>\n\n");
 	fprintf(tcxfile, "</TrainingCenterDatabase>\n");
 	return;
@@ -240,7 +245,7 @@ struct pair_msg {
 #define ACKSIZE 8 // above structure must be this size
 #define AUTHSIZE 24 // ditto
 #define PAIRSIZE 16
-#define MAXLAPS 256  // max of saving laps data before output with trackpoint data
+#define MAXLAPS 256 // max of saving laps data before output with trackpoint data
 #define MAXTRACK 256 // max number of tracks to be saved per download
 
 decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
@@ -258,7 +263,6 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 	int doff = 20;
 	char model[256];
 	char gpsver[256];
-	char devname[256];
 	float alt;
 	float dist;
 	uint tv;
@@ -400,11 +404,11 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 			}
 			// use first lap starttime as filename
 			lap = firstlap_id_track[track_id-firsttrack_id] - firstlap_id;
-            if (dbg) printf("lap %u track_id %u firsttrack_id %u firstlap_id %u\n", lap, track_id, firsttrack_id, firstlap_id);
+			if (dbg) printf("lap %u track_id %u firsttrack_id %u firstlap_id %u\n", lap, track_id, firsttrack_id, firstlap_id);
 			tv_lap = lapbuf[lap][4] + lapbuf[lap][5]*256 +
 					lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
 			ttv = tv_lap + 631065600; // garmin epoch offset
-			strftime(tbuf, sizeof tbuf, "%Y.%m.%d %H%M%S.TCX", localtime(&ttv));
+			strftime(tbuf, sizeof tbuf, "%Y-%m-%d-%H%M%S.TCX", localtime(&ttv));
 			// open file and start with header of xml file
 			tcxfile = fopen(tbuf, "wt");
 			print_tcx_header(tcxfile);
@@ -545,22 +549,24 @@ decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 			}
 			if (dist < (float)40000000) {
 				fprintf(tcxfile, "            <SensorState>%s</SensorState>\n", u1 ? "Present" : "Absent");
-				fprintf(tcxfile, "            <Extensions>\n");
-				fprintf(tcxfile, "              <TPX xmlns=\"http://www.garmin.com/xmlschemas/ActivityExtension/v2\" CadenceSensor=\"");
-				// get type of pod from data, could not figure it out, so using sporttyp of first track
-				if (sporttyp_track[track_id-firsttrack_id] == 1) {
-					fprintf(tcxfile, "Bike\"/>\n");
-				} else {
-					fprintf(tcxfile, "Footpod\"");
-					if (cad != 255) {
-						fprintf(tcxfile, ">\n");
-						fprintf(tcxfile, "                <RunCadence>%d</RunCadence>\n", cad);
-						fprintf(tcxfile, "              </TPX>\n");
+				if (u1 == 1 || cad != 255) {
+					fprintf(tcxfile, "            <Extensions>\n");
+					fprintf(tcxfile, "              <TPX xmlns=\"http://www.garmin.com/xmlschemas/ActivityExtension/v2\" CadenceSensor=\"");
+					// get type of pod from data, could not figure it out, so using sporttyp of first track
+					if (sporttyp_track[track_id-firsttrack_id] == 1) {
+						fprintf(tcxfile, "Bike\"/>\n");
 					} else {
-						fprintf(tcxfile, "/>\n");
+						fprintf(tcxfile, "Footpod\"");
+						if (cad != 255) {
+							fprintf(tcxfile, ">\n");
+							fprintf(tcxfile, "                <RunCadence>%d</RunCadence>\n", cad);
+							fprintf(tcxfile, "              </TPX>\n");
+						} else {
+							fprintf(tcxfile, "/>\n");
+						}
 					}
+					fprintf(tcxfile, "            </Extensions>\n");
 				}
-				fprintf(tcxfile, "            </Extensions>\n");
 				track_pause = 0;
 			}
 			fprintf(tcxfile, "          </Trackpoint>\n");
