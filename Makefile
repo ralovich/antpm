@@ -1,5 +1,5 @@
-CFLAGS=-g -Wall
-LDFLAGS=-lpthread -lm
+CFLAGS=-g -Wall `xml2-config --cflags`
+LDFLAGS=-lpthread -lm `xml2-config --libs`
 
 all:	gant
 

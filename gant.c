@@ -15,8 +15,23 @@
 #include <math.h>
 #include <ctype.h>
 
+#include <libxml/encoding.h>
+#include <libxml/xmlwriter.h>
+
 #include "antlib.h"
 #include "antdefs.h"
+
+#define XML_ERROR_CHECK if (rc < 0){fprintf(stderr, "ERROR in XML creation in line %d\n", __LINE__); exit(-1);}
+
+typedef enum {
+	XML_OUTSIDE,
+	XML_IN_TrainingCenterDatabase,
+	XML_IN_Activities,
+	XML_IN_Activity,
+	XML_IN_Lap,
+	XML_IN_Track,
+	XML_IN_Trackpoint,
+} xml_pos;
 
 // all version numbering according ant agent for windows 2.2.1
 char *releasetime = "Jul 30 2009, 17:42:56";
@@ -166,49 +181,96 @@ randno(void)
 }
 
 void
-print_tcx_header(FILE *tcxfile)
+print_tcx_header(xmlTextWriterPtr tcxfile)
 {
-	fprintf(tcxfile, "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\" ?>\n");
-	fprintf(tcxfile, "<TrainingCenterDatabase xmlns=\"http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://www.garmin.com/xmlschemas/ActivityExtension/v2 http://www.garmin.com/xmlschemas/ActivityExtensionv2.xsd http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd\">\n\n");
-	fprintf(tcxfile, "  <Activities>\n");
+	int rc;
+
+	/* Start the Document */
+	rc = xmlTextWriterStartDocument(tcxfile, "1.0", "UTF-8", "no");
+	XML_ERROR_CHECK;
+
+	/* Start the TrainingCenterDatabase */
+	rc = xmlTextWriterStartElementNS(tcxfile, NULL, BAD_CAST "TrainingCenterDatabase", BAD_CAST "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteAttributeNS(tcxfile, BAD_CAST "xsi", BAD_CAST "schemaLocation", BAD_CAST "http://www.w3.org/2001/XMLSchema-instance", BAD_CAST "http://www.garmin.com/xmlschemas/ActivityExtension/v2 http://www.garmin.com/xmlschemas/ActivityExtensionv2.xsd http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2 http://www.garmin.com/xmlschemas/TrainingCenterDatabasev2.xsd");
+	XML_ERROR_CHECK;
+
+	/* Finally start the Activities element */
+	rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Activities");
+	XML_ERROR_CHECK;
+
 	return;
 }
 
 void
-print_tcx_footer(FILE *tcxfile)
+print_tcx_footer(xmlTextWriterPtr tcxfile)
 {
-	fprintf(tcxfile, "        </Track>\n");
-	fprintf(tcxfile, "      </Lap>\n");
-	fprintf(tcxfile, "      <Creator xsi:type=\"Device_t\">\n");
-	fprintf(tcxfile, "        <Name>%s</Name>\n", devname);
-	fprintf(tcxfile, "        <UnitId>%u</UnitId>\n", unitid);
-	fprintf(tcxfile, "        <ProductID>%u</ProductID>\n", part);
-	fprintf(tcxfile, "        <Version>\n");
-	fprintf(tcxfile, "          <VersionMajor>%u</VersionMajor>\n", ver/100);
-	fprintf(tcxfile, "          <VersionMinor>%u</VersionMinor>\n", ver - ver/100*100);
-	fprintf(tcxfile, "          <BuildMajor>0</BuildMajor>\n");
-	fprintf(tcxfile, "          <BuildMinor>0</BuildMinor>\n");
-	fprintf(tcxfile, "        </Version>\n");
-	fprintf(tcxfile, "      </Creator>\n");
-	fprintf(tcxfile, "    </Activity>\n");
-	fprintf(tcxfile, "  </Activities>\n\n");
-	fprintf(tcxfile, "  <Author xsi:type=\"Application_t\">\n");
-	fprintf(tcxfile, "    <Name>Garmin ANT Agent(tm)</Name>\n");
-	fprintf(tcxfile, "    <Build>\n");
-	fprintf(tcxfile, "      <Version>\n");
-	fprintf(tcxfile, "        <VersionMajor>%u</VersionMajor>\n", majorrelease);
-	fprintf(tcxfile, "        <VersionMinor>%u</VersionMinor>\n", minorrelease);
-	fprintf(tcxfile, "        <BuildMajor>%u</BuildMajor>\n", majorbuild);
-	fprintf(tcxfile, "        <BuildMinor>%u</BuildMinor>\n", minorbuild);
-	fprintf(tcxfile, "      </Version>\n");
-	fprintf(tcxfile, "      <Type>Release</Type>\n");
-	fprintf(tcxfile, "      <Time>%s</Time>\n", releasetime);
-	fprintf(tcxfile, "      <Builder>sqa</Builder>\n");
-	fprintf(tcxfile, "    </Build>\n");
-	fprintf(tcxfile, "    <LangID>EN</LangID>\n");
-	fprintf(tcxfile, "    <PartNumber>006-A0214-00</PartNumber>\n");
-	fprintf(tcxfile, "  </Author>\n\n");
-	fprintf(tcxfile, "</TrainingCenterDatabase>\n");
+	int rc;
+
+	rc = xmlTextWriterEndElement(tcxfile); /* Track (Is it a good idea to do it here?) */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterEndElement(tcxfile); /* Lap (Is it a good idea to do it here?) */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Creator");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "Device_t");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Name", "%s", devname);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "UnitId", "%u", unitid);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "ProductID", "%u", part);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Version");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "VersionMajor", "%u", ver/100);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "VersionMinor", "%u", ver%100);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "BuildMajor", BAD_CAST "0");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "BuildMinor", BAD_CAST "0");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterEndElement(tcxfile); /* Version */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterEndElement(tcxfile); /* Creator */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterEndElement(tcxfile); /* Activity */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterEndElement(tcxfile); /* Activities */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Author");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "Application_t");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Name", BAD_CAST "Garmin ANT Agent(tm)");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Build");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Version");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "VersionMajor", "%u", majorrelease);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "VersionMinor", "%u", minorrelease);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "BuildMajor", "%u", majorbuild);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "BuildMinor", "%u", minorbuild);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterEndElement(tcxfile); /* Version */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Type", BAD_CAST "Release");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Time", "%s", releasetime);
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Builder", BAD_CAST "sqa");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterEndElement(tcxfile); /* Build */
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "LangID", BAD_CAST "EN");
+	XML_ERROR_CHECK;
+	rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "PartNumber", BAD_CAST "006-A0214-00");
+	XML_ERROR_CHECK;
 	return;
 }
 
@@ -284,8 +346,10 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 	static short firstlap_id = -1;
 	static ushort firstlap_id_track[MAXTRACK];
 	static uchar sporttyp_track[MAXTRACK];
-	static FILE *tcxfile = NULL;
+	static xmlTextWriterPtr tcxfile = NULL;
 	static ushort track_pause = 0;
+	int rc;
+	static xml_pos xml_position = XML_OUTSIDE;
 
 
 	printf("decode %d %d %d %d\n", bloblen, pkttype, pktlen, dsize);
@@ -322,8 +386,14 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 		switch (data[doff] + data[doff+1]*256) {
 		case 6:
 			// last file completed, add footer and close file
-			print_tcx_footer(tcxfile);
-			fclose(tcxfile);
+			if (tcxfile) {
+				print_tcx_footer(tcxfile);
+				xml_position = XML_OUTSIDE;
+				rc = xmlTextWriterEndDocument(tcxfile);
+				XML_ERROR_CHECK;
+				xmlFreeTextWriter(tcxfile);
+				tcxfile = NULL;
+			}
 			break;
 		case 117:
 			break;
@@ -398,10 +468,14 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 		// if trackpoints are split into more than one message 1510, do not add xml head again
 		if (previoustrack_id != track_id) {
 			// close previous file if it is not the first track to be downloaded
-			if (previoustrack_id > -1) {
+			if (previoustrack_id > -1 && tcxfile) {
 				// add xml footer and close file, the next file will be open further down
 				print_tcx_footer(tcxfile);
-				fclose(tcxfile);
+				xml_position = XML_OUTSIDE;
+				rc = xmlTextWriterEndDocument(tcxfile);
+				XML_ERROR_CHECK;
+				xmlFreeTextWriter(tcxfile);
+				tcxfile = NULL;
 			}
 			// use first lap starttime as filename
 			lap = firstlap_id_track[track_id-firsttrack_id] - firstlap_id;
@@ -410,15 +484,22 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 					lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
 			ttv = tv_lap + 631065600; // garmin epoch offset
 			strftime(tbuf, sizeof tbuf, "%Y-%m-%d-%H%M%S.TCX", localtime(&ttv));
+			fprintf(stderr, "DEBUG: Open file %s\n", tbuf);
 			// open file and start with header of xml file
-			tcxfile = fopen(tbuf, "wt");
+			tcxfile = xmlNewTextWriterFilename(tbuf, 0);
+			if (tcxfile == NULL) {
+				fprintf(stderr, "ERROR in XML creation in line %d\n", __LINE__);
+				exit(-1);
+			}
 			print_tcx_header(tcxfile);
+			xml_position = XML_IN_Activities;
 		}
 		for (i = 4; i < pktlen; i += 24) {
 			tv = (data[doff+i+8] + data[doff+i+9]*256 +
 				data[doff+i+10]*256*256 + data[doff+i+11]*256*256*256);
 			tv_lap = lapbuf[lap][4] + lapbuf[lap][5]*256 +
 				lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
+			fprintf(stderr, "DEBUG: tv %u tv_lap %u lap %u track_id %u firsttrack_id %u firstlap_id %u lastlap %u firstlap_id_track[] %u\n", tv, tv_lap, lap, track_id, firsttrack_id, firstlap_id, lastlap, firstlap_id_track[track_id-firsttrack_id]);
 			if ((tv > tv_lap || (tv == tv_lap && lap == (firstlap_id_track[track_id-firsttrack_id] - firstlap_id))) && lap <= lastlap) {
 				ttv = tv_lap + 631065600; // garmin epoch offset
 				strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&ttv));
@@ -431,68 +512,102 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				hr_max = lapbuf[lap][39];
 				cad = lapbuf[lap][41];
 				if (lap == firstlap_id_track[track_id-firsttrack_id] - firstlap_id) {
-					fprintf(tcxfile, "    <Activity Sport=\"");
+					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Activity");
+					XML_ERROR_CHECK;
+					xml_position++;
 					switch(sporttyp_track[track_id-firsttrack_id]) {
-						case 0: fprintf(tcxfile, "Running"); break;
-						case 1: fprintf(tcxfile, "Biking"); break;
-						case 2: fprintf(tcxfile, "Other"); break;
-						default: fprintf(tcxfile, "unknown value: %d",sporttyp_track[track_id-firsttrack_id]);
+						case 0: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Running"); break;
+						case 1: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Biking"); break;
+						case 2: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Other"); break;
+						default: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Notes", BAD_CAST "Unknown sport type");
+							 XML_ERROR_CHECK;
+							 rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Other");
 					}
-					fprintf(tcxfile, "\">\n");
-					fprintf(tcxfile, "      <Id>%s</Id>\n", tbuf);
+					XML_ERROR_CHECK;
+
+					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Id", "%s", tbuf);
+					XML_ERROR_CHECK;
 				} else {
-					fprintf(tcxfile, "        </Track>\n");
-					fprintf(tcxfile, "      </Lap>\n");
+					rc = xmlTextWriterEndElement(tcxfile); /* Track */
+					XML_ERROR_CHECK;
+					xml_position--;
+					rc = xmlTextWriterEndElement(tcxfile); /* Lap */
+					XML_ERROR_CHECK;
+					xml_position--;
 				}
-				fprintf(tcxfile, "      <Lap StartTime=\"%s\">\n", tbuf);
-				fprintf(tcxfile, "        <TotalTimeSeconds>%s</TotalTimeSeconds>\n", ground(tsec/100));
-				fprintf(tcxfile, "        <DistanceMeters>%s</DistanceMeters>\n", ground(dist));
-				fprintf(tcxfile, "        <MaximumSpeed>%s</MaximumSpeed>\n", ground(max_speed));
-				fprintf(tcxfile, "        <Calories>%d</Calories>\n", cal);
+				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Lap");
+				XML_ERROR_CHECK;
+				xml_position++;
+				rc = xmlTextWriterWriteFormatAttribute(tcxfile, BAD_CAST "StartTime", "%s", tbuf);
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "TotalTimeSeconds", "%s", ground(tsec/100));
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "DistanceMeters", "%s", ground(dist));
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "MaximumSpeed", "%s", ground(max_speed));
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Calories", "%d", cal);
+				XML_ERROR_CHECK;
 				if (hr_av > 0) {
-					fprintf(tcxfile, "        <AverageHeartRateBpm xsi:type=\"HeartRateInBeatsPerMinute_t\">\n");
-					fprintf(tcxfile, "          <Value>%d</Value>\n", hr_av);
-					fprintf(tcxfile, "        </AverageHeartRateBpm>\n");
+					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "AverageHeartRateBpm");
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "HeartRateInBeatsPerMinute_t");
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Value", "%d", hr_av);
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterEndElement(tcxfile);
+					XML_ERROR_CHECK;
 				}
 				if (hr_max > 0) {
-					fprintf(tcxfile, "        <MaximumHeartRateBpm xsi:type=\"HeartRateInBeatsPerMinute_t\">\n");
-					fprintf(tcxfile, "          <Value>%d</Value>\n", hr_max);
-					fprintf(tcxfile, "        </MaximumHeartRateBpm>\n");
+					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "MaximumHeartRateBpm");
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "HeartRateInBeatsPerMinute_t");
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Value", "%d", hr_av);
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterEndElement(tcxfile);
+					XML_ERROR_CHECK;
 				}
-				fprintf(tcxfile, "        <Intensity>");
 				switch (lapbuf[lap][40]) {
-					case 0: fprintf(tcxfile, "Active"); break;
-					case 1: fprintf(tcxfile, "Rest"); break;
-					default: fprintf(tcxfile, "unknown value: %d", lapbuf[lap][40]);
+					case 0: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Intensity", BAD_CAST "Active"); break;
+					case 1: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Intensity", BAD_CAST "Resting"); break;
+					default: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Intensity", BAD_CAST "Active");
 				}
-				fprintf(tcxfile, "</Intensity>\n");
+				XML_ERROR_CHECK;
 				// for bike the average cadence of this lap is here
 				if (sporttyp_track[track_id-firsttrack_id] == 1) {
 					if (cad != 255) {
-						fprintf(tcxfile, "        <Cadence>%d</Cadence>\n", cad);
+						rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Cadence", "%d", cad);
+						XML_ERROR_CHECK;
 					}
 				}
-				fprintf(tcxfile, "        <TriggerMethod>");
 				switch(lapbuf[lap][42]) {
-					case 4: fprintf(tcxfile, "Heartrate"); break;
-					case 3: fprintf(tcxfile, "Time"); break;
-					case 2: fprintf(tcxfile, "Location"); break;
-					case 1: fprintf(tcxfile, "Distance"); break;
-					case 0: fprintf(tcxfile, "Manual"); break;
-					default: fprintf(tcxfile, "unknown value: %d", lapbuf[lap][42]);
+					case 4: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "HeartRate"); break;
+					case 3: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Time"); break;
+					case 2: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Location"); break;
+					case 1: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Distance"); break;
+					case 0: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Manual"); break;
+					default: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Manual");
 				}
-				fprintf(tcxfile, "</TriggerMethod>\n");
+				XML_ERROR_CHECK;
 				// I prefere the average run cadence here than at the end of this lap according windows ANTagent
 				if (sporttyp_track[track_id-firsttrack_id] == 0) {
 					if (cad != 255) {
-						fprintf(tcxfile, "        <Extensions>\n");
-						fprintf(tcxfile, "          <LX xmlns=\"http://www.garmin.com/xmlschemas/ActivityExtension/v2\">\n");
-						fprintf(tcxfile, "            <AvgRunCadence>%d</AvgRunCadence>\n", cad);
-						fprintf(tcxfile, "          </LX>\n");
-						fprintf(tcxfile, "        </Extensions>\n");
+						rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Extensions");
+						XML_ERROR_CHECK;
+						rc = xmlTextWriterStartElementNS(tcxfile, NULL, BAD_CAST "LX", BAD_CAST "http://www.garmin.com/xmlschemas/ActivityExtension/v2");
+						XML_ERROR_CHECK;
+						rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AvgRunCadence", "%d", cad);
+						XML_ERROR_CHECK;
+						rc = xmlTextWriterEndElement(tcxfile); /* LX */
+						XML_ERROR_CHECK;
+						rc = xmlTextWriterEndElement(tcxfile); /* Extensions */
+						XML_ERROR_CHECK;
 					}
 				}
-				fprintf(tcxfile, "        <Track>\n");
+				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Track");
+				XML_ERROR_CHECK;
+				xml_position++;
 				lap++;
 				// if the previous trackpoint has same second as lap time display the trackpoint again
 				if (dbg) printf("i %u tv %d tv_lap %d tv_previous %d\n", i, tv, tv_lap, tv_previous);
@@ -502,6 +617,10 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				}
 				track_pause = 0;
 			} // end of if (tv >= tv_lap && lap <= lastlap)
+			if (xml_position != XML_IN_Track) {
+				fprintf(stderr, "ERROR: Need to write trackpoint but I am not in active track (Current: %d)\n", xml_position);
+				continue;
+			}
 			ttv = tv+631065600; // garmin epoch offset
 			tmp = gmtime(&ttv);
 			strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", tmp);  // format for printing
@@ -519,58 +638,81 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				hr, cad, u1, u2, tv, tbuf, alt, dist, data[doff+i+3], data[doff+i+16], data[doff+i+17], data[doff+i+18], data[doff+i+19]);
 			// track pause only if following trackpoint is aswell 'timemarker' with utopic distance
 			if (track_pause && dist > (float)40000000) {
-				fprintf(tcxfile, "        </Track>\n");
-				fprintf(tcxfile, "        <Track>\n");
+				rc = xmlTextWriterEndElement(tcxfile); /* Track */
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Track");
+				XML_ERROR_CHECK;
 			}
-			fprintf(tcxfile, "          <Trackpoint>\n");
-			fprintf(tcxfile, "            <Time>%s</Time>\n",tbuf);
+			rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Trackpoint");
+			XML_ERROR_CHECK;
+			xml_position++;
+			rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Time", "%s", tbuf);
+			XML_ERROR_CHECK;
 			if (lat < 90) {
-				fprintf(tcxfile, "            <Position>\n");
-				fprintf(tcxfile, "              <LatitudeDegrees>%s</LatitudeDegrees>\n",
-					ground(lat));
-				fprintf(tcxfile, "              <LongitudeDegrees>%s</LongitudeDegrees>\n",
-					ground(lon));
-				fprintf(tcxfile, "            </Position>\n");
-				fprintf(tcxfile, "            <AltitudeMeters>%s</AltitudeMeters>\n", ground(alt));
+				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Position");
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "LatitudeDegrees", "%s", ground(lat));
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "LongitudeDegrees", "%s", ground(lon));
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterEndElement(tcxfile); /* Position */
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AltitudeMeters", "%s", ground(alt));
+				XML_ERROR_CHECK;
 			}
 			// last trackpoint has utopic distance, 40000km should be enough, hack?
 			if (dist < (float)40000000) {
-				fprintf(tcxfile, "            <DistanceMeters>%s</DistanceMeters>\n", ground(dist));
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "DistanceMeters", "%s", ground(dist));
+				XML_ERROR_CHECK;
 			}
 			if (hr > 0) {
-				fprintf(tcxfile, "            <HeartRateBpm xsi:type=\"HeartRateInBeatsPerMinute_t\">\n");
-				fprintf(tcxfile, "              <Value>%d</Value>\n", hr);
-				fprintf(tcxfile, "            </HeartRateBpm>\n");
+				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "HeartRateBpm");
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "HeartRateInBeatsPerMinute_t");
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Value", "%d", hr);
+				XML_ERROR_CHECK;
+				rc = xmlTextWriterEndElement(tcxfile); /* HeartRateBpm */
+				XML_ERROR_CHECK;
 			}
 			// for bikes the cadence is written here and for the footpod in <Extensions>, why garmin?
 			if (sporttyp_track[track_id-firsttrack_id] == 1) {
 				if (cad != 255) {
-					fprintf(tcxfile, "            <Cadence>%d</Cadence>\n", cad);
+					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Cadence", "%d", cad);
+					XML_ERROR_CHECK;
 				}
 			}
 			if (dist < (float)40000000) {
-				fprintf(tcxfile, "            <SensorState>%s</SensorState>\n", u1 ? "Present" : "Absent");
+				rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "SensorState", u1 ? BAD_CAST "Present" : BAD_CAST "Absent");
+				XML_ERROR_CHECK;
 				if (u1 == 1 || cad != 255) {
-					fprintf(tcxfile, "            <Extensions>\n");
-					fprintf(tcxfile, "              <TPX xmlns=\"http://www.garmin.com/xmlschemas/ActivityExtension/v2\" CadenceSensor=\"");
+					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Extensions");
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterStartElementNS(tcxfile, NULL, BAD_CAST "TPX", BAD_CAST "http://www.garmin.com/xmlschemas/ActivityExtension/v2");
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AvgRunCadence", "%d", cad);
+					XML_ERROR_CHECK;
 					// get type of pod from data, could not figure it out, so using sporttyp of first track
 					if (sporttyp_track[track_id-firsttrack_id] == 1) {
-						fprintf(tcxfile, "Bike\"/>\n");
+						rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "CadenceSensor", BAD_CAST "Bike");
+						XML_ERROR_CHECK;
 					} else {
-						fprintf(tcxfile, "Footpod\"");
+						rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "CadenceSensor", BAD_CAST "Footpod");
 						if (cad != 255) {
-							fprintf(tcxfile, ">\n");
-							fprintf(tcxfile, "                <RunCadence>%d</RunCadence>\n", cad);
-							fprintf(tcxfile, "              </TPX>\n");
-						} else {
-							fprintf(tcxfile, "/>\n");
+							rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "RunCadence", "%d", cad);
+							XML_ERROR_CHECK;
 						}
 					}
-					fprintf(tcxfile, "            </Extensions>\n");
+					rc = xmlTextWriterEndElement(tcxfile); /* TPX */
+					XML_ERROR_CHECK;
+					rc = xmlTextWriterEndElement(tcxfile); /* Extensions */
+					XML_ERROR_CHECK;
 				}
 				track_pause = 0;
 			}
-			fprintf(tcxfile, "          </Trackpoint>\n");
+			rc = xmlTextWriterEndElement(tcxfile); /* Trackpoint */
+			XML_ERROR_CHECK;
+			xml_position--;
 			// maybe if we recieve utopic position and distance this tells pause in the run (stop and go) if not begin or end of lap
 			if (dist > (float)40000000 && track_pause == 0) {
 				track_pause = 1;
