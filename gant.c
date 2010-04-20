@@ -1181,7 +1181,12 @@ revent(uchar chan, uchar event)
 			printf("channel status %d\n", ebuf[1]);
 		break;
 	case EVENT_RX_FAIL:
+	case EVENT_TRANSFER_TX_FAILED:
+	case EVENT_TRANSFER_RX_FAILED:
 		// ignore this
+		break;
+	case EVENT_RX_SEARCH_TIMEOUT:
+		printf("Timeout, please make sure the device is not in standby.\n");
 		break;
 	default:
 		printf("Unhandled response event %02x\n", event);
