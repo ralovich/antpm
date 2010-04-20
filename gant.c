@@ -13,7 +13,9 @@
 #include <assert.h>
 #include <time.h>
 #include <math.h>
+#include <ctype.h>
 
+#include "antlib.h"
 #include "antdefs.h"
 
 // all version numbering according ant agent for windows 2.2.1
@@ -41,7 +43,7 @@ int donebind = 0;
 int sentgetv;
 char *fname = "garmin";
 
-static char ANTSPT_KEY[] = "A8A423B9F55E63C1"; // ANT+Sport key
+static uchar ANTSPT_KEY[] = "A8A423B9F55E63C1"; // ANT+Sport key
 
 static uchar ebuf[MESG_DATA_SIZE]; // response event data gets stored here
 static uchar cbuf[MESG_DATA_SIZE]; // channel event data gets stored here
@@ -248,10 +250,9 @@ struct pair_msg {
 #define MAXLAPS 256 // max of saving laps data before output with trackpoint data
 #define MAXTRACK 256 // max number of tracks to be saved per download
 
-decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
+void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 {
 	int i;
-	int j;
 	int hr;
 	int hr_av;
 	int hr_max;
@@ -626,8 +627,6 @@ usage(void)
 uchar
 chevent(uchar chan, uchar event)
 {
-	uchar seq;
-	uchar last;
 	uchar status;
 	uchar phase;
 	uint newdata;
@@ -655,7 +654,7 @@ chevent(uchar chan, uchar event)
 			fprintf(stderr, "%02x", cbuf[i]);
 		fprintf(stderr, "\n");
 	}
-	
+
 	switch (event) {
 	case EVENT_RX_BROADCAST:
 		lastphase = phase; // store the last phase we see the watch broadcast
@@ -860,7 +859,7 @@ chevent(uchar chan, uchar event)
 		if (sentauth) {
 			static int nacksent = 0;
 			char *ackdata;
-			static uchar ackpkt[100];
+			static char ackpkt[100];
 			// ack the last packet
 			ushort bloblen = blast[14]+256*blast[15];
 			ushort pkttype = blast[16]+256*blast[17];
@@ -882,7 +881,7 @@ chevent(uchar chan, uchar event)
 			} else if (bloblen == 65535) {
 				// repeat last ack
 				if (dbg) printf("repeating ack %s\n", ackpkt);
-				ANT_SendBurstTransferA(chan, ackpkt, strlen(ackpkt)/16);
+				ANT_SendBurstTransferA(chan, (uchar*)ackpkt, strlen(ackpkt)/16);
 			} else {
 				if (dbg) printf("non-0 bloblen %d\n", bloblen);
 				decode(bloblen, pkttype, pktlen, blsize, blast);
@@ -890,7 +889,7 @@ chevent(uchar chan, uchar event)
 			}
 			if (dbg) printf("received pkttype %d len %d\n", pkttype, pktlen);
 			if (dbg) printf("acking %s\n", ackpkt);
-			ANT_SendBurstTransferA(chan, ackpkt, strlen(ackpkt)/16);
+			ANT_SendBurstTransferA(chan, (uchar*)ackpkt, strlen(ackpkt)/16);
 		} else if (!nopairing && pairing && blast) {
 			memcpy(&peerdev, blast+12, 4);
 			if (dbg)
@@ -949,7 +948,6 @@ chevent(uchar chan, uchar event)
 			gotwatchid = 1;
 			// garmin sending authentication/identification data
 			if (!once) {
-				int i;
 				once = 1;
 				if (dbg)
 					fprintf(stderr, "id data: ");
@@ -967,7 +965,6 @@ chevent(uchar chan, uchar event)
 				exit(1);
 			}
 		} else if (lastphase == 2) {
-			int nw;
 			static int once = 0;
 			printf("once %d\n", once);
 			// garmin uploading in response to sendack3
@@ -981,55 +978,6 @@ chevent(uchar chan, uchar event)
 					exit(1);
 				}
 			}
-			if (last) {
-				nw = write(outfd, blast, blsize);
-				if (nw != blsize) {
-					fprintf(stderr, "data write failed fd %d %d\n", outfd, nw);
-					perror("write");
-					exit(1);
-				}
-				close(outfd);
-				downloadfinished = 1;
-			}
-		} else if (0 && last) {
-			if (dbg) {
-				fprintf(stderr, "auth response: ");
-				for (i = 0; i < blsize; i++)
-					fprintf(stderr, "%02x", cbuf[i]);
-				fprintf(stderr, "\n");
-			}
-			if (blast[10] == 2) {
-				fprintf(stderr, "authentication failed\n");
-				exit(1);
-			}
-		} else if (last) {
-			fprintf(stderr, "data in state xx: ");
-			int i;
-			for (i = 0; i < blsize; i++)
-				fprintf(stderr, "%02x", blast[i]);
-			fprintf(stderr, "\n");
-			sentcmd = 1000;
-			switch (sentcmd) {
-			case 1000:
-				break;
-			case 0:
-				sentcmd++;
-				//ANT_SendBurstTransferA(chan, getgpsver, strlen(getgpsver)/16);
-				break;
-			case 999:
-				printf("finished\n");
-				exit(1);
-			default:
-				sleep(1);
-				sentcmd = 1;
-				//printf("sending command %d %s\n", sentcmd-1, cmds[sentcmd-1]);
-				//ANT_SendBurstTransferA(chan, cmds[sentcmd-1],
-				//	strlen(cmds[sentcmd-1])/16);
-				sentcmd++;
-				//if(!strcmp(cmds[sentcmd-1], "END"))
-				//	sentcmd = 999;
-				break;
-			}
 		}
 		if (dbg) printf("continuing after burst\n");
 		break;
@@ -1040,7 +988,6 @@ chevent(uchar chan, uchar event)
 uchar
 revent(uchar chan, uchar event)
 {
-	struct ack_msg ack;
 	int i;
 
 	if (dbg) printf("revent %02x %02x\n", chan, event);
@@ -1101,7 +1048,7 @@ revent(uchar chan, uchar event)
 	return 1;
 }
 
-main(int ac, char *av[])
+int main(int ac, char *av[])
 {
 	int devnum = 0;
 	int chan = 0;
@@ -1177,7 +1124,7 @@ main(int ac, char *av[])
 
 	if ((!passive && !authfile) || ac)
 		usage();
-		
+
 	if (!ANT_Init(devnum, 0)) { // should be 115200 but doesn't fit into a short
 		fprintf(stderr, "open dev %d failed\n", devnum);
 		exit(1);
@@ -1201,3 +1148,4 @@ main(int ac, char *av[])
 	for(;;)
 		sleep(10);
 }
+/* vim: set shiftwidth=8 softtabstop=0: */

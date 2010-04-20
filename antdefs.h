@@ -1,5 +1,8 @@
 // copyright 2008-2009 paul@ant.sbrk.co.uk. released under GPLv3
 // vers 0.6t
+
+#ifndef __ANTDEFS_H__
+#define __ANTDEFS_H__
 typedef unsigned char uchar;
 typedef uchar (*RESPONSE_FUNC)(uchar chan, uchar msgid);
 typedef uchar (*CHANNEL_EVENT_FUNC)(uchar chan, uchar event);
@@ -41,4 +44,5 @@ typedef uchar (*CHANNEL_EVENT_FUNC)(uchar chan, uchar event);
 #define RESPONSE_NO_ERROR		0x00
 #define EVENT_RX_FAIL			0x02
 
+#endif
 /* vim: se sw=8 ts=8: */

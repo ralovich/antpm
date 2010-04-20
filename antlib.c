@@ -31,7 +31,6 @@
 static int fd = -1;
 static int dbg = 0;
 static pthread_t commthread;;
-static int commenabled = 1;
 
 static RESPONSE_FUNC rfn = 0;
 static uchar *rbufp;
@@ -100,27 +99,7 @@ msg_send3(uchar mesg, uchar data1, uchar data2, uchar data3)
 	return msg_send(mesg, buf, 3);
 }
 
-void *commfn(void* arg)
-{
-	fd_set readfds, writefds, exceptfds;
-	int ready;
-	struct timeval to;
-
-	for(;;) {
-		FD_ZERO(&readfds);
-		FD_ZERO(&writefds);
-		FD_ZERO(&exceptfds);
-		FD_SET(fd, &readfds);
-		to.tv_sec = 1;
-		to.tv_usec = 0;
-		ready = select(fd+1, &readfds, &writefds, &exceptfds, &to);
-		if (ready) {
-			get_data(fd);
-		}
-	}
-}
-
-get_data(int fd)
+void get_data(int fd)
 {
 	static uchar buf[500];
 	static int bufc = 0;
@@ -384,6 +363,26 @@ get_data(int fd)
 		bufc = 0;
 }
 
+void *commfn(void* arg)
+{
+	fd_set readfds, writefds, exceptfds;
+	int ready;
+	struct timeval to;
+
+	for(;;) {
+		FD_ZERO(&readfds);
+		FD_ZERO(&writefds);
+		FD_ZERO(&exceptfds);
+		FD_SET(fd, &readfds);
+		to.tv_sec = 1;
+		to.tv_usec = 0;
+		ready = select(fd+1, &readfds, &writefds, &exceptfds, &to);
+		if (ready) {
+			get_data(fd);
+		}
+	}
+}
+
 uchar
 ANT_ResetSystem(void)
 {
@@ -453,7 +452,7 @@ ANT_SetNetworkKeya(uchar net, uchar *key)
 	uchar buf[9];
 	int i;
 
-	if (strlen(key) != 16) {
+	if (strlen((char*)key) != 16) {
 		fprintf(stderr, "Bad key length %s\n", key);
 		return 0;
 	}
@@ -467,7 +466,6 @@ uchar
 ANT_SetNetworkKey(uchar net, uchar *key)
 {
 	uchar buf[9];
-	int i;
 
 	buf[0] = net;
 	memcpy(buf+1, key, 8);
@@ -536,7 +534,7 @@ ANT_SendAcknowledgedDataA(uchar chan, uchar *data) // ascii version
 	uchar buf[9];
 	int i;
 
-	if (strlen(data) != 16) {
+	if (strlen((char*)data) != 16) {
 		fprintf(stderr, "Bad data length %s\n", data);
 		return 0;
 	}
@@ -550,7 +548,6 @@ uchar
 ANT_SendAcknowledgedData(uchar chan, uchar *data)
 {
 	uchar buf[9];
-	int i;
 
 	buf[0] = chan;
 	memcpy(buf+1, data, 8);
@@ -566,7 +563,7 @@ ANT_SendBurstTransferA(uchar chan, uchar *data, ushort numpkts)
 	int seq = 0;
 
 	if (dbg) fprintf(stderr, "numpkts %d data %s\n", numpkts, data);
-	if (strlen(data) != 16*numpkts) {
+	if (strlen((char*)data) != 16*numpkts) {
 		fprintf(stderr, "Bad data length %s numpkts %d\n", data, numpkts);
 		return 0;
 	}
@@ -585,7 +582,6 @@ ushort
 ANT_SendBurstTransfer(uchar chan, uchar *data, ushort numpkts)
 {
 	uchar buf[9];
-	int i;
 	int j;
 	int seq = 0;
 

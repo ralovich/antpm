@@ -1,4 +1,4 @@
-CFLAGS=-g -Werror
+CFLAGS=-g -Wall
 LDFLAGS=-lpthread -lm
 
 all:	gant
