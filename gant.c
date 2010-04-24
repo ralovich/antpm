@@ -21,7 +21,9 @@
 #include "antlib.h"
 #include "antdefs.h"
 
-#define XML_ERROR_CHECK if (rc < 0){fprintf(stderr, "ERROR in XML creation in line %d\n", __LINE__); exit(-1);}
+#define DEBUG_OUT(level, ...) {if (dbg && level <= dbg){fprintf(stderr, "DEBUG(%d): ", level); fprintf(stderr, __VA_ARGS__); fprintf(stderr, " in line %d.\n", __LINE__);}}
+#define ERROR_OUT(...) {fprintf(stderr, "ERROR: "); fprintf(stderr, __VA_ARGS__); fprintf(stderr, " in line %d.\n", __LINE__);}
+#define XML_ERROR_CHECK if (rc < 0){ERROR_OUT("Error in XML creation"); exit(-1);}
 
 typedef enum {
 	XML_OUTSIDE,
@@ -45,9 +47,9 @@ double round(double);
 int gottype;
 int sentauth;
 int gotwatchid;
-int nopairing;
-int nowriteauth;
-int reset;
+int nopairing = 0;
+int nowriteauth = 0;
+int reset = 0;
 int dbg = 0;
 int seenphase0 = 0;
 int lastphase;
@@ -57,15 +59,15 @@ int period = 0x1000; // garmin specific broadcast period
 int donebind = 0;
 int sentgetv;
 char *fname = "garmin";
+int garmin_epoch = 631065600;
 
 static uchar ANTSPT_KEY[] = "A8A423B9F55E63C1"; // ANT+Sport key
 
 static uchar ebuf[MESG_DATA_SIZE]; // response event data gets stored here
 static uchar cbuf[MESG_DATA_SIZE]; // channel event data gets stored here
 
-int passive;
-int semipassive;
-int verbose;
+int passive = 0;
+int verbose = 0;
 
 int downloadfinished = 0;
 int downloadstarted = 0;
@@ -115,8 +117,6 @@ uchar clientid[3][8];
 
 int authfd = -1;
 char *authfile;
-int outfd; // output file
-char *fn = "default_output_file";
 char *progname;
 
 #define BSIZE 8*10000
@@ -148,7 +148,7 @@ ground(double d)
 		l = l/10+1;
 	else
 		l = l/10;
-	sprintf(res,"%s%ld.%07ld", neg?"-":"", ival, l);
+	snprintf(res, 30, "%s%ld.%07ld", neg?"-":"", ival, l);
 	return res;
 }
 
@@ -162,8 +162,8 @@ timestamp(void)
 	gettimeofday(&tv, 0);
 	tmp = gmtime(&tv.tv_sec);
 
-	sprintf(time, "%02d:%02d:%02d.%02d",
-		tmp->tm_hour, tmp->tm_min, tmp->tm_sec, (int)tv.tv_usec/10000);
+	snprintf(time, 50, "%02d:%02d:%02d.%02d",
+		 tmp->tm_hour, tmp->tm_min, tmp->tm_sec, (int)tv.tv_usec/10000);
 	return time;
 }
 
@@ -352,37 +352,36 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 	static xml_pos xml_position = XML_OUTSIDE;
 
 
-	printf("decode %d %d %d %d\n", bloblen, pkttype, pktlen, dsize);
+	DEBUG_OUT(5, "decode %d %d %d %d", bloblen, pkttype, pktlen, dsize)
 	switch (pkttype) {
 	case 255:
 		memset(model, 0, sizeof model);
 		memcpy(model, data+doff+4, dsize-4);
 		part=data[doff]+data[doff+1]*256;
 		ver=data[doff+2]+data[doff+3]*256;
-		printf("%d Part#: %d ver: %d Name: %s\n", pkttype,
-			part, ver, model);
+		DEBUG_OUT(1, "%d Part#: %d ver: %d Name: %s", pkttype,
+			part, ver, model)
 	break;
 	case 248:
 		memset(gpsver, 0, sizeof gpsver);
 		memcpy(gpsver, data+doff, dsize);
-		printf("%d GPSver: %s\n", pkttype,
-			gpsver);
+		DEBUG_OUT(1, "%d GPSver: %s", pkttype,
+			gpsver)
 	break;
 	case 253:
-		printf("%d Unknown\n", pkttype);
+		DEBUG_OUT(1, "%d Unknown", pkttype)
 		for (i = 0; i < pktlen; i += 3)
-			printf("%d.%d.%d\n", data[doff+i], data[doff+i+1], data[doff+i+2]);
+			DEBUG_OUT(6, " -: %d.%d.%d", data[doff+i], data[doff+i+1], data[doff+i+2])
 	break;
 	case 525:
 		memset(devname, 0, sizeof devname);
 		memcpy(devname, data+doff, dsize);
-		printf("%d Devname %s\n", pkttype, devname);
+		DEBUG_OUT(1, "%d Devname: \"%s\"", pkttype, devname)
 	break;
 	case 12:
-		printf("%d xfer complete", pkttype);
+		DEBUG_OUT(5, "%d xfer complete", pkttype)
 		for (i = 0; i < pktlen; i += 2)
-			printf(" %u", data[doff+i] + data[doff+i+1]*256);
-		printf("\n");
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
 		switch (data[doff] + data[doff+1]*256) {
 		case 6:
 			// last file completed, add footer and close file
@@ -406,49 +405,45 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 	case 38:
 		unitid = data[doff] + data[doff+1]*256 +
 			data[doff+2]*256*256 + data[doff+3]*256*256*256;
-		printf("%d unitid %u\n", pkttype, unitid);
+		DEBUG_OUT(3, "%d UnitID: %u", pkttype, unitid)
 	break;
 	case 27:
 		nruns = data[doff] + data[doff+1] * 256;
-		printf("%d nruns %u\n", pkttype, nruns);
+		DEBUG_OUT(3, "%d nRuns: %u", pkttype, nruns)
 	break;
 	case 1523:
 	case 994:
 	case 1066:
-		printf("%d ints?", pkttype);
+		DEBUG_OUT(5, "%d ints?", pkttype)
 		for (i = 0; i < pktlen; i += 4)
-			printf(" %u", data[doff+i] + data[doff+i+1]*256 +
-			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256);
-		printf("\n");
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256 +
+			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
 	break;
 	case 14:
-		printf("%d time: ", pkttype);
-		printf("%02u-%02u-%u %02u:%02u:%02u\n", data[doff], data[doff+1], data[doff+2] + data[doff+3]*256,
-			data[doff+4], data[doff+6], data[doff+7]);
+		DEBUG_OUT(3, "%d Timestamp: %04u-%02u-%02u %02u:%02u:%02u", pkttype,
+		          data[doff+2] + data[doff+3]*256, data[doff+1], data[doff],
+			  data[doff+4], data[doff+6], data[doff+7])
 		break;
 	case 17:
-		printf("%d position ? ", pkttype);
+		DEBUG_OUT(5, "%d Position?", pkttype)
 		for (i = 0; i < pktlen; i += 4)
-			printf(" %u", data[doff+i] + data[doff+i+1]*256 +
-			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256);
-		printf("\n");
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256 +
+			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
 		break;
 	case 99:
-		printf("%d trackindex %u\n", pkttype, data[doff] + data[doff+1]*256);
-		printf("%d shorts?", pkttype);
+		DEBUG_OUT(3, "%d Trackindex: %u", pkttype, data[doff] + data[doff+1]*256)
+		DEBUG_OUT(5, "%d shorts?", pkttype)
 		for (i = 0; i < pktlen; i += 2)
-			printf(" %u", data[doff+i] + data[doff+i+1]*256);
-		printf("\n");
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
 		track_id = data[doff] + data[doff+1]*256;
 		break;
 	case 990:
-		printf("%d track %u lap %u-%u sport %u\n", pkttype,
+		DEBUG_OUT(4, "%d track %u lap %u-%u sport %u", pkttype,
 			data[doff] + data[doff+1]*256, data[doff+2] + data[doff+3]*256,
-			data[doff+4] + data[doff+5]*256, data[doff+6]);
-		printf("%d shorts?", pkttype);
+			data[doff+4] + data[doff+5]*256, data[doff+6])
+		DEBUG_OUT(5, "%d shorts?", pkttype)
 		for (i = 0; i < pktlen; i += 2)
-			printf(" %u", data[doff+i] + data[doff+i+1]*256);
-		printf("\n");
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
 		if (firstlap_id == -1) firstlap_id = data[doff+2] + data[doff+3]*256;
 		if (firsttrack_id == -1) firsttrack_id = data[doff] + data[doff+1]*256;
 		track = (data[doff] + data[doff+1]*256) - firsttrack_id;
@@ -456,20 +451,21 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 			firstlap_id_track[track] = data[doff+2] + data[doff+3]*256;
 			sporttyp_track[track] = data[doff+6];
 		} else {
-			printf("Error: track and lap data temporary array out of range %u!\n", track);
+			ERROR_OUT("track and lap data temporary array out of range %u!\n", track);
 		}
 		break;
 	case 1510:
-		printf("%d waypoints", pkttype);
+		DEBUG_OUT(5, "%d Waypoints", pkttype)
 		for (i = 0; i < 4 && i < pktlen; i += 4)
-			printf(" %u", data[doff+i] + data[doff+i+1]*256 +
-			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256);
-		printf("\n");
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256 +
+			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
 		// if trackpoints are split into more than one message 1510, do not add xml head again
 		if (previoustrack_id != track_id) {
+			DEBUG_OUT(3, "previoustrack_id %u track_id %u", previoustrack_id, track_id)
 			// close previous file if it is not the first track to be downloaded
 			if (previoustrack_id > -1 && tcxfile) {
 				// add xml footer and close file, the next file will be open further down
+				DEBUG_OUT(2, "Closing file")
 				print_tcx_footer(tcxfile);
 				xml_position = XML_OUTSIDE;
 				rc = xmlTextWriterEndDocument(tcxfile);
@@ -479,16 +475,16 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 			}
 			// use first lap starttime as filename
 			lap = firstlap_id_track[track_id-firsttrack_id] - firstlap_id;
-			if (dbg) printf("lap %u track_id %u firsttrack_id %u firstlap_id %u\n", lap, track_id, firsttrack_id, firstlap_id);
+			DEBUG_OUT(4, "lap %u track_id %u firsttrack_id %u firstlap_id %u", lap, track_id, firsttrack_id, firstlap_id)
 			tv_lap = lapbuf[lap][4] + lapbuf[lap][5]*256 +
 					lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
-			ttv = tv_lap + 631065600; // garmin epoch offset
+			ttv = tv_lap + garmin_epoch;
 			strftime(tbuf, sizeof tbuf, "%Y-%m-%d-%H%M%S.TCX", localtime(&ttv));
-			fprintf(stderr, "DEBUG: Open file %s\n", tbuf);
+			DEBUG_OUT(1, "Open file %s\n", tbuf)
 			// open file and start with header of xml file
 			tcxfile = xmlNewTextWriterFilename(tbuf, 0);
 			if (tcxfile == NULL) {
-				fprintf(stderr, "ERROR in XML creation in line %d\n", __LINE__);
+				ERROR_OUT("Error in XML creation");
 				exit(-1);
 			}
 			print_tcx_header(tcxfile);
@@ -499,9 +495,10 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				data[doff+i+10]*256*256 + data[doff+i+11]*256*256*256);
 			tv_lap = lapbuf[lap][4] + lapbuf[lap][5]*256 +
 				lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
-			fprintf(stderr, "DEBUG: tv %u tv_lap %u lap %u track_id %u firsttrack_id %u firstlap_id %u lastlap %u firstlap_id_track[] %u\n", tv, tv_lap, lap, track_id, firsttrack_id, firstlap_id, lastlap, firstlap_id_track[track_id-firsttrack_id]);
+			DEBUG_OUT(4, "tv %u tv_lap %u lap %u track_id %u firsttrack_id %u firstlap_id %u lastlap %u firstlap_id_track[] %u",
+				  tv, tv_lap, lap, track_id, firsttrack_id, firstlap_id, lastlap, firstlap_id_track[track_id-firsttrack_id])
 			if ((tv > tv_lap || (tv == tv_lap && lap == (firstlap_id_track[track_id-firsttrack_id] - firstlap_id))) && lap <= lastlap) {
-				ttv = tv_lap + 631065600; // garmin epoch offset
+				ttv = tv_lap + garmin_epoch;
 				strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&ttv));
 				tsec = (lapbuf[lap][8] + lapbuf[lap][9]*256 +
 					lapbuf[lap][10]*256*256 + lapbuf[lap][11]*256*256*256);
@@ -610,7 +607,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				xml_position++;
 				lap++;
 				// if the previous trackpoint has same second as lap time display the trackpoint again
-				if (dbg) printf("i %u tv %d tv_lap %d tv_previous %d\n", i, tv, tv_lap, tv_previous);
+				DEBUG_OUT(4, "i %u tv %d tv_lap %d tv_previous %d", i, tv, tv_lap, tv_previous)
 				if (tv_previous == tv_lap) {
 					i -= 24;
 					tv = tv_previous;
@@ -618,10 +615,10 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				track_pause = 0;
 			} // end of if (tv >= tv_lap && lap <= lastlap)
 			if (xml_position != XML_IN_Track) {
-				fprintf(stderr, "ERROR: Need to write trackpoint but I am not in active track (Current: %d)\n", xml_position);
+				ERROR_OUT("Need to write trackpoint but I am not in active track (Current: %d)", xml_position);
 				continue;
 			}
-			ttv = tv+631065600; // garmin epoch offset
+			ttv = tv + garmin_epoch;
 			tmp = gmtime(&ttv);
 			strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", tmp);  // format for printing
 			memcpy((void *)&alt, data+doff+i+12, 4);
@@ -634,8 +631,8 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 			cad = data[doff+i+21];
 			u1 = data[doff+i+22];
 			u2 = data[doff+i+23];
-			if (dbg) printf("lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %d %s alt %f dist %f %02x %02x%02x%02x%02x\n", lat, lon,
-				hr, cad, u1, u2, tv, tbuf, alt, dist, data[doff+i+3], data[doff+i+16], data[doff+i+17], data[doff+i+18], data[doff+i+19]);
+			DEBUG_OUT(4, "lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %d %s alt %f dist %f %02x %02x%02x%02x%02x", lat, lon,
+				hr, cad, u1, u2, tv, tbuf, alt, dist, data[doff+i+3], data[doff+i+16], data[doff+i+17], data[doff+i+18], data[doff+i+19])
 			// track pause only if following trackpoint is aswell 'timemarker' with utopic distance
 			if (track_pause && dist > (float)40000000) {
 				rc = xmlTextWriterEndElement(tcxfile); /* Track */
@@ -716,7 +713,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 			// maybe if we recieve utopic position and distance this tells pause in the run (stop and go) if not begin or end of lap
 			if (dist > (float)40000000 && track_pause == 0) {
 				track_pause = 1;
-				if (dbg) printf("track pause (stop and go)\n");
+				DEBUG_OUT(2, "Track pause (stop and go)")
 			} else {
 				track_pause = 0;
 			}
@@ -725,8 +722,8 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 		previoustrack_id = track_id;
 	break;
 	case 149:
-		printf("%d Lap data id: %u %u\n", pkttype,
-			data[doff] + data[doff+1]*256, data[doff+2] + data[doff+3]*256);
+		DEBUG_OUT(3, "%d Lap data id: %u %u", pkttype,
+			data[doff] + data[doff+1]*256, data[doff+2] + data[doff+3]*256)
 		if (lap < MAXLAPS) {
 			memcpy((void *)&lapbuf[lap][0], data+doff, 48);
 			lastlap = lap;
@@ -736,19 +733,17 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 	case 247:
 		memset(modelname, 0, sizeof modelname);
 		memcpy(modelname, data+doff+88, dsize-88);
-		printf("%d Device name %s\n", pkttype, modelname);
+		DEBUG_OUT(1, "%d Device name \"%s\"\n", pkttype, modelname)
 	break;
 	default:
-		printf("don't know how to decode packet type %d\n", pkttype);
+		DEBUG_OUT(1, "Don't know how to decode packet type %d", pkttype)
 		for (i = doff; i < dsize && i < doff+pktlen; i++)
-			printf("%02x", data[i]);
-		printf("\n");
+			DEBUG_OUT(6, " -: %02x", data[i])
 		for (i = doff; i < dsize && i < doff+pktlen; i++)
 			if (isprint(data[i]))
-				printf("%c", data[i]);
+				DEBUG_OUT(6, " --: %c", data[i])
 			else
-				printf(".");
-		printf("\n");
+				DEBUG_OUT(6, " --: .")
 	}
 }
 
@@ -756,11 +751,18 @@ void
 usage(void)
 {
 	fprintf(stderr, "Usage: %s -a authfile\n"
-		"[ -o outfile ]\n"
-		"[ -d devno ]\n"
-		"[ -i id ]\n"
-		"[ -m mydev ]\n"
-		"[ -p ]\n",
+	        "       [ -a authfile ] Authfile (default ~/.gant)\n"
+		"       [ -f name ] (default garmin)\n"
+		"       [ -d devno ] Device no. (default 0)\n"
+		"       [ -i id ] ID for pairing (default random)\n"
+		"       [ -m mydev ] (default 0)\n"
+		"       [ -p ] Passive\n"
+		"       [ -v ] Verbose\n"
+		"       [ -D level ] Debug\n"
+		"       [ -r ] Reset the device\n"
+		"       [ -n ] Do not write auth file\n"
+		"       [ -z ] Do not pair\n"
+		"       [ -h ] This help\n",
 		progname
 	);
 	exit(1);
@@ -778,7 +780,7 @@ chevent(uchar chan, uchar event)
 	uint id;
 	int i;
 	uint cid;
-	if (dbg) printf("chevent %02x %02x\n", chan, event);
+	DEBUG_OUT(5, "chevent %02x %02x", chan, event)
 
 	if (event == EVENT_RX_BROADCAST) {
 		status = cbuf[1] & 0xd7;
@@ -788,19 +790,17 @@ chevent(uchar chan, uchar event)
 	cid = cbuf[4]+cbuf[5]*256+cbuf[6]*256*256+cbuf[7]*256*256*256;
 	memcpy((void *)&id, cbuf+4, 4);
 
-	if (dbg)
-		fprintf(stderr, "cid %08x myid %08x\n", cid, myid);
+	DEBUG_OUT(6, "cid %08x myid %08x", cid, myid)
 	if (dbg && event != EVENT_RX_BURST_PACKET) {
-		fprintf(stderr, "chan %d event %02x channel open: ", chan, event);
+		DEBUG_OUT(5, "chan %d event %02x channel open: ", chan, event)
 		for (i = 0; i < 8; i++)
-			fprintf(stderr, "%02x", cbuf[i]);
-		fprintf(stderr, "\n");
+			DEBUG_OUT(6, " -: %02x", cbuf[i])
 	}
 
 	switch (event) {
 	case EVENT_RX_BROADCAST:
 		lastphase = phase; // store the last phase we see the watch broadcast
-		if (dbg) printf("lastphase %d\n", lastphase);
+		DEBUG_OUT(3, "Lastphase %d", lastphase)
 		if (!pairing && !nopairing)
 			pairing = cbuf[1] & 8;
 		if (!gottype) {
@@ -808,40 +808,39 @@ chevent(uchar chan, uchar event)
 			isa50 = cbuf[1] & 4;
 			isa405 = cbuf[1] & 1;
 			if ((isa50 && isa405) || (!isa50 && !isa405)) {
-				fprintf(stderr, "50 %d and 405 %d\n", isa50, isa405);
+				ERROR_OUT("50 %d and 405 %d", isa50, isa405);
 				exit(1);
 			}
 		}
 		if (verbose) {
 			switch (phase) {
 			case 0:
-				fprintf(stderr, "%s BC0 %02x %d %d %d PID %d %d %d %c%c\n",
+				DEBUG_OUT(4, "%s BC0 %02x %d %d %d PID %d %d %d %c%c",
 					timestamp(),
 					cbuf[0], cbuf[1] & 0xd7, cbuf[2], cbuf[3],
 					cbuf[4]+cbuf[5]*256, cbuf[6], cbuf[7],
 					(cbuf[1] & 0x20) ? 'N' : ' ', (cbuf[1] & 0x08) ? 'P' : ' '
-				);
+				)
 				break;
 			case 1:
-				fprintf(stderr, "%s BC1 %02x %d %d %d CID %08x %c%c\n",
+				DEBUG_OUT(4, "%s BC1 %02x %d %d %d CID %08x %c%c",
 					timestamp(),
 					cbuf[0], cbuf[1] & 0xd7, cbuf[2], cbuf[3], cid,
 					(cbuf[1] & 0x20) ? 'N' : ' ', (cbuf[1] & 0x08) ? 'P' : ' '
-				);
+				)
 				break;
-				fprintf(stderr, "%s BCX %02x %d %d %d PID %d %d %d %c%c\n",
+				DEBUG_OUT(4, "%s BCX %02x %d %d %d PID %d %d %d %c%c",
 					timestamp(),
 					cbuf[0], cbuf[1] & 0xd7, cbuf[2], cbuf[3],
 					cbuf[4]+cbuf[5]*256, cbuf[6], cbuf[7],
 					(cbuf[1] & 0x20) ? 'N' : ' ', (cbuf[1] & 0x08) ? 'P' : ' '
-				);
+				)
 			default:
 				break;
 			}
 		}
 
-		if (dbg)
-			printf("watch status %02x stage %d id %08x\n", status, phase, id);
+		DEBUG_OUT(1, "Watch status %02x stage %d id %08x", status, phase, id)
 
 		if (!sentid) {
 			sentid = 1;
@@ -850,7 +849,7 @@ chevent(uchar chan, uchar event)
 
 		// if we don't see a phase 0 message first, reset the watch
 		if (reset || (phase != 0 && !seenphase0)) {
-			fprintf(stderr, "resetting\n");
+			DEBUG_OUT(1, "Resetting")
 			ack.code = 0x44; ack.atype = 3; ack.c1 = 0x00; ack.c2 = 0x00; ack.id = 0;
 			ANT_SendAcknowledgedData(chan, (void *)&ack); // tell garmin we're finished
 			sleep(1);
@@ -871,30 +870,30 @@ chevent(uchar chan, uchar event)
 			}
 			// phase 0 seen after reset at end of download
 			if (downloadfinished) {
-				fprintf(stderr, "finished\n");
+				DEBUG_OUT(1, "Download finished")
 				exit(0);
 			}
 			// generate a random id if pairing and user didn't specify one
 			if (pairing && !myid) {
 				myid = randno();
-				fprintf(stderr, "pairing, using id %08x\n", myid);
+				DEBUG_OUT(1, "Pairing, using id %08x", myid)
 			}
 			// need id codes from auth file if not pairing
 			// TODO: handle multiple watches
 			// BUG: myauth1 should be allowed to be 0
 			if (!pairing && !myauth1) {
 				int nr;
-				printf("reading auth data from %s\n", authfile);
+				DEBUG_OUT(1, "Reading auth data from %s", authfile)
 				authfd = open(authfile, O_RDONLY);
 				if (authfd < 0) {
 					perror(authfile);
-					fprintf(stderr, "No auth data. Need to pair first\n");
+					ERROR_OUT("No auth data. Need to pair first");
 					exit(1);
 				}
 				nr = read(authfd, authdata, 32);
 				close(authfd);
 				if (nr != 32 && nr != 24) {
-					fprintf(stderr, "bad auth file len %d != 32 or 24\n", nr);
+					ERROR_OUT("Bad auth file len %d != 32 or 24", nr);
 					exit(1);
 				}
 				// BUG: auth file not portable
@@ -902,9 +901,8 @@ chevent(uchar chan, uchar event)
 				memcpy((void *)&myauth2, authdata+20, 4);
 				memcpy((void *)&mydev, authdata+12, 4);
 				memcpy((void *)&myid, authdata+4, 4);
-				if (dbg)
-					fprintf(stderr, "dev %08x auth %08x %08x id %08x\n",
-						mydev, myauth1, myauth2, myid);
+				DEBUG_OUT(4, "dev %08x auth %08x %08x id %08x",
+					  mydev, myauth1, myauth2, myid)
 			}
 			// bind to watch
 			if (!donebind && devid) {
@@ -915,18 +913,18 @@ chevent(uchar chan, uchar event)
 				ack.id = myid;
 				ANT_SendAcknowledgedData(chan, (void *)&ack); // bind
 			} else {
-				if (dbg) printf("donebind %d devid %x\n", donebind, devid);
+				DEBUG_OUT(1, "Donebind %d devid %x", donebind, devid)
 			}
 			break;
 		case 1:
-			if (dbg) printf("case 1 %x\n", peerdev);
+			DEBUG_OUT(3, "Case 1 %x", peerdev)
 			if (peerdev) {
-				if (dbg) printf("case 1 peerdev\n");
+				DEBUG_OUT(4, " -: peerdev")
 				// if watch has sent id
 				if (mydev != 0 && peerdev != mydev) {
-					fprintf(stderr, "Don't know this device %08x != %08x\n", peerdev, mydev);
+					DEBUG_OUT(1, "Don't know this device %08x != %08x", peerdev, mydev)
 				} else if (!sentauth && !waitauth) {
-				if (dbg) printf("case 1 diffdev\n");
+					DEBUG_OUT(4, " -: diffdev")
 					assert(sizeof auth == AUTHSIZE);
 					auth.code = 0x44; auth.atype = 4; auth.phase = 3; auth.u1 = 8;
 					auth.id = myid; auth.auth1 = myauth1; auth.auth2 = myauth2;
@@ -935,10 +933,10 @@ chevent(uchar chan, uchar event)
 					ANT_SendBurstTransfer(chan, (void *)&auth, (sizeof auth)/8); // send our auth data
 				}
 			}
-			if (dbg) printf("case 1 cid %x myid %x\n", cid, myid);
+			DEBUG_OUT(4, " -: cid %x myid %x", cid, myid)
 			if (!sentack2 && cid == myid && !waitauth) {
 				sentack2 = 1;
-				if (dbg) printf("sending ack2\n");
+				DEBUG_OUT(4, " -: sending ack2")
 				// if it did bind to me before someone else
 				ack.code = 0x44; ack.atype = 4; ack.c1 = 0x01; ack.c2 = 0x00;
 				ack.id = myid;
@@ -949,12 +947,12 @@ chevent(uchar chan, uchar event)
 			// successfully authenticated
 			if (!downloadstarted) {
 				downloadstarted = 1;
-				if (dbg) printf("starting download\n");
+				DEBUG_OUT(1, "Starting download")
 				ack.code = 0x44; ack.atype = 6; ack.c1 = 0x01; ack.c2 = 0x00; ack.id = 0;
 				//ANT_SendAcknowledgedData(chan, (void *)&ack); // tell garmin to start upload
 			}
 			if (downloadfinished) {
-				if (dbg) printf("finished download\n");
+				DEBUG_OUT(1, "Finished download")
 				ack.code = 0x44; ack.atype = 3; ack.c1 = 0x00; ack.c2 = 0x00; ack.id = 0;
 				if (!passive) ANT_SendAcknowledgedData(chan, (void *)&ack); // tell garmin we're finished
 			}
@@ -965,7 +963,7 @@ chevent(uchar chan, uchar event)
 				printf("Please press \"View\" on watch to confirm pairing\n");
 				waitauth = 2; // next burst data is auth data
 			} else {
-				if (dbg) printf("not sure why in phase 3\n");
+				DEBUG_OUT(1, "Not sure why in phase 3")
 				if (!sentgetv) {
 					sentgetv = 1;
 					//ANT_SendBurstTransferA(chan, getversion, strlen(getversion)/16);
@@ -973,30 +971,28 @@ chevent(uchar chan, uchar event)
 			}
 			break;
 		default:
-			if (dbg) fprintf(stderr, "Unknown phase %d\n", phase);
+			DEBUG_OUT(1, "Unknown phase %d", phase)
 			break;
 		}
 		break;
 	case EVENT_RX_BURST_PACKET:
 		// now handled in coalesced burst below
-		if (dbg) printf("burst\n");
+		DEBUG_OUT(5, "Burst")
 		break;
 	case EVENT_RX_FAKE_BURST:
-		if (dbg) printf("rxfake burst pairing %d blast %ld waitauth %d\n",
-			pairing, (long)blast, waitauth);
+		DEBUG_OUT(2, "rxfake burst pairing %d blast %ld waitauth %d",
+			  pairing, (long)blast, waitauth)
 		blsize = *(int *)(cbuf+4);
 		memcpy(&blast, cbuf+8, 4);
 		if (dbg) {
-			printf("fake burst %d %lx ", blsize, (long)blast);
+			DEBUG_OUT(2, "Fake burst %d %lx", blsize, (long)blast)
 			for (i = 0; i < blsize && i < 64; i++)
-				printf("%02x", blast[i]);
-			printf("\n");
+				DEBUG_OUT(4, " -: %02x", blast[i])
 			for (i = 0; i < blsize; i++)
 				if (isprint(blast[i]))
-					printf("%c", blast[i]);
+					DEBUG_OUT(6, " --: %c", blast[i])
 				else
-					printf(".");
-			printf("\n");
+					DEBUG_OUT(6, " --: .")
 		}
 		if (sentauth) {
 			static int nacksent = 0;
@@ -1007,47 +1003,46 @@ chevent(uchar chan, uchar event)
 			ushort pkttype = blast[16]+256*blast[17];
 			ushort pktlen = blast[18]+256*blast[19];
 			if (bloblen == 0) {
-				if (dbg) printf("bloblen %d, get next data\n", bloblen);
+				DEBUG_OUT(2, "bloblen %d, get next data", bloblen)
 				// request next set of data
 				ackdata = acks[nacksent++];
 				if (!strcmp(ackdata, "")) { // finished
-					printf("acks finished, resetting\n");
+					DEBUG_OUT(2, "ACKs finished, resetting")
 					ack.code = 0x44; ack.atype = 3; ack.c1 = 0x00;
 					ack.c2 = 0x00; ack.id = 0;
 					ANT_SendAcknowledgedData(chan, (void *)&ack); // go to idle
 					sleep(1);
 					exit(1);
 				}
-				if (dbg) printf("got type 0, sending ack %s\n", ackdata);
-				sprintf(ackpkt, "440dffff00000000%s", ackdata);
+				DEBUG_OUT(2, "Got type 0, sending ACK %s", ackdata)
+				snprintf(ackpkt, 100, "440dffff00000000%s", ackdata);
 			} else if (bloblen == 65535) {
 				// repeat last ack
-				if (dbg) printf("repeating ack %s\n", ackpkt);
+				DEBUG_OUT(2, "Repeating ACK %s", ackpkt)
 				ANT_SendBurstTransferA(chan, (uchar*)ackpkt, strlen(ackpkt)/16);
 			} else {
-				if (dbg) printf("non-0 bloblen %d\n", bloblen);
+				DEBUG_OUT(2, "Non-0 bloblen %d", bloblen)
 				decode(bloblen, pkttype, pktlen, blsize, blast);
-				sprintf(ackpkt, "440dffff0000000006000200%02x%02x0000", pkttype%256, pkttype/256);
+				snprintf(ackpkt, 100, "440dffff0000000006000200%02x%02x0000", pkttype%256, pkttype/256);
 			}
-			if (dbg) printf("received pkttype %d len %d\n", pkttype, pktlen);
-			if (dbg) printf("acking %s\n", ackpkt);
+			DEBUG_OUT(1, "Received pkttype %d len %d", pkttype, pktlen)
+			DEBUG_OUT(2, "Acking %s", ackpkt)
 			ANT_SendBurstTransferA(chan, (uchar*)ackpkt, strlen(ackpkt)/16);
 		} else if (!nopairing && pairing && blast) {
 			memcpy(&peerdev, blast+12, 4);
-			if (dbg)
-				printf("watch id %08x waitauth %d\n", peerdev, waitauth);
+			DEBUG_OUT(1, "Watch id %08x waitauth %d", peerdev, waitauth)
 			if (mydev != 0 && peerdev != mydev) {
-				fprintf(stderr, "Don't know this device %08x != %08x\n", peerdev, mydev);
+				ERROR_OUT("Don't know this device %08x != %08x", peerdev, mydev);
 				exit(1);
 			}
 			if (waitauth == 2) {
 				int nw;
 				// should be receiving auth data
 				if (nowriteauth) {
-					printf("Not overwriting auth data\n");
+					ERROR_OUT("Not overwriting auth data");
 					exit(1);
 				}
-				printf("storing auth data in %s\n", authfile);
+				DEBUG_OUT(1, "Storing auth data in %s", authfile)
 				authfd = open(authfile, O_WRONLY|O_CREAT, 0644);
 				if (authfd < 0) {
 					perror(authfile);
@@ -1055,7 +1050,7 @@ chevent(uchar chan, uchar event)
 				}
 				nw = write(authfd, blast, blsize);
 				if (nw != blsize) {
-					fprintf(stderr, "auth write failed fd %d %d\n", authfd, nw);
+					ERROR_OUT("Auth write failed fd %d %d", authfd, nw);
 					perror("write");
 					exit(1);
 				}
@@ -1073,9 +1068,9 @@ chevent(uchar chan, uchar event)
 					//sprintf(pair.devname, "%u", peerdev);
 					strcpy(pair.devname, fname);
 				//else
-				//	fprintf(stderr, "pair dev name too large %08x \"%d\"\n", peerdev, peerdev);
+				//	DEBUG_OUT(1, "Pair dev name too large %08x \"%d\"\n", peerdev, peerdev)
 				pair.u1 = strlen(pair.devname);
-				printf("sending pair data for dev %s\n", pair.devname);
+				DEBUG_OUT(1, "Sending pair data for dev %s", pair.devname)
 				waitauth = 1;
 				if (isa405 && pairing) {
 					// go straight to storing auth data
@@ -1083,7 +1078,7 @@ chevent(uchar chan, uchar event)
 				}
 				ANT_SendBurstTransfer(chan, (void *)&pair, (sizeof pair)/8) ; // send pair data
 			} else {
-				if (dbg) printf("not pairing\n");
+				DEBUG_OUT(1, "Not pairing")
 			}
 		} else if (!gotwatchid && (lastphase == 1)) {
 			static int once = 0;
@@ -1091,37 +1086,28 @@ chevent(uchar chan, uchar event)
 			// garmin sending authentication/identification data
 			if (!once) {
 				once = 1;
-				if (dbg)
-					fprintf(stderr, "id data: ");
+				DEBUG_OUT(3, "ID data:")
 			}
 			if (dbg)
 				for (i = 0; i < blsize; i++)
-					fprintf(stderr, "%02x", blast[i]);
-			if (dbg)
-					fprintf(stderr, "\n");
+					DEBUG_OUT(4, " -: %02x", blast[i])
 			memcpy(&peerdev, blast+12, 4);
-			if (dbg)
-				printf("watch id %08x\n", peerdev);
+			DEBUG_OUT(1, "watch id %08x", peerdev)
 			if (mydev != 0 && peerdev != mydev) {
-				fprintf(stderr, "Don't know this device %08x != %08x\n", peerdev, mydev);
+				ERROR_OUT("Don't know this device %08x != %08x", peerdev, mydev);
 				exit(1);
 			}
 		} else if (lastphase == 2) {
 			static int once = 0;
-			printf("once %d\n", once);
+			DEBUG_OUT(2, "Once %d", once)
 			// garmin uploading in response to sendack3
 			// in this state we're receiving the workout data
 			if (!once) {
-				printf("receiving\n");
+				DEBUG_OUT(2, "Receiving")
 				once = 1;
-				outfd = open(fn, O_WRONLY|O_CREAT, 0644);
-				if (outfd < 0) {
-					perror(fn);
-					exit(1);
-				}
 			}
 		}
-		if (dbg) printf("continuing after burst\n");
+		DEBUG_OUT(1, "Continuing after burst")
 		break;
 	}
 	return 1;
@@ -1132,13 +1118,13 @@ revent(uchar chan, uchar event)
 {
 	int i;
 
-	if (dbg) printf("revent %02x %02x\n", chan, event);
+	DEBUG_OUT(5, "Revent: %02x %02x", chan, event)
 	switch (event) {
 	case EVENT_TRANSFER_TX_COMPLETED:
-		if (dbg) printf("Transfer complete %02x\n", ebuf[1]);
+		DEBUG_OUT(4, "Transfer complete: %02x", ebuf[1])
 		break;
 	case INVALID_MESSAGE:
-		printf("Invalid message %02x\n", ebuf[1]);
+		DEBUG_OUT(4, "Invalid message: %02x", ebuf[1])
 		break;
 	case RESPONSE_NO_ERROR:
 		switch (ebuf[1]) {
@@ -1146,39 +1132,35 @@ revent(uchar chan, uchar event)
 			ANT_AssignChannelEventFunction(chan, chevent, cbuf);
 			break;
 		case MESG_OPEN_CHANNEL_ID:
-			printf("channel open, waiting for broadcast\n");
+			DEBUG_OUT(1, "Channel open, waiting for broadcast")
 			break;
 		default:
-			if (dbg) printf("Message %02x NO_ERROR\n", ebuf[1]);
+			DEBUG_OUT(4, "Message: %02x NO_ERROR", ebuf[1])
 			break;
 		}
 		break;
 	case MESG_CHANNEL_ID_ID:
 		devid = ebuf[1]+ebuf[2]*256;
 		if (mydev == 0 || devid == mydev%65536) {
-			if (dbg)
-				printf("devid %08x myid %08x\n", devid, myid);
+			DEBUG_OUT(4, "DevID %08x myid %08x", devid, myid)
 		} else {
-			printf("Ignoring unknown device %08x, mydev %08x\n", devid, mydev);
+			DEBUG_OUT(3, "Ignoring unknown device %08x, mydev %08x", devid, mydev)
 			devid = sentid = 0; // reset
 		}
 		break;
 	case MESG_NETWORK_KEY_ID:
 	case MESG_SEARCH_WAVEFORM_ID:
 	case MESG_OPEN_CHANNEL_ID:
-		printf("response event %02x code %02x\n", event, ebuf[2]);
+		DEBUG_OUT(4, "Response event %02x code %02x", event, ebuf[2])
 		for (i = 0; i < 8; i++)
-			fprintf(stderr, "%02x", ebuf[i]);
-		fprintf(stderr, "\n");
+			DEBUG_OUT(4, " -: %02x", ebuf[i])
 		break;
 	case MESG_CAPABILITIES_ID:
-		if (dbg)
-			printf("capabilities chans %d nets %d opt %02x adv %02x\n",
-				ebuf[0], ebuf[1], ebuf[2], ebuf[3]);
+		DEBUG_OUT(4, "Capabilities chans %d nets %d opt %02x adv %02x",
+			  ebuf[0], ebuf[1], ebuf[2], ebuf[3]);
 		break;
 	case MESG_CHANNEL_STATUS_ID:
-		if (dbg)
-			printf("channel status %d\n", ebuf[1]);
+		DEBUG_OUT(4, "Channel status %d", ebuf[1])
 		break;
 	case EVENT_RX_FAIL:
 	case EVENT_TRANSFER_TX_FAILED:
@@ -1189,7 +1171,7 @@ revent(uchar chan, uchar event)
 		printf("Timeout, please make sure the device is not in standby.\n");
 		break;
 	default:
-		printf("Unhandled response event %02x\n", event);
+		DEBUG_OUT(3, "Unhandled response event %02x", event)
 		break;
 	}
 	return 1;
@@ -1218,16 +1200,13 @@ int main(int ac, char *av[])
 			sprintf(authfile, "%s/.gant", getenv("HOME"));
 	}
 	progname = av[0];
-	while ((c = getopt(ac, av, "a:o:d:i:m:PpvDrnzf:")) != -1) {
+	while ((c = getopt(ac, av, "a:f:d:i:m:pvD:rnzh")) != -1) {
 		switch(c) {
 			case 'a':
 				authfile = optarg;
 				break;
 			case 'f':
 				fname = optarg;
-				break;
-			case 'o':
-				fn = optarg;
 				break;
 			case 'd':
 				devnum = atoi(optarg);
@@ -1240,16 +1219,12 @@ int main(int ac, char *av[])
 				break;
 			case 'p':
 				passive = 1;
-				semipassive = 0;
-				break;
-			case 'P':
-				passive = 1;
 				break;
 			case 'v':
 				verbose = 1;
 				break;
 			case 'D':
-				dbg = 1;
+				dbg = atoi(optarg);
 				break;
 			case 'r':
 				reset = 1;
@@ -1260,8 +1235,10 @@ int main(int ac, char *av[])
 			case 'z':
 				nopairing = 1;
 				break;
+			case 'h':
+				usage();
 			default:
-				fprintf(stderr, "unknown option %s\n", optarg);
+				ERROR_OUT("unknown option %s", optarg);
 				usage();
 		}
 	}
@@ -1273,7 +1250,7 @@ int main(int ac, char *av[])
 		usage();
 
 	if (!ANT_Init(devnum, 0)) { // should be 115200 but doesn't fit into a short
-		fprintf(stderr, "open dev %d failed\n", devnum);
+		ERROR_OUT("Open dev %d failed", devnum);
 		exit(1);
 	}
 	ANT_ResetSystem();
