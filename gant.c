@@ -35,6 +35,27 @@ typedef enum {
 	XML_IN_Trackpoint,
 } xml_pos;
 
+struct _activity {
+	unsigned short valid;
+	unsigned short first_lap;
+	unsigned short last_lap;
+	unsigned short sport;
+};
+
+struct _lap {
+	unsigned short valid;
+	time_t timestamp;
+	unsigned long duration;
+	float distance;
+	float max_speed;
+	unsigned short calories;
+	int hr_avg;
+	int hr_max;
+	int intensity;
+	int cadence;
+	int trigger;
+};
+
 // all version numbering according ant agent for windows 2.2.1
 char *releasetime = "Jul 30 2009, 17:42:56";
 uint majorrelease = 2;
@@ -59,7 +80,7 @@ int period = 0x1000; // garmin specific broadcast period
 int donebind = 0;
 int sentgetv;
 char *fname = "garmin";
-int garmin_epoch = 631065600;
+time_t garmin_epoch = 631065600;
 
 static uchar ANTSPT_KEY[] = "A8A423B9F55E63C1"; // ANT+Sport key
 
@@ -129,8 +150,7 @@ int lseq = -1;
 
 /* round a float as garmin does it! */
 /* shoot me for writing this! */
-char *
-ground(double d)
+char * ground(double d)
 {
 	int neg = 0;
 	static char res[30];
@@ -152,8 +172,7 @@ ground(double d)
 	return res;
 }
 
-char *
-timestamp(void)
+char * timestamp(void)
 {
 	struct timeval tv;
 	static char time[50];
@@ -167,8 +186,7 @@ timestamp(void)
 	return time;
 }
 
-uint
-randno(void)
+uint randno(void)
 {
 	uint r;
 
@@ -180,8 +198,7 @@ randno(void)
 	return r;
 }
 
-void
-print_tcx_header(xmlTextWriterPtr tcxfile)
+void print_tcx_header(xmlTextWriterPtr tcxfile)
 {
 	int rc;
 
@@ -202,8 +219,7 @@ print_tcx_header(xmlTextWriterPtr tcxfile)
 	return;
 }
 
-void
-print_tcx_footer(xmlTextWriterPtr tcxfile)
+void print_tcx_footer(xmlTextWriterPtr tcxfile)
 {
 	int rc;
 
@@ -310,17 +326,12 @@ struct pair_msg {
 #define AUTHSIZE 24 // ditto
 #define PAIRSIZE 16
 #define MAXLAPS 256 // max of saving laps data before output with trackpoint data
-#define MAXTRACK 256 // max number of tracks to be saved per download
+#define MAXTRACK 256*256 // max number of tracks to be saved per download
 
 void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *data)
 {
 	int i;
 	int hr;
-	int hr_av;
-	int hr_max;
-	int cal;
-	float tsec;
-	float max_speed;
 	int cad;
 	int u1, u2;
 	int doff = 20;
@@ -328,62 +339,51 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 	char gpsver[256];
 	float alt;
 	float dist;
-	uint tv;
-	uint tv_previous = 0;
-	time_t ttv;
+	time_t tv;
 	char tbuf[100];
-	struct tm *tmp;
 	double lat, lon;
-	uint nruns;
-	uint tv_lap;
-	static uchar lapbuf[MAXLAPS][48];
-	static ushort lap = 0;
-	static ushort lastlap = 0;
-	static ushort track = 0;
-	static short previoustrack_id = -1;
-	static short track_id = -1;
-	static short firsttrack_id = -1;
-	static short firstlap_id = -1;
-	static ushort firstlap_id_track[MAXTRACK];
-	static uchar sporttyp_track[MAXTRACK];
+	uint ndata;
+	time_t tv_lap;
 	static xmlTextWriterPtr tcxfile = NULL;
 	static ushort track_pause = 0;
 	int rc;
 	static xml_pos xml_position = XML_OUTSIDE;
+	static struct _activity *activities = NULL;
+	static struct _lap *laps = NULL;
+	static unsigned short lap_id;
+	static unsigned short activity_id;
 
 
-	DEBUG_OUT(5, "decode %d %d %d %d", bloblen, pkttype, pktlen, dsize)
+	DEBUG_OUT(3, "decode %d %d %d %d", bloblen, pkttype, pktlen, dsize)
 	switch (pkttype) {
-	case 255:
+	case 255: // Identifier
 		memset(model, 0, sizeof model);
-		memcpy(model, data+doff+4, dsize-4);
+		memcpy(model, data+doff+4, pktlen-4);
 		part=data[doff]+data[doff+1]*256;
 		ver=data[doff+2]+data[doff+3]*256;
-		DEBUG_OUT(1, "%d Part#: %d ver: %d Name: %s", pkttype,
-			part, ver, model)
+		DEBUG_OUT(1, "Packet %d: Part#: %d Version: %d Name: %s", pkttype, part, ver, model)
 	break;
-	case 248:
+	case 248: // GPS identifier
 		memset(gpsver, 0, sizeof gpsver);
-		memcpy(gpsver, data+doff, dsize);
-		DEBUG_OUT(1, "%d GPSver: %s", pkttype,
-			gpsver)
+		memcpy(gpsver, data+doff, pktlen);
+		DEBUG_OUT(1, "Packet %d: GPS: %s", pkttype, gpsver)
 	break;
 	case 253:
-		DEBUG_OUT(1, "%d Unknown", pkttype)
+		DEBUG_OUT(1, "Packet %d: Unknown", pkttype)
 		for (i = 0; i < pktlen; i += 3)
-			DEBUG_OUT(6, " -: %d.%d.%d", data[doff+i], data[doff+i+1], data[doff+i+2])
+			DEBUG_OUT(4, " -: %d.%d.%d", data[doff+i], data[doff+i+1], data[doff+i+2])
 	break;
 	case 525:
 		memset(devname, 0, sizeof devname);
-		memcpy(devname, data+doff, dsize);
-		DEBUG_OUT(1, "%d Devname: \"%s\"", pkttype, devname)
+		memcpy(devname, data+doff, pktlen);
+		DEBUG_OUT(1, "Packet %d: Devname: \"%s\"", pkttype, devname)
 	break;
 	case 12:
-		DEBUG_OUT(5, "%d xfer complete", pkttype)
+		DEBUG_OUT(1, "Packet %d: xfer complete", pkttype)
 		for (i = 0; i < pktlen; i += 2)
 			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
 		switch (data[doff] + data[doff+1]*256) {
-		case 6:
+		case 6: // Wayboint end
 			// last file completed, add footer and close file
 			if (tcxfile) {
 				print_tcx_footer(tcxfile);
@@ -394,191 +394,229 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				tcxfile = NULL;
 			}
 			break;
-		case 117:
+		case 117: // Lap informations end
 			break;
-		case 450:
+		case 450: // Track informations end
 			break;
 		default:
 			break;
 		}
 	break;
 	case 38:
-		unitid = data[doff] + data[doff+1]*256 +
-			data[doff+2]*256*256 + data[doff+3]*256*256*256;
-		DEBUG_OUT(3, "%d UnitID: %u", pkttype, unitid)
+		unitid = data[doff] + data[doff+1]*256 + data[doff+2]*256*256 + data[doff+3]*256*256*256;
+		DEBUG_OUT(1, "Packet %d: UnitID: %u", pkttype, unitid)
 	break;
-	case 27:
-		nruns = data[doff] + data[doff+1] * 256;
-		DEBUG_OUT(3, "%d nRuns: %u", pkttype, nruns)
+	case 27: // Number of following packages
+		ndata = data[doff] + data[doff+1] * 256;
+		DEBUG_OUT(2, "Packet %d: Number of following packages: %u", pkttype, ndata)
 	break;
-	case 1523:
-	case 994:
-	case 1066:
-		DEBUG_OUT(5, "%d ints?", pkttype)
+	case 1523: // Max Trackpoints (?) 10000
+	case 994: // Drei Limits (?) 200, 25, 200
+	case 1066: // 20, 200, 100, ????
+		DEBUG_OUT(1, "Packet %d: ints?", pkttype)
 		for (i = 0; i < pktlen; i += 4)
-			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256 +
-			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
+			DEBUG_OUT(4, " -: %u", data[doff+i] + data[doff+i+1]*256 + data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
 	break;
-	case 14:
-		DEBUG_OUT(3, "%d Timestamp: %04u-%02u-%02u %02u:%02u:%02u", pkttype,
+	case 14: // Current time (UTC)
+		DEBUG_OUT(1, "Packet %d: Current time: %04u-%02u-%02u %02u:%02u:%02u", pkttype,
 		          data[doff+2] + data[doff+3]*256, data[doff+1], data[doff],
 			  data[doff+4], data[doff+6], data[doff+7])
 		break;
 	case 17:
-		DEBUG_OUT(5, "%d Position?", pkttype)
+		DEBUG_OUT(1, "Packet %d: Position?", pkttype)
 		for (i = 0; i < pktlen; i += 4)
-			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256 +
-			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256 + data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
 		break;
-	case 99:
-		DEBUG_OUT(3, "%d Trackindex: %u", pkttype, data[doff] + data[doff+1]*256)
-		DEBUG_OUT(5, "%d shorts?", pkttype)
-		for (i = 0; i < pktlen; i += 2)
-			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
-		track_id = data[doff] + data[doff+1]*256;
-		break;
-	case 990:
-		DEBUG_OUT(4, "%d track %u lap %u-%u sport %u", pkttype,
-			data[doff] + data[doff+1]*256, data[doff+2] + data[doff+3]*256,
-			data[doff+4] + data[doff+5]*256, data[doff+6])
-		DEBUG_OUT(5, "%d shorts?", pkttype)
-		for (i = 0; i < pktlen; i += 2)
-			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
-		if (firstlap_id == -1) firstlap_id = data[doff+2] + data[doff+3]*256;
-		if (firsttrack_id == -1) firsttrack_id = data[doff] + data[doff+1]*256;
-		track = (data[doff] + data[doff+1]*256) - firsttrack_id;
-		if (track < MAXTRACK) {
-			firstlap_id_track[track] = data[doff+2] + data[doff+3]*256;
-			sporttyp_track[track] = data[doff+6];
-		} else {
-			ERROR_OUT("track and lap data temporary array out of range %u!\n", track);
-		}
-		break;
-	case 1510:
-		DEBUG_OUT(5, "%d Waypoints", pkttype)
-		for (i = 0; i < 4 && i < pktlen; i += 4)
-			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256 +
-			data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)
-		// if trackpoints are split into more than one message 1510, do not add xml head again
-		if (previoustrack_id != track_id) {
-			DEBUG_OUT(3, "previoustrack_id %u track_id %u", previoustrack_id, track_id)
-			// close previous file if it is not the first track to be downloaded
-			if (previoustrack_id > -1 && tcxfile) {
-				// add xml footer and close file, the next file will be open further down
-				DEBUG_OUT(2, "Closing file")
-				print_tcx_footer(tcxfile);
-				xml_position = XML_OUTSIDE;
-				rc = xmlTextWriterEndDocument(tcxfile);
-				XML_ERROR_CHECK;
-				xmlFreeTextWriter(tcxfile);
-				tcxfile = NULL;
-			}
-			// use first lap starttime as filename
-			lap = firstlap_id_track[track_id-firsttrack_id] - firstlap_id;
-			DEBUG_OUT(4, "lap %u track_id %u firsttrack_id %u firstlap_id %u", lap, track_id, firsttrack_id, firstlap_id)
-			tv_lap = lapbuf[lap][4] + lapbuf[lap][5]*256 +
-					lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
-			ttv = tv_lap + garmin_epoch;
-			strftime(tbuf, sizeof tbuf, "%Y-%m-%d-%H%M%S.TCX", localtime(&ttv));
-			DEBUG_OUT(1, "Open file %s\n", tbuf)
-			// open file and start with header of xml file
-			tcxfile = xmlNewTextWriterFilename(tbuf, 0);
-			if (tcxfile == NULL) {
-				ERROR_OUT("Error in XML creation");
+	case 990: // Activity specification
+		DEBUG_OUT(1, "Packet %d: Activity %u: laps %u-%u sport %u", pkttype,
+			data[doff] + data[doff+1]*256,
+			data[doff+2] + data[doff+3]*256,
+			data[doff+4] + data[doff+5]*256,
+			data[doff+6]);
+
+		// Initialize memory if not done before
+		if (activities == NULL)
+		{
+			activities = (struct _activity *)calloc(256*256, sizeof(struct _activity));
+			if (activities == NULL)
+			{
+				ERROR_OUT("Cannot calloc enough memory");
 				exit(-1);
 			}
-			print_tcx_header(tcxfile);
-			xml_position = XML_IN_Activities;
-		}
-		for (i = 4; i < pktlen; i += 24) {
-			tv = (data[doff+i+8] + data[doff+i+9]*256 +
-				data[doff+i+10]*256*256 + data[doff+i+11]*256*256*256);
-			tv_lap = lapbuf[lap][4] + lapbuf[lap][5]*256 +
-				lapbuf[lap][6]*256*256 + lapbuf[lap][7]*256*256*256;
-			DEBUG_OUT(4, "tv %u tv_lap %u lap %u track_id %u firsttrack_id %u firstlap_id %u lastlap %u firstlap_id_track[] %u",
-				  tv, tv_lap, lap, track_id, firsttrack_id, firstlap_id, lastlap, firstlap_id_track[track_id-firsttrack_id])
-			if ((tv > tv_lap || (tv == tv_lap && lap == (firstlap_id_track[track_id-firsttrack_id] - firstlap_id))) && lap <= lastlap) {
-				ttv = tv_lap + garmin_epoch;
-				strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&ttv));
-				tsec = (lapbuf[lap][8] + lapbuf[lap][9]*256 +
-					lapbuf[lap][10]*256*256 + lapbuf[lap][11]*256*256*256);
-				memcpy((void *)&dist, &lapbuf[lap][12], 4);
-				memcpy((void *)&max_speed, &lapbuf[lap][16], 4);
-				cal = lapbuf[lap][36] + lapbuf[lap][37]*256;
-				hr_av = lapbuf[lap][38];
-				hr_max = lapbuf[lap][39];
-				cad = lapbuf[lap][41];
-				if (lap == firstlap_id_track[track_id-firsttrack_id] - firstlap_id) {
-					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Activity");
-					XML_ERROR_CHECK;
-					xml_position++;
-					switch(sporttyp_track[track_id-firsttrack_id]) {
-						case 0: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Running"); break;
-						case 1: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Biking"); break;
-						case 2: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Other"); break;
-						default: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Notes", BAD_CAST "Unknown sport type");
-							 XML_ERROR_CHECK;
-							 rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Other");
-					}
-					XML_ERROR_CHECK;
+			memset(activities, 0x00, sizeof(struct _activity)*256*256);
+		} // if (activities == NULL)
 
-					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Id", "%s", tbuf);
-					XML_ERROR_CHECK;
-				} else {
+		activity_id = data[doff] + data[doff+1]*256;
+		activities[activity_id].first_lap = data[doff+2] + data[doff+3]*256;
+		activities[activity_id].last_lap = data[doff+4] + data[doff+5]*256;
+		activities[activity_id].sport = data[doff+6];
+		activities[activity_id].valid = 1;
+
+		// leftover (Most of!)
+		DEBUG_OUT(6, "%d shorts?", pkttype)
+		for (i = 7; i < pktlen; i += 2)
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
+
+		break;
+	case 99:
+		DEBUG_OUT(1, "Packet %d: Activity index: %u", pkttype, data[doff] + data[doff+1]*256);
+
+		// close previous file
+		if (tcxfile)
+		{
+			// add xml footer and close file, the next file will be open further down
+			DEBUG_OUT(1, "Closing file");
+			print_tcx_footer(tcxfile);
+			xml_position = XML_OUTSIDE;
+			rc = xmlTextWriterEndDocument(tcxfile);
+			XML_ERROR_CHECK;
+			xmlFreeTextWriter(tcxfile);
+			tcxfile = NULL;
+		}
+
+		activity_id = data[doff] + data[doff+1]*256;
+
+		if (laps == NULL || activities[activity_id].valid == 0 || laps[activities[activity_id].first_lap].valid == 0)
+		{
+			ERROR_OUT("Something is wrong in transfer");
+			exit(-1);
+		}
+
+		lap_id = activities[activity_id].first_lap;
+
+		// use first lap starttime as filename
+		tv_lap = laps[lap_id].timestamp;
+		strftime(tbuf, sizeof(tbuf), "%Y-%m-%d-%H%M%S.tcx", localtime(&tv_lap));
+		DEBUG_OUT(1, "Open file %s\n", tbuf);
+		// open file and start with header of xml file
+		tcxfile = xmlNewTextWriterFilename(tbuf, 0);
+		if (tcxfile == NULL) {
+			ERROR_OUT("Error in XML creation");
+			exit(-1);
+		}
+		print_tcx_header(tcxfile);
+		xml_position = XML_IN_Activities;
+
+		rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Activity");
+		XML_ERROR_CHECK;
+		xml_position++;
+		switch(activities[activity_id].sport)
+		{
+			case 0: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Running"); break;
+			case 1: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Biking"); break;
+			case 2: rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Other"); break;
+			default: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Notes", BAD_CAST "Unknown sport type");
+				 XML_ERROR_CHECK;
+				 rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "Sport", BAD_CAST "Other");
+		}
+		XML_ERROR_CHECK;
+
+		strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&tv_lap));
+		rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Id", "%s", tbuf);
+		XML_ERROR_CHECK;
+
+		// leftover (5)
+		DEBUG_OUT(6, "%d shorts?", pkttype);
+		for (i = 0; i < pktlen; i += 2)
+			DEBUG_OUT(6, " -: %u", data[doff+i] + data[doff+i+1]*256)
+
+		break;
+	case 1510:
+		DEBUG_OUT(1, "%d Track package with %u waypoints", pkttype, data[doff] + data[doff+1]*256);
+
+		// if trackpoints are split into more than one message 1510, do not add xml head again
+
+		// Do some sanity checks
+		if (activities[activity_id].valid == 0
+				|| laps[lap_id].valid == 0
+				|| lap_id < activities[activity_id].first_lap
+				|| lap_id > activities[activity_id].last_lap)
+		{
+			ERROR_OUT("Sanity check failed");
+			ERROR_OUT("Activity: %u, lap: %u", activity_id, lap_id);
+			exit(-1);
+		} // if (activities[activity_id].va...
+
+		for (i = 4; i < pktlen; i += 24)
+		{
+			tv = data[doff+i+8] + data[doff+i+9]*256 + data[doff+i+10]*256*256 + data[doff+i+11]*256*256*256 + garmin_epoch;
+
+			if (lap_id < activities[activity_id].last_lap && laps[lap_id+1].valid && tv >= laps[lap_id+1].timestamp)
+			{
+				lap_id++;
+				// Close track and lap if still open (Should ever be)
+				if (xml_position == XML_IN_Track)
+				{
 					rc = xmlTextWriterEndElement(tcxfile); /* Track */
 					XML_ERROR_CHECK;
 					xml_position--;
 					rc = xmlTextWriterEndElement(tcxfile); /* Lap */
 					XML_ERROR_CHECK;
 					xml_position--;
-				}
+				} // if (xml_position == XML_IN_Tra...
+			} // if (lap_id < activities[activi...
+
+			// New lap, handle here to only write the code once
+			if (xml_position == XML_IN_Activity)
+			{
+				strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&laps[lap_id].timestamp));
 				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Lap");
 				XML_ERROR_CHECK;
 				xml_position++;
 				rc = xmlTextWriterWriteFormatAttribute(tcxfile, BAD_CAST "StartTime", "%s", tbuf);
 				XML_ERROR_CHECK;
-				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "TotalTimeSeconds", "%s", ground(tsec/100));
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "TotalTimeSeconds", "%ld.%02ld00000", laps[lap_id].duration/100, laps[lap_id].duration%100);
 				XML_ERROR_CHECK;
-				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "DistanceMeters", "%s", ground(dist));
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "DistanceMeters", "%s", ground(laps[lap_id].distance));
 				XML_ERROR_CHECK;
-				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "MaximumSpeed", "%s", ground(max_speed));
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "MaximumSpeed", "%s", ground(laps[lap_id].max_speed));
 				XML_ERROR_CHECK;
-				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Calories", "%d", cal);
+				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Calories", "%d", laps[lap_id].calories);
 				XML_ERROR_CHECK;
-				if (hr_av > 0) {
+
+				if (laps[lap_id].hr_avg > 0)
+				{
 					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "AverageHeartRateBpm");
 					XML_ERROR_CHECK;
 					rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "HeartRateInBeatsPerMinute_t");
 					XML_ERROR_CHECK;
-					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Value", "%d", hr_av);
+					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Value", "%d", laps[lap_id].hr_avg);
 					XML_ERROR_CHECK;
 					rc = xmlTextWriterEndElement(tcxfile);
 					XML_ERROR_CHECK;
 				}
-				if (hr_max > 0) {
+				if (laps[lap_id].hr_max > 0)
+				{
 					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "MaximumHeartRateBpm");
 					XML_ERROR_CHECK;
 					rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "HeartRateInBeatsPerMinute_t");
 					XML_ERROR_CHECK;
-					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Value", "%d", hr_av);
+					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Value", "%d", laps[lap_id].hr_max);
 					XML_ERROR_CHECK;
 					rc = xmlTextWriterEndElement(tcxfile);
 					XML_ERROR_CHECK;
 				}
-				switch (lapbuf[lap][40]) {
+
+				switch (laps[lap_id].intensity)
+				{
 					case 0: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Intensity", BAD_CAST "Active"); break;
 					case 1: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Intensity", BAD_CAST "Resting"); break;
 					default: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "Intensity", BAD_CAST "Active");
 				}
 				XML_ERROR_CHECK;
+
 				// for bike the average cadence of this lap is here
-				if (sporttyp_track[track_id-firsttrack_id] == 1) {
-					if (cad != 255) {
-						rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Cadence", "%d", cad);
+				if (activities[activity_id].sport == 1)
+				{
+					if (laps[lap_id].cadence != 255)
+					{
+						rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Cadence", "%d", laps[lap_id].cadence);
 						XML_ERROR_CHECK;
 					}
 				}
-				switch(lapbuf[lap][42]) {
+
+				switch(laps[lap_id].trigger)
+				{
 					case 4: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "HeartRate"); break;
 					case 3: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Time"); break;
 					case 2: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Location"); break;
@@ -587,14 +625,17 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 					default: rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "TriggerMethod", BAD_CAST "Manual");
 				}
 				XML_ERROR_CHECK;
+
 				// I prefere the average run cadence here than at the end of this lap according windows ANTagent
-				if (sporttyp_track[track_id-firsttrack_id] == 0) {
-					if (cad != 255) {
+				if (activities[activity_id].sport == 0)
+				{
+					if (laps[lap_id].cadence != 255)
+					{
 						rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Extensions");
 						XML_ERROR_CHECK;
 						rc = xmlTextWriterStartElementNS(tcxfile, NULL, BAD_CAST "LX", BAD_CAST "http://www.garmin.com/xmlschemas/ActivityExtension/v2");
 						XML_ERROR_CHECK;
-						rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AvgRunCadence", "%d", cad);
+						rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AvgRunCadence", "%d", laps[lap_id].cadence);
 						XML_ERROR_CHECK;
 						rc = xmlTextWriterEndElement(tcxfile); /* LX */
 						XML_ERROR_CHECK;
@@ -605,47 +646,44 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Track");
 				XML_ERROR_CHECK;
 				xml_position++;
-				lap++;
-				// if the previous trackpoint has same second as lap time display the trackpoint again
-				DEBUG_OUT(4, "i %u tv %d tv_lap %d tv_previous %d", i, tv, tv_lap, tv_previous)
-				if (tv_previous == tv_lap) {
-					i -= 24;
-					tv = tv_previous;
-				}
+
 				track_pause = 0;
-			} // end of if (tv >= tv_lap && lap <= lastlap)
+			} // if (xml_position == XML_IN_Act...
+
 			if (xml_position != XML_IN_Track) {
 				ERROR_OUT("Need to write trackpoint but I am not in active track (Current: %d)", xml_position);
 				continue;
 			}
-			ttv = tv + garmin_epoch;
-			tmp = gmtime(&ttv);
-			strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", tmp);  // format for printing
+
+			strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&tv));
 			memcpy((void *)&alt, data+doff+i+12, 4);
 			memcpy((void *)&dist, data+doff+i+16, 4);
-			lat = (data[doff+i] + data[doff+i+1]*256 +
-				data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256)*180.0/0x80000000;
-			lon = (data[doff+i+4] + data[doff+i+5]*256 +
-				data[doff+i+6]*256*256 + data[doff+i+7]*256*256*256)*180.0/0x80000000;
+			lat = (data[doff+i] + data[doff+i+1]*256 + data[doff+i+2]*256*256 + data[doff+i+3]*256*256*256) * 180.0 / 0x80000000;
+			lon = (data[doff+i+4] + data[doff+i+5]*256 + data[doff+i+6]*256*256 + data[doff+i+7]*256*256*256) * 180.0 / 0x80000000;
 			hr = data[doff+i+20];
 			cad = data[doff+i+21];
 			u1 = data[doff+i+22];
 			u2 = data[doff+i+23];
-			DEBUG_OUT(4, "lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %d %s alt %f dist %f %02x %02x%02x%02x%02x", lat, lon,
-				hr, cad, u1, u2, tv, tbuf, alt, dist, data[doff+i+3], data[doff+i+16], data[doff+i+17], data[doff+i+18], data[doff+i+19])
+			DEBUG_OUT(2, "lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %d %s alt %f dist %f %02x %02x%02x%02x%02x", lat, lon,
+				hr, cad, u1, u2, (int)tv, tbuf, alt, dist, data[doff+i+3], data[doff+i+16], data[doff+i+17], data[doff+i+18], data[doff+i+19])
+
 			// track pause only if following trackpoint is aswell 'timemarker' with utopic distance
-			if (track_pause && dist > (float)40000000) {
+			if (track_pause && dist > (float)40000000)
+			{
 				rc = xmlTextWriterEndElement(tcxfile); /* Track */
 				XML_ERROR_CHECK;
 				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Track");
 				XML_ERROR_CHECK;
 			}
+
 			rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Trackpoint");
 			XML_ERROR_CHECK;
 			xml_position++;
 			rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Time", "%s", tbuf);
 			XML_ERROR_CHECK;
-			if (lat < 90) {
+
+			if (lat < 90)
+			{
 				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Position");
 				XML_ERROR_CHECK;
 				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "LatitudeDegrees", "%s", ground(lat));
@@ -657,12 +695,16 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AltitudeMeters", "%s", ground(alt));
 				XML_ERROR_CHECK;
 			}
+
 			// last trackpoint has utopic distance, 40000km should be enough, hack?
-			if (dist < (float)40000000) {
+			if (dist < (float)40000000)
+			{
 				rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "DistanceMeters", "%s", ground(dist));
 				XML_ERROR_CHECK;
 			}
-			if (hr > 0) {
+
+			if (hr > 0)
+			{
 				rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "HeartRateBpm");
 				XML_ERROR_CHECK;
 				rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "HeartRateInBeatsPerMinute_t");
@@ -672,17 +714,23 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				rc = xmlTextWriterEndElement(tcxfile); /* HeartRateBpm */
 				XML_ERROR_CHECK;
 			}
+
 			// for bikes the cadence is written here and for the footpod in <Extensions>, why garmin?
-			if (sporttyp_track[track_id-firsttrack_id] == 1) {
-				if (cad != 255) {
+			if (activities[activity_id].sport == 1)
+			{
+				if (cad != 255)
+				{
 					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Cadence", "%d", cad);
 					XML_ERROR_CHECK;
 				}
 			}
-			if (dist < (float)40000000) {
+
+			if (dist < (float)40000000)
+			{
 				rc = xmlTextWriterWriteElement(tcxfile, BAD_CAST "SensorState", u1 ? BAD_CAST "Present" : BAD_CAST "Absent");
 				XML_ERROR_CHECK;
-				if (u1 == 1 || cad != 255) {
+				if (u1 == 1 || cad != 255)
+				{
 					rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Extensions");
 					XML_ERROR_CHECK;
 					rc = xmlTextWriterStartElementNS(tcxfile, NULL, BAD_CAST "TPX", BAD_CAST "http://www.garmin.com/xmlschemas/ActivityExtension/v2");
@@ -690,12 +738,16 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 					rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AvgRunCadence", "%d", cad);
 					XML_ERROR_CHECK;
 					// get type of pod from data, could not figure it out, so using sporttyp of first track
-					if (sporttyp_track[track_id-firsttrack_id] == 1) {
+					if (activities[activity_id].sport == 1)
+					{
 						rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "CadenceSensor", BAD_CAST "Bike");
 						XML_ERROR_CHECK;
-					} else {
+					}
+					else
+					{
 						rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "CadenceSensor", BAD_CAST "Footpod");
-						if (cad != 255) {
+						if (cad != 255)
+						{
 							rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "RunCadence", "%d", cad);
 							XML_ERROR_CHECK;
 						}
@@ -707,34 +759,58 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar *dat
 				}
 				track_pause = 0;
 			}
+
 			rc = xmlTextWriterEndElement(tcxfile); /* Trackpoint */
 			XML_ERROR_CHECK;
 			xml_position--;
+
 			// maybe if we recieve utopic position and distance this tells pause in the run (stop and go) if not begin or end of lap
-			if (dist > (float)40000000 && track_pause == 0) {
+			if (dist > (float)40000000 && track_pause == 0)
+			{
 				track_pause = 1;
 				DEBUG_OUT(2, "Track pause (stop and go)")
-			} else {
+			}
+			else
+			{
 				track_pause = 0;
 			}
-			tv_previous = tv;
-		} // end of for (i = 4; i < pktlen; i += 24)
-		previoustrack_id = track_id;
-	break;
-	case 149:
-		DEBUG_OUT(3, "%d Lap data id: %u %u", pkttype,
-			data[doff] + data[doff+1]*256, data[doff+2] + data[doff+3]*256)
-		if (lap < MAXLAPS) {
-			memcpy((void *)&lapbuf[lap][0], data+doff, 48);
-			lastlap = lap;
-			lap++;
-		}
-	break;
-	case 247:
+		} // for (i = 4; i < pktlen; i += 2...
+		break;
+	case 149: // Lap specification
+		DEBUG_OUT(1, "%d Lap data id: %u %u", pkttype, data[doff] + data[doff+1]*256, data[doff+2] + data[doff+3]*256);
+
+		// Initialize memory if not done before
+		if (laps == NULL)
+		{
+			laps = (struct _lap *)calloc(256*256, sizeof(struct _lap));
+			if (laps == NULL)
+			{
+				ERROR_OUT("Cannot calloc enough memory");
+				exit(-1);
+			}
+			memset(laps, 0x00, sizeof(struct _lap)*256*256);
+		} // if (laps == NULL)
+
+		lap_id = data[doff] + data[doff+1]*256;
+		laps[lap_id].timestamp = data[doff+4] + data[doff+5]*256 + data[doff+6]*256*256 + data[doff+7]*256*256*256 + garmin_epoch;
+		laps[lap_id].duration = data[doff+8] + data[doff+9]*256 + data[doff+10]*256*256 + data[doff+11]*256*256*256;
+		memcpy(&laps[lap_id].distance, &data[doff+12], 4); // Dirty, but seems to work
+		memcpy(&laps[lap_id].max_speed, &data[doff+16], 4); // Dirty, but seems to work
+		laps[lap_id].calories = data[doff+36] + data[doff+37]*256;
+		laps[lap_id].hr_avg = data[doff+38];
+		laps[lap_id].hr_max = data[doff+39];
+		laps[lap_id].intensity = data[doff+40];
+		laps[lap_id].cadence = data[doff+41];
+		laps[lap_id].trigger = data[doff+42];
+
+		laps[lap_id].valid = 1;
+
+		break;
+	case 247: // Software versions
 		memset(modelname, 0, sizeof modelname);
 		memcpy(modelname, data+doff+88, dsize-88);
-		DEBUG_OUT(1, "%d Device name \"%s\"\n", pkttype, modelname)
-	break;
+		DEBUG_OUT(1, "%d Device name \"%s\"\n", pkttype, modelname);
+		break;
 	default:
 		DEBUG_OUT(1, "Don't know how to decode packet type %d", pkttype)
 		for (i = doff; i < dsize && i < doff+pktlen; i++)
@@ -980,12 +1056,12 @@ chevent(uchar chan, uchar event)
 		DEBUG_OUT(5, "Burst")
 		break;
 	case EVENT_RX_FAKE_BURST:
-		DEBUG_OUT(2, "rxfake burst pairing %d blast %ld waitauth %d",
+		DEBUG_OUT(5, "rxfake burst pairing %d blast %ld waitauth %d",
 			  pairing, (long)blast, waitauth)
 		blsize = *(int *)(cbuf+4);
 		memcpy(&blast, cbuf+8, 4);
 		if (dbg) {
-			DEBUG_OUT(2, "Fake burst %d %lx", blsize, (long)blast)
+			DEBUG_OUT(6, "Fake burst %d %lx", blsize, (long)blast)
 			for (i = 0; i < blsize && i < 64; i++)
 				DEBUG_OUT(4, " -: %02x", blast[i])
 			for (i = 0; i < blsize; i++)
