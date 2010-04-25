@@ -1,6 +1,6 @@
-// copyright 2008-2009 paul@ant.sbrk.co.uk. released under GPLv3
+// copyright 2010 Klaus@Ethgen.de. released under GPLv3
+// copyright 2008-2009 paul@ant.sbrk.co.uk
 // copyright 2009-2009 Wali
-// vers 0.6t
 #include <stdio.h>
 #include <sys/select.h>
 #include <sys/time.h>
@@ -57,7 +57,7 @@ struct _lap {
 };
 
 // all version numbering according ant agent for windows 2.2.1
-char *releasetime = "Jul 30 2009, 17:42:56";
+char *releasetime = "Apr 25 2010, 10:00:00";
 uint majorrelease = 2;
 uint minorrelease = 2;
 uint majorbuild = 7;
