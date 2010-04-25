@@ -257,6 +257,49 @@ void print_tcx_footer(xmlTextWriterPtr tcxfile)
    return;
 }
 
+void dump_data(FILE * out, void *data, size_t offset, size_t size)
+{
+   unsigned char buf[16];
+   int i, j;
+   for (i=0; i < size; i+=16)
+   {
+      memset(buf, 0, sizeof buf);
+      memcpy(buf, data + offset + i, (size-i >= 16)? 16 : (size-i));
+      fprintf(out, "0x%04x:", offset + i);
+
+      for (j=0; j < 16; j++)
+      {
+	 if (j == 8)
+	    fprintf(out, " ");
+
+	 if (i+j >= size)
+	    fprintf(out, "   ");
+	 else
+	    fprintf(out, " %02x", buf[j]);
+      } // for (j=0; j < 16; j++)
+
+      fprintf(out, " ");
+      for (j=0; j < 16; j++)
+      {
+	 if (i+j >= size)
+	    break;
+
+	 if (j == 8)
+	    fprintf(out, " ");
+
+	 if (isprint(buf[j]))
+	    fprintf(out, "%c", buf[j]);
+	 else
+	    fprintf(out, ".");
+      } // for (j=0; j < 16; j++)
+
+      fprintf(out, "\n");
+   } // for (i=0; i < size; i+=16)
+
+   return;
+} // void dump_data(void *data, siz...
+
+
 #pragma pack(1)
 struct ack_msg {
    uchar code;
@@ -336,8 +379,8 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 break;
       case 253:
 	 DEBUG_OUT(1, "Packet %d: Unknown", pkttype);
-	 for (i = 0; i < pktlen; i += 3)
-	    DEBUG_OUT(4, " -: %d.%d.%d", data[doff + i], data[doff + i + 1], data[doff + i + 2]);
+	 if (dbg >= 2)
+	    dump_data(stderr, data+doff, 0, pktlen);
 	 break;
       case 525:
 	 memset(devname, 0, sizeof devname);
@@ -345,9 +388,9 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 DEBUG_OUT(1, "Packet %d: Devname: \"%s\"", pkttype, devname);
 	 break;
       case 12:
-	 DEBUG_OUT(1, "Packet %d: xfer complete", pkttype);
-	 for (i = 0; i < pktlen; i += 2)
-	    DEBUG_OUT(6, " -: %u", data[doff + i] + data[doff + i + 1] * 256);
+	 DEBUG_OUT(1, "Packet %d: xfer complete (subtype %u)", pkttype, data[doff] + data[doff + 1] * 256);
+	 if (dbg >= 2)
+	    dump_data(stderr, data+doff, 2, pktlen-2);
 	 switch (data[doff] + data[doff + 1] * 256)
 	 {
 	    case 6:		// Wayboint end
@@ -380,17 +423,17 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
       case 1523:		// Max Trackpoints (?) 10000
       case 994:		// Drei Limits (?) 200, 25, 200
       case 1066:		// 20, 200, 100, ????
-	 DEBUG_OUT(1, "Packet %d: ints?", pkttype);
-	 for (i = 0; i < pktlen; i += 4)
-	    DEBUG_OUT(4, " -: %u", data[doff + i] + data[doff + i + 1] * 256 + data[doff + i + 2] * 256 * 256 + data[doff + i + 3] * 256 * 256 * 256);
+	 DEBUG_OUT(1, "Packet %d", pkttype);
+	 if (dbg >= 2)
+	    dump_data(stderr, data+doff, 0, pktlen);
 	 break;
       case 14:			// Current time (UTC)
 	 DEBUG_OUT(1, "Packet %d: Current time: %04u-%02u-%02u %02u:%02u:%02u", pkttype, data[doff + 2] + data[doff + 3] * 256, data[doff + 1], data[doff], data[doff + 4], data[doff + 6], data[doff + 7]);
 	 break;
       case 17:
 	 DEBUG_OUT(1, "Packet %d: Position?", pkttype);
-	 for (i = 0; i < pktlen; i += 4)
-	    DEBUG_OUT(6, " -: %u", data[doff + i] + data[doff + i + 1] * 256 + data[doff + i + 2] * 256 * 256 + data[doff + i + 3] * 256 * 256 * 256);
+	 if (dbg >= 2)
+	    dump_data(stderr, data+doff, 0, pktlen);
 	 break;
       case 990:		// Activity specification
 	 DEBUG_OUT(1, "Packet %d: Activity %u: laps %u-%u sport %u", pkttype, data[doff] + data[doff + 1] * 256, data[doff + 2] + data[doff + 3] * 256, data[doff + 4] + data[doff + 5] * 256, data[doff + 6]);
@@ -414,9 +457,8 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 activities[activity_id].valid = 1;
 
 	 // leftover (Most of!)
-	 DEBUG_OUT(6, "%d shorts?", pkttype);
-	 for (i = 7; i < pktlen; i += 2)
-	    DEBUG_OUT(6, " -: %u", data[doff + i] + data[doff + i + 1] * 256);
+	 if (dbg >= 2)
+	    dump_data(stderr, data+doff, 7, pktlen-7);
 	 break;
       case 99:
 	 DEBUG_OUT(1, "Packet %d: Activity index: %u", pkttype, data[doff] + data[doff + 1] * 256);
@@ -446,7 +488,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 // use first lap starttime as filename
 	 tv_lap = laps[lap_id].timestamp;
 	 strftime(tbuf, sizeof(tbuf), "%Y-%m-%d-%H%M%S.tcx", localtime(&tv_lap));
-	 DEBUG_OUT(1, "Open file %s\n", tbuf);
+	 DEBUG_OUT(1, "Open file %s", tbuf);
 	 // open file and start with header of xml file
 	 tcxfile = xmlNewTextWriterFilename(tbuf, 0);
 	 if (tcxfile == NULL)
@@ -480,9 +522,8 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Id", "%s", tbuf); XML_ERROR_CHECK;
 
 	 // leftover (5)
-	 DEBUG_OUT(6, "%d shorts?", pkttype);
-	 for (i = 0; i < pktlen; i += 2)
-	    DEBUG_OUT(6, " -: %u", data[doff + i] + data[doff + i + 1] * 256);
+	 if (dbg >= 2)
+	    dump_data(stderr, data+doff, 2, pktlen-2);
 	 break;
       case 1510:
 	 DEBUG_OUT(1, "%d Track package with %u waypoints", pkttype, data[doff] + data[doff + 1] * 256);
@@ -733,6 +774,12 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 
 	 laps[lap_id].valid = 1;
 
+	 if (dbg >= 2)
+	 {
+	    dump_data(stderr, data+doff, 20, 16);
+	    dump_data(stderr, data+doff, 43, pktlen-43);
+	 }
+
 	 break;
       case 247:		// Software versions
 	 memset(modelname, 0, sizeof modelname);
@@ -741,15 +788,8 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 break;
       default:
 	 DEBUG_OUT(1, "Don't know how to decode packet type %d", pkttype);
-	 for (i = doff; i < dsize && i < doff + pktlen; i++)
-	    DEBUG_OUT(6, " -: %02x", data[i]);
-	 for (i = doff; i < dsize && i < doff + pktlen; i++)
-	    if (isprint(data[i]))
-	    {
-	       DEBUG_OUT(6, " --: %c", data[i]);
-	    }
-	    else
-	       DEBUG_OUT(6, " --: .");
+	 if (dbg >= 2)
+	    dump_data(stderr, data+doff, 0, pktlen);
    }
 }
 
@@ -838,7 +878,7 @@ uchar chevent(uchar chan, uchar event)
 	    }
 	 }
 
-	 DEBUG_OUT(1, "Watch status %02x stage %d id %08x", status, phase, id);
+	 DEBUG_OUT(6, "Watch status %02x stage %d id %08x", status, phase, id);
 	 if (!sentid)
 	 {
 	    sentid = 1;
@@ -929,7 +969,7 @@ uchar chevent(uchar chan, uchar event)
 	       }
 	       else
 	       {
-		  DEBUG_OUT(1, "Donebind %d devid %x", donebind, devid);
+		  DEBUG_OUT(6, "Donebind %d devid %x", donebind, devid);
 	       }
 	       break;
 	    case 1:
