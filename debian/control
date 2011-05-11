@@ -1,0 +1,18 @@
+Source: garmin-ant-downloader
+Priority: optional
+Section: utils
+Maintainer: Debian running development group <pkg-running-devel@lists.alioth.debian.org>
+Uploaders: Christian Perrier <bubulle@debian.org> 
+Build-Depends: debhelper (>= 7.3.10), libxml2-dev
+Standards-Version: 3.9.2
+
+Package: garmin-ant-downloader
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: ANT+ information retrieval client for Garmin GPS products
+ This software uses the Garmin ANT+ proprietary USB keys and
+ communication protocol to retrieve information (such as GPS traces)
+ from some Garmin Forerunner watches such as Forerunner 405.
+ .
+ The software was originally named "gant" but renamed when packaged
+ to avoid confusion with existing Java software.

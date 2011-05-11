@@ -1,0 +1,8 @@
+#! /usr/bin/make -f
+
+override_dh_install:
+	mv gant garmin-ant-downloader
+	dh_install
+%:
+	dh $@
+

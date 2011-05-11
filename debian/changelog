@@ -1,0 +1,5 @@
+garmin-ant-downloader (0:20100425-1) UNRELEASED; urgency=low
+
+  * Initial release. Closes: #624771
+
+ -- Christian Perrier <bubulle@debian.org>  Fri, 29 Apr 2011 18:59:18 +0200
