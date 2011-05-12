@@ -1,3 +1,10 @@
+garmin-ant-downloader (0:20100425-2) UNRELEASED; urgency=low
+
+  [ Ralf Treinen ]
+  * debian/control: add Vcs-Git/Browser fields.
+
+ --
+
 garmin-ant-downloader (0:20100425-1) unstable; urgency=low
 
   * Initial release. Closes: #624771

@@ -5,6 +5,8 @@ Maintainer: Debian running development group <pkg-running-devel@lists.alioth.deb
 Uploaders: Christian Perrier <bubulle@debian.org> 
 Build-Depends: debhelper (>= 7.3.10), libxml2-dev
 Standards-Version: 3.9.2
+Vcs-Git: git://git.debian.org/git/pkg-running/garmin-ant-downloader.git
+Vcs-Browser: http://git.debian.org/?p=pkg-running/garmin-ant-downloader.git;a=summary
 
 Package: garmin-ant-downloader
 Architecture: any
