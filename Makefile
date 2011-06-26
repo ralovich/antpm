@@ -10,4 +10,4 @@ gant.o:	gant.c antdefs.h
 antlib.o: antlib.c antdefs.h
 
 clean:
-	rm *.o gant
+	-rm *.o gant
