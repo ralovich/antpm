@@ -1,7 +1,12 @@
-garmin-ant-downloader (0:20100425-2) UNRELEASED; urgency=low
+garmin-ant-downloader (0:20110626-1) UNRELEASED; urgency=low
 
   [ Ralf Treinen ]
   * debian/control: add Vcs-Git/Browser fields.
+
+  [ Christian Perrier ]
+  * New upstream "release". Fixes "FTBFS with ld --as-need"
+    Thanks to Ilya Barygin for the patch
+    Closes: #631693
 
  --
 
