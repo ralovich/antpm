@@ -8,7 +8,7 @@ garmin-ant-downloader (0:20110626-1) unstable; urgency=low
     Thanks to Ilya Barygin for the patch
     Closes: #631693
   * Drop safe-clean.patch as upstream's clean rule won't fail
-    anymor ewhen there's nothing to clean
+    anymore when there's nothing to clean
 
  -- Christian Perrier <bubulle@debian.org>  Sun, 26 Jun 2011 15:26:35 +0200
 
