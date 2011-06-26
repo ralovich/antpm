@@ -1,4 +1,4 @@
-garmin-ant-downloader (0:20110626-1) UNRELEASED; urgency=low
+garmin-ant-downloader (0:20110626-1) unstable; urgency=low
 
   [ Ralf Treinen ]
   * debian/control: add Vcs-Git/Browser fields.
@@ -7,8 +7,10 @@ garmin-ant-downloader (0:20110626-1) UNRELEASED; urgency=low
   * New upstream "release". Fixes "FTBFS with ld --as-need"
     Thanks to Ilya Barygin for the patch
     Closes: #631693
+  * Drop safe-clean.patch as upstream's clean rule won't fail
+    anymor ewhen there's nothing to clean
 
- --
+ -- Christian Perrier <bubulle@debian.org>  Sun, 26 Jun 2011 15:26:35 +0200
 
 garmin-ant-downloader (0:20100425-1) unstable; urgency=low
 
