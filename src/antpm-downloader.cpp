@@ -40,7 +40,7 @@ void
 stopIt()
 {
   stop = 1;
-  watch2.stop();
+  watch2.stopAsync();
 }
 
 #ifdef _WIN32

@@ -40,6 +40,7 @@ public:
 
   void start();
   void stop();
+  void stopAsync();
 
   const int getSMState() const;
   const char* getSMStateStr() const;

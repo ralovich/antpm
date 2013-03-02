@@ -185,6 +185,7 @@ AntFr310XT2::start()
 void AntFr310XT2::stop()
 {
   m_eventThKill = 1;
+  //m_eventTh.join();
   m_antMessenger->kill();
   if(m_serial->isOpen())
   {
@@ -194,8 +195,14 @@ void AntFr310XT2::stop()
     m_antMessenger->ANT_ResetSystem();
   }
   m_serial->close();
+  changeState(ST_ANTFS_START0);
+}
+
+void AntFr310XT2::stopAsync()
+{
   changeState(ST_ANTFS_LAST);
 }
+
 
 const int
 AntFr310XT2::getSMState() const
