@@ -71,11 +71,11 @@ struct AntFr310XT2_EventLoop
 AntFr310XT2::AntFr310XT2(bool eventLoopInBgTh)
   : m_serial(new ANTPM_SERIAL_IMPL())
   , m_antMessenger(new AntMessenger(eventLoopInBgTh))
-  , doPairing(false)
   , aplc(getConfigFolder()+std::string("libantpm_")+getDateString()+".antparse.txt")
   , clientSN(0)
   , pairedKey(0)
   , m_eventLoopInBgTh(eventLoopInBgTh)
+  , doPairing(false)
   , mode(MD_DOWNLOAD_ALL)
 {
   //boost::property_tree::ptree pt;
@@ -265,7 +265,7 @@ AntFr310XT2::handleEvents()
     m_evQue.pop(m);
     if(m.getMsgId()==MESG_RESPONSE_EVENT_ID)
     {
-      uint8_t chan=m.getPayloadRef()[0];
+      //uint8_t chan=m.getPayloadRef()[0];
       uint8_t msgId=m.getPayloadRef()[1];
       if(msgId==MESG_EVENT_ID)
       {
