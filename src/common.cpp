@@ -160,7 +160,7 @@ getConfigFolder()
 #else
   const char* e3 = getenv("USERPROFILE");
   if(e3 && strlen(e3) > 0)
-    return std::string(e3) + "/.config/" APP_NAME"/";
+    return std::string(e3) + "/.config/" APP_NAME "/";
 #endif
   else
     return "~/.config/" APP_NAME "/";
