@@ -1,0 +1,19 @@
+#!/bin/bash
+
+VER=1.0
+GIT_VER=`git log | head -1 | awk '{print $2 }'`
+OUTNAME=antpm_${VER}.orig.tar
+
+FILES=`find . -type f -name \* -print | grep -v .git`
+TMP_LIST=`mktemp`
+
+#echo $FILES
+#echo "TMP_LIST=${TMP_LIST}"
+#echo ${FILES} > ${TMP_LIST}
+#echo ${FILES} > dist-file-list
+
+#find . -type f -name \* -print | grep -v .git > scripts/dist-file-list
+
+rm -fv ${OUTNAME}.gz ${OUTNAME}.xz
+#tar -czvf ${OUTNAME}.gz -T scripts/origsrc-file-list
+tar --xz -cf ${OUTNAME}.xz -T scripts/origsrc-file-list

@@ -1,4 +1,5 @@
 #!/usr/bin/make -f
+# -*- makefile -*-
 
 # ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 #   CFLAGS += -O2
@@ -6,6 +7,20 @@
 
 export DH_VERBOSE=1
 
+NUMCPUS=$(shell grep -c '^processor' /proc/cpuinfo)
+
 %:
 	dh $@
 
+override_dh_auto_configure:
+	# echo -e "\n\n\nCMAKE\n\n\n"
+	# echo $(NUMCPUS)
+	mkdir cmake-build
+	cd cmake-build && cmake ../src -DCMAKE_INSTALL_PREFIX=/usr
+
+override_dh_auto_build:
+	cd cmake-build && $(MAKE) -j$(NUMCPUS)
+
+DESTDIR=../debian/antpm/
+override_dh_install:
+	cd cmake-build && $(MAKE) install DESTDIR=$(DESTDIR)

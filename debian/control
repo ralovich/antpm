@@ -8,7 +8,7 @@ Homepage: https://code.google.com/p/antpm/
 Vcs-Git: https://code.google.com/p/antpm/
 Vcs-Browser: https://code.google.com/p/antpm/source/browse/
 
-Package: antp
+Package: antpm
 Architecture: amd64
 Depends: ${shlibs:Depends},  ${misc:Depends}
 Description: ANT+minus implements the ANT/ANT+/ANT-FS protocols and provides tools.
