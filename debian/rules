@@ -16,7 +16,7 @@ override_dh_auto_configure:
 	# echo -e "\n\n\nCMAKE\n\n\n"
 	# echo $(NUMCPUS)
 	mkdir cmake-build
-	cd cmake-build && cmake ../src -DCMAKE_INSTALL_PREFIX=/usr
+	cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr
 
 override_dh_auto_build:
 	cd cmake-build && $(MAKE) -j$(NUMCPUS)
