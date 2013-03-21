@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+# ifeq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
+#   CFLAGS += -O2
+# endif
+
+export DH_VERBOSE=1
+
+%:
+	dh $@
+

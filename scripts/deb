@@ -1,0 +1,30 @@
+#!/bin/bash
+
+ROOT=`mktemp -d --tmp=.`
+eval ROOT=$ROOT
+
+echo $ROOT
+echo
+
+BUILD=./build
+
+(
+    cd $BUILD
+    make dist
+)
+
+echo -e "\nTarball OK\n"
+
+mv $BUILD/antpm*.orig.tar.gz $ROOT/
+
+( cd $ROOT;
+    mkdir build;
+    cd build
+    tar -z -xf ../antpm*.tar.gz
+    echo -e "\nStarting to build...\n"
+    debuild -us -uc && echo -e "\nBuild OK\ndeb package in '${ROOT}' \n";
+)
+
+
+
+
