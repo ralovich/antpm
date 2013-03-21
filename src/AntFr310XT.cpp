@@ -169,6 +169,7 @@ AntFr310XT2::start()
 {
   CHECK_RETURN(m_serial->open());
 
+  // TODO: further define folder name based on device S/N
   folder = getConfigFolder() + "/" + getDateString() + "/";
   CHECK_RETURN(mkDir(folder.c_str()));
 
