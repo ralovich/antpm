@@ -154,16 +154,16 @@ getConfigFolder()
   const char* e1 = getenv("XDG_CONFIG_HOME");
   const char* e2 = getenv("HOME");
   if(e1 && strlen(e1) > 0)
-    return std::string(e1) + "/"APP_NAME"/";
+    return std::string(e1) + "/" APP_NAME "/";
   else if(e2 && strlen(e2) > 0)
-    return std::string(e2) + "/.config/"APP_NAME"/";
+    return std::string(e2) + "/.config/" APP_NAME "/";
 #else
   const char* e3 = getenv("USERPROFILE");
   if(e3 && strlen(e3) > 0)
-    return std::string(e3) + "/.config/"APP_NAME"/";
+    return std::string(e3) + "/.config/" APP_NAME"/";
 #endif
   else
-    return "~/.config/"APP_NAME"/";
+    return "~/.config/" APP_NAME "/";
 }
 
 
