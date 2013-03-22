@@ -1,0 +1,111 @@
+// -*- mode: outline ; coding: utf-8-unix -*-
+
+
+
+
+** FEATURES
+* usbmon => ANT message decoder
+* many ANT,ANT-FS messages implemented
+* cp201x linux GPLv2 kernel driver partially ported to userspace and windows
+* ANTFS linking
+* ANTFS S/N retrieval
+* ANTFS authentication
+* ANTFS download file
+* ANTFS erase file
+
+** TODO
+* capture ant agent log: for downloading all, for erasing, for uploading
+* capture ant agent log: for firmware upload
+* fix all TODO/FIXME in the code
+* resume downloader connections
+* write all logs into %DATE% folder
+* split ANT framing / messaging functionality into two separate classes
+* send specific messages at the channel period??
+* ANTFS erase downloaded files (check ant agent logs for this)
+* ANTFS upload more waypoints??
+
+** DONE
+* ANTFS pairing
+* eliminate delays due to threading
+* check CRC during downloading
+* fix delays in threading, avoid waiting at exit
+* directory parsing
+* decoding downloaded FIT workout files
+* download a particular file
+
+** PLAN
+* install vbox on linux, including proprietary oracle usb extensions
+* install xp in vbox, set up usb filter to pass through all devices
+* install all garmin blobs in xp
+* increase usbmon lower threshold for message truncation: ./usbmon -i <USB bus> -fu -s 100
+* capture usb traffic under linux host while xp communicates with 310xt (usbmon+wireshark): cat /sys/kernel/debug/usb/usbmon/6u
+* decode the ANT traffic from the usb packets: ./usbmon2ant.exe --op=parse ../../../gant-priv/traces/2012_09_15_0001.usbmon
+* reproduce ANT traffic from our code
+* diff our traffic against garmin blob traffic
+
+
+** ISSUES
+doesn't work on T500 if in docking station, the ant stick is given /dev/ttyUSB4, open() already fails, see http://www.spinics.net/linux/fedora/fedora-users/msg382670.html
+
+
+ used interceptty to capture data coming in/going out over a serial line. 
+http://www.suspectclass.com/~sgifford/interceptty/
+
+
+*** usbmon truncates output to 32 bytes http://mrmekon.tumblr.com/post/5146693470/usbmon-truncation
+The USB debug driver, usbmon, truncates the ‘u’ format devices to 32 bytes by default!
+
+It turns out this can be set with an ioctl.  Which doesn’t work too well with cat, our information-gatherer of choice.
+
+But there’s a nice guy at Red Hat who makes a proper usbmon command-line utility that supports all of its various ioctl options.  Using his ‘usbmon’ tool, you can get a nice, untruncated output with:
+
+    ./usbmon -i <USB bus> -fu -s 100
+
+
+
+** LINKS
+http://gitorious.org/~tade
+http://www.andreas-diesner.de/garminplugin/doku.php
+http://code.google.com/p/linuxgarminimport/
+http://www.gpspassion.com/forumsen/topic.asp?TOPIC_ID=124627&whichpage=3
+http://dropoff.tumblr.com/post/505336492/garmin-connect-running-on-ubuntu-linux
+http://cgit.get-open.com//cgit.cgi/gant/
+git://get-open.com/gant
+http://www.thefloatingfrog.co.uk/geek-hobbies/garmin-forerunner-305405-musings/#comment-3432
+http://code.google.com/p/antwireless/w/list
+http://code.google.com/p/garmintools/
+http://git.debian.org/?p=pkg-running/garmin-forerunner-tools.git;a=summary
+http://www.usblyzer.com/download.htm
+http://www.sbrk.co.uk/t6/
+http://developer.garmin.com/forum/viewtopic.php?t=354
+http://www.garmin.com/support/pdf/IOSDK.zip
+
+http://bryars.eu/projects/garmin-forerunner-decoder/
+
+http://www.waite.net.nz/downloads/
+http://www.waite.net.nz/downloads/garmin-upload-tools_1.4.0.tar.gz
+
+https://forums.garmin.com/showthread.php?t=14598 Getting The Garmin Forerunner 410 to work in UBUNTU
+
+http://developer.garmin.com/web/communicator-api/
+
+http://packages.debian.org/source/sid/garmin-ant-downloader
+
+
+http://vusb-analyzer.sourceforge.net/
+
+
+http://frant.sf.net
+
+http://braiden.org/?p=293
+http://www.youtube.com/playlist?list=PLA4AA10B39DB19291&feature=plcp
+https://github.com/braiden/python-ant-downloader
+https://github.com/Tigge/Garmin-Forerunner-610-Extractor
+
+http://sportwatcher.googlecode.com/svn/trunk/
+http://sportwatcher.http://sportwatcher.googlecode.com/svn/trunk/
+
+http://sourceforge.net/projects/pytrainer/
+http://sourceforge.net/projects/turtlesport/?source=recommended
+http://sourceforge.net/projects/sportwatcher/?source=recommended
+http://sourceforge.net/projects/sportstracker/?source=recommended
