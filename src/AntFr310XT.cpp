@@ -572,7 +572,13 @@ AntFr310XT2::changeFSState(const AntFr310XT2::StateANTFS newState)
 void
 AntFr310XT2::createDownloadFolder()
 {
-  // TODO: further define folder name based on device S/N
-  folder = getConfigFolder() + "/" + getDateString() + "/";
+  if(clientSN==0)
+  {
+    logger() << "WW: this is strange, clientSN is 0\n";
+  }
+  std::stringstream ss;
+  ss << getConfigFolder() << "/" << clientSN << "/" << getDateString() + "/";
+  folder = ss.str();
+  //folder = getConfigFolder() + "/" + getDateString() + "/";
   CHECK_RETURN(mkDir(folder.c_str()));
 }
