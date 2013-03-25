@@ -169,9 +169,7 @@ AntFr310XT2::start()
 {
   CHECK_RETURN(m_serial->open());
 
-  // TODO: further define folder name based on device S/N
-  folder = getConfigFolder() + "/" + getDateString() + "/";
-  CHECK_RETURN(mkDir(folder.c_str()));
+  createDownloadFolder();
 
   //m_antMessenger->addListener(boost::bind(&AntFr310XT2::listenerFunc2, this, _1));
 
@@ -570,3 +568,11 @@ AntFr310XT2::changeFSState(const AntFr310XT2::StateANTFS newState)
   return oldState;
 }
 
+
+void
+AntFr310XT2::createDownloadFolder()
+{
+  // TODO: further define folder name based on device S/N
+  folder = getConfigFolder() + "/" + getDateString() + "/";
+  CHECK_RETURN(mkDir(folder.c_str()));
+}

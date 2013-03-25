@@ -79,4 +79,5 @@ private:
   bool handleEvents();
   int changeState(const int newState);
   StateANTFS changeFSState(const StateANTFS newState);
+  void createDownloadFolder();
 };
