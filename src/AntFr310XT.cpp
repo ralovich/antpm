@@ -169,7 +169,7 @@ AntFr310XT2::start()
 {
   CHECK_RETURN(m_serial->open());
 
-  createDownloadFolder();
+  //createDownloadFolder();
 
   //m_antMessenger->addListener(boost::bind(&AntFr310XT2::listenerFunc2, this, _1));
 
@@ -395,6 +395,8 @@ AntFr310XT2::handleEvents()
   }
   else if(state == ST_ANTFS_DL_DIRECTORY)
   {
+    createDownloadFolder();
+
     //ANTFS_Upload(); //command pipe
     //ANTFS_UploadData();
 
@@ -430,6 +432,8 @@ AntFr310XT2::handleEvents()
     // dl waypoint files
     // dl activity files
     // dl course files
+
+    createDownloadFolder();
 
     uint fileCnt=0;
     for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<maxFileDownloads; i++, fileCnt++)
@@ -497,6 +501,8 @@ AntFr310XT2::handleEvents()
   {
     logger() << "# Transfer of file 0x" << hex << singleFileIdx << dec << "\n";
 
+    createDownloadFolder();
+
     std::vector<uchar> data;
     if(!m_antMessenger->ANTFS_Download(chan, singleFileIdx, data))
     {
@@ -561,6 +567,8 @@ AntFr310XT2::changeFSState(const AntFr310XT2::StateANTFS newState)
 void
 AntFr310XT2::createDownloadFolder()
 {
+  if(!folder.empty())
+    return;
   if(clientSN==0)
   {
     logger() << "WW: this is strange, clientSN is 0\n";
