@@ -1,0 +1,24 @@
+#!/bin/bash
+
+ROOT=`mktemp -d --tmp=.`
+eval ROOT=$ROOT
+
+echo $ROOT
+echo
+
+./scripts/make-tarball
+echo -e "\nTarball OK\n"
+
+mv antpm_*.orig.tar.xz $ROOT/
+
+( cd $ROOT;
+    mkdir build;
+    cd build
+    tar --xz -xf ../antpm*.tar.xz
+    echo -e "\nStarting to build...\n"
+    debuild -us -uc && echo -e "\nBuild OK\ndeb package in '${ROOT}' \n";
+)
+
+
+
+
