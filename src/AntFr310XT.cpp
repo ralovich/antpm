@@ -231,15 +231,6 @@ AntFr310XT2::th_eventLoop()
   {
     if(m_eventThKill)
       break;
-    //if(m_received)
-    //{
-    //  m_received = 0;
-    //  handleEvents();
-    //}
-    //else
-    //{
-    //  sleepms(2);
-    //}
     if(handleEvents())
     {
       //sleepms(2);
@@ -257,8 +248,6 @@ AntFr310XT2::th_eventLoop()
 bool
 AntFr310XT2::handleEvents()
 {
-  //return true;
-
   while(!m_evQue.empty())
   {
     AntMessage m;
