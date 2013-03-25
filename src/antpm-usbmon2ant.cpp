@@ -99,7 +99,7 @@ main(int argc, char** argv)
 
   size_t lineno=0;
   std::string line;
-  unsigned long timeUs0;
+  unsigned long timeUs0=0;
   bool first=true;
   for( ;getline(*in, line); lineno++)
   {
