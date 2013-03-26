@@ -668,7 +668,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     CHECK_RETURN_FALSE(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    logger() << "\n\nFile " << toString(file,4,'0') << ", downloaded " << std::dec << c2 << " of " << fileSize << " bytes. Total " << data.size() << " downloaded.\n\n";
+    LOG(antpm::LOG_RAW) << "\n\nFile " << toString(file,4,'0') << ", downloaded " << std::dec << c2 << " of " << fileSize << " bytes. Total " << data.size() << " downloaded.\n\n";
     // TODO: keep reading until there is data left
     dlIter += 1;
   } while((data.size()<fileSize) /*&& (dlIter++<ANTPM_RETRIES)*/ );
