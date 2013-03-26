@@ -40,7 +40,7 @@
 #include <boost/static_assert.hpp>
 
 
-using namespace std;
+namespace antpm{
 
 
 #pragma pack(1)
@@ -158,7 +158,7 @@ enum BaseTypes
 struct RecordDef
 {
     RecordFixed rfx;
-    vector<RecordField> rf;
+    std::vector<RecordField> rf;
 };
 
 enum MessageFieldTypes
@@ -268,9 +268,9 @@ enum GarminProducts
 class ZeroFileContent
 {
 public:
-    vector<uint16_t> activityFiles;
-    vector<uint16_t> waypointsFiles;
-    vector<uint16_t> courseFiles;
+    std::vector<uint16_t> activityFiles;
+    std::vector<uint16_t> waypointsFiles;
+    std::vector<uint16_t> courseFiles;
 };
 
 class FIT
@@ -280,18 +280,19 @@ public:
     ~FIT();
 
     uint16_t CRC_byte(uint16_t crc, uint8_t byte);
-    string getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t messageType, uint8_t fieldNum);
-    bool parse(vector<uint8_t> &fitData, GPX &gpx);
-    bool parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent);
+    std::string getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t messageType, uint8_t fieldNum);
+    bool parse(std::vector<uint8_t> &fitData, GPX &gpx);
+    bool parseZeroFile(std::vector<uint8_t> &data, ZeroFileContent &zeroFileContent);
 
 private:
-    map<uint8_t, string> messageTypeMap;
-    map<uint8_t, map<uint8_t, string> > messageFieldNameMap;
-    map<uint8_t, map<uint8_t, uint8_t> > messageFieldTypeMap;
-    map<uint8_t, string> dataTypeMap;
-    map<uint8_t, map<uint8_t, string> > enumMap;
-    map<uint8_t, string> manufacturerMap;
-    map<uint8_t, map<uint16_t, string> > productMap;
+    std::map<uint8_t, std::string> messageTypeMap;
+    std::map<uint8_t, std::map<uint8_t, std::string> > messageFieldNameMap;
+    std::map<uint8_t, std::map<uint8_t, uint8_t> > messageFieldTypeMap;
+    std::map<uint8_t, std::string> dataTypeMap;
+    std::map<uint8_t, std::map<uint8_t, std::string> > enumMap;
+    std::map<uint8_t, std::string> manufacturerMap;
+    std::map<uint8_t, std::map<uint16_t, std::string> > productMap;
     int16_t manufacturer;
 };
 
+}

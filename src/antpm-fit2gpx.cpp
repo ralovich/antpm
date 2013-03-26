@@ -27,6 +27,7 @@
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 using namespace std;
+using namespace antpm;
 
 
 namespace antpm

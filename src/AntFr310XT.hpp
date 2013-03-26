@@ -19,6 +19,7 @@
 #include <boost/thread.hpp>
 #include "FIT.hpp"
 
+namespace antpm{
 
 struct AntFr310XT2_EventLoop;
 // State-machine for ANT+ communication with Forerunner 310XT.
@@ -81,3 +82,5 @@ private:
   StateANTFS changeFSState(const StateANTFS newState);
   void createDownloadFolder();
 };
+
+}

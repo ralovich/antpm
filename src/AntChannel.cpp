@@ -17,7 +17,7 @@
 
 
 
-
+namespace antpm{
 
 void
 AntChannel::addMsgListener2(AntListenerBase* lb)
@@ -295,3 +295,5 @@ AntBurstListener::collectBurst(std::vector<uint8_t>& burstData, const size_t tim
     printf("ok: collectBurst: %d bytes\n", int(burstData.size()));
     return true;
   }
+
+}

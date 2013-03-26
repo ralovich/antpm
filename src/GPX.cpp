@@ -34,6 +34,11 @@
 #include <iomanip>
 #include "common.hpp"
 
+using namespace std;
+
+namespace antpm{
+
+
 WayPoint::WayPoint():
     time(0),
     latitude(INT32_MAX),
@@ -218,4 +223,6 @@ bool GPX::writeToFile(string fileName)
     file.close();
 
     return true;
+}
+
 }

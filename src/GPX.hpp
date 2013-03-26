@@ -47,7 +47,7 @@
 #define UINT32_MAX 0xFFFFFFFF
 //#endif
 
-using namespace std;
+namespace antpm{
 
 class WayPoint
 {
@@ -55,10 +55,10 @@ public:
     WayPoint();
     ~WayPoint();
 
-    void putToFile(ofstream &file);
+    void putToFile(std::ofstream &file);
 
 public:
-    string name;
+    std::string name;
     uint32_t time;
     int32_t latitude;
     int32_t longitude;
@@ -71,7 +71,7 @@ public:
     TrackPoint();
     ~TrackPoint();
 
-    void putToFile(ofstream &file);
+    void putToFile(std::ofstream &file);
 
 public:
     uint32_t time;
@@ -88,24 +88,24 @@ public:
     TrackSeg();
     ~TrackSeg();
 
-    void putToFile(ofstream &file);
+    void putToFile(std::ofstream &file);
 
 public:
-    map<uint32_t,TrackPoint> trackPoints;
+    std::map<uint32_t,TrackPoint> trackPoints;
 };
 
 class Track
 {
 public:
-    Track(string &name);
+    Track(std::string &name);
     ~Track();
 
     void newTrackSeg();
-    void putToFile(ofstream &file);
+    void putToFile(std::ofstream &file);
 
 public:
-    string name;
-    vector<TrackSeg> trackSegs;
+    std::string name;
+    std::vector<TrackSeg> trackSegs;
 };
 
 class GPX
@@ -114,14 +114,15 @@ public:
     GPX();
     ~GPX();
 
-    void newTrack(string name);
+    void newTrack(std::string name);
     void newTrackSeg();
     void newWayPoint();
 
-    bool writeToFile(string fileName);
+    bool writeToFile(std::string fileName);
 
 public:
-    vector<WayPoint> wayPoints;
-    vector<Track> tracks;
+    std::vector<WayPoint> wayPoints;
+    std::vector<Track> tracks;
 };
 
+}

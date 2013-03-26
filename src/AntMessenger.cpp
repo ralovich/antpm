@@ -29,7 +29,7 @@
 
 
 
-
+namespace antpm{
 
 // runs in other thread
 struct AntMessenger_Recevier
@@ -1143,7 +1143,7 @@ AntMessenger::th_messageHandler()
 }
 
 
-
+}
 
 
 

@@ -31,6 +31,11 @@
 //#include <boost/property_tree/ptree.hpp>
 //#include <boost/property_tree/ini_parser.hpp>
 
+using namespace std;
+
+namespace antpm{
+
+
 const uchar net  = 0x00;
 const uchar chan = 0x00;
 //const uint hostSN = 0x7c9101e0; // from Garmin ANT+ Agent
@@ -578,4 +583,6 @@ AntFr310XT2::createDownloadFolder()
   folder = ss.str();
   //folder = getConfigFolder() + "/" + getDateString() + "/";
   CHECK_RETURN(mkDir(folder.c_str()));
+}
+
 }

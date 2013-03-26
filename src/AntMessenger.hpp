@@ -24,7 +24,7 @@
 
 
 
-
+namespace antpm{
 
 // Interface for delivering event of sent/received ANT+ messages. MUST be thread safe.
 class AntCallback
@@ -165,7 +165,7 @@ private:
 
 
 
-
+}
 
 
 
