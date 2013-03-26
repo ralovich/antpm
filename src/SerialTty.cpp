@@ -31,6 +31,7 @@
 
 #include "Log.hpp"
 
+namespace antpm{
 
 struct SerialTtyPrivate
 {
@@ -320,6 +321,6 @@ SerialTty::queueData()
 }
 
 
-
+}
 
 
