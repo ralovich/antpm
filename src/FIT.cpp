@@ -1188,13 +1188,13 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
             "(" << setw(4) << setfill('0') << (unsigned)zfRecord.identifier << ")" <<
             dec << setw(10) << setfill(' ') << (unsigned)zfRecord.fileSize << " " <<
             GarminConvert::localTime(zfRecord.timeStamp) << " ";
-        if (zfRecord.generalFileFlags.read) logger() << "[R]";
-        if (zfRecord.generalFileFlags.write) logger() << "[W]";
-        if (zfRecord.generalFileFlags.erase) logger() << "[E]";
-        if (zfRecord.generalFileFlags.append) logger() << "[Ap]";
-        if (zfRecord.generalFileFlags.archive) logger() << "[Ar]";
-        if (zfRecord.generalFileFlags.crypto) logger() << "[C]";
-        logger() << "\n";
+        if (zfRecord.generalFileFlags.read) LOG(antpm::LOG_RAW) << "[R]";
+        if (zfRecord.generalFileFlags.write) LOG(antpm::LOG_RAW) << "[W]";
+        if (zfRecord.generalFileFlags.erase) LOG(antpm::LOG_RAW) << "[E]";
+        if (zfRecord.generalFileFlags.append) LOG(antpm::LOG_RAW) << "[Ap]";
+        if (zfRecord.generalFileFlags.archive) LOG(antpm::LOG_RAW) << "[Ar]";
+        if (zfRecord.generalFileFlags.crypto) LOG(antpm::LOG_RAW) << "[C]";
+        LOG(antpm::LOG_RAW) << "\n";
         //logFlush();
 
         switch(zfRecord.recordType)
