@@ -936,7 +936,7 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     {
       if(nInterpreted<1)
       {
-        printf("interpret failed!\n"); fflush(stdout);
+        lprintf(LOG_ERR, "interpret failed!\n"); fflush(stdout);
         return false;
       }
       break;

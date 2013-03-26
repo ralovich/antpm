@@ -235,7 +235,7 @@ struct SerialUsbPrivate
 		  control |= CONTROL_WRITE_DTR;
 	  }
 
-	  printf("%s - control = 0x%.4x\n", __FUNCTION__, control);
+    lprintf(LOG_INF, "%s - control = 0x%.4x\n", __FUNCTION__, control);
 
 	  return set_config(CP210X_SET_MHS, reinterpret_cast<char*>(&control), 2);
   }
@@ -299,17 +299,17 @@ struct SerialUsbPrivate
     dBuses = usb_find_busses ();
     dDevices = usb_find_devices ();
 
-    printf("bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
+    lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
 
     for (UsbBus = usb_get_busses(); UsbBus; UsbBus = UsbBus->next)
     {
       bool found = false;
       for (UsbDevice = UsbBus->devices; UsbDevice; UsbDevice = UsbDevice->next)
       {
-        printf("bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", UsbBus->dirname, UsbDevice->filename, UsbDevice->descriptor.idVendor, UsbDevice->descriptor.idProduct);
+        lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", UsbBus->dirname, UsbDevice->filename, UsbDevice->descriptor.idVendor, UsbDevice->descriptor.idProduct);
         if (UsbDevice->descriptor.idVendor == vid && UsbDevice->descriptor.idProduct== pid)
         {
-          printf("found!\n");
+          lprintf(LOG_INF, "found!\n");
           found = true;
           break;
         }

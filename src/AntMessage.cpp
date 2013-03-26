@@ -103,18 +103,18 @@ bool AntMessage::vrfChkSum() const
 {
   if(bytes.size()<5)
   {
-    printf("E: %d bytes\n", (int)bytes.size());
+    lprintf(LOG_ERR, "%d bytes\n", (int)bytes.size());
     return false;
   }
   if(bytes.size()<getLenPacket())
   {
-    printf("E: %d bytes, %d payload\n", (int)bytes.size(), (int)getLenPacket());
+    lprintf(LOG_ERR, "%d bytes, %d payload\n", (int)bytes.size(), (int)getLenPacket());
     return false;
   }
   size_t chkIdx=getLenPayload()+3; // index of checksum byte, not necessary the last one
   uchar chk = getCheckSum();
   bool match= (chk == bytes[chkIdx]);
-  if(!match) printf("E: checksum mismatch\n");
+  if(!match) lprintf(LOG_ERR, "checksum mismatch\n");
   return match;
 }
 
@@ -422,7 +422,7 @@ bool AntMessage::interpret()
   }
   if(getSync() != MESG_TX_SYNC)
   {
-    printf("no TX_SYNC byte: %s", dumpDumb().c_str());
+    lprintf(LOG_ERR, "no TX_SYNC byte: %s", dumpDumb().c_str());
     return false;
   }
   //if(getMsgId()==0xE2 || getMsgId()==0xE1 || getMsgId()==0xE0)
@@ -480,7 +480,7 @@ AntMessage::interpret2(std::list<uchar>& q, std::vector<AntMessage>& messages)
     bool ok = m.interpret();
     if(!ok)
     {
-      printf("interpret failed!\n"); fflush(stdout);
+      lprintf(LOG_ERR, "interpret failed!\n"); fflush(stdout);
       return false;
     }
     for(size_t i=0; i<m.getLenPacket(); i++)
