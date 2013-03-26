@@ -15,6 +15,8 @@
 #include <boost/thread.hpp>
 
 
+namespace antpm{
+
 struct AntChannel;
 
 struct AntListenerBase
@@ -101,3 +103,4 @@ struct AntBurstListener : public AntListenerBase
   bool collectBurst(std::vector<uint8_t>& burstData, const size_t timeout_ms);
 };
 
+}

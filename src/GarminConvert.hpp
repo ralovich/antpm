@@ -37,7 +37,7 @@
 
 #define GARMIN_EPOCH 631065600
 
-using namespace std;
+namespace antpm{
 
 class GarminConvert
 {
@@ -47,12 +47,13 @@ public:
     static double length(uint32_t centimeters);
     static double speed(uint16_t speed);
     static double weight(uint16_t weight);
-    static string gmTime(uint32_t time);
-    static string localTime(uint32_t time);
-    static string gTime(uint32_t time);
-    static string gString(uint8_t *str, int maxSize);
-    static string gHex(uint8_t *buf, int size);
-    static string gHex(vector<uint8_t> &buf);
-    static string hexDump(vector<uint8_t> &buf);
+    static std::string gmTime(uint32_t time);
+    static std::string localTime(uint32_t time);
+    static std::string gTime(uint32_t time);
+    static std::string gString(uint8_t *str, int maxSize);
+    static std::string gHex(uint8_t *buf, int size);
+    static std::string gHex(std::vector<uint8_t> &buf);
+    static std::string hexDump(std::vector<uint8_t> &buf);
 };
 
+}

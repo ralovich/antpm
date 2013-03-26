@@ -22,6 +22,8 @@
 #include <boost/thread/thread_time.hpp>
 
 
+namespace antpm{
+
 std::string antFSCommand2Str(uchar cmd);
 std::string antFSResponse2Str(uchar resp);
 bool        isAntFSCommandOrResponse(const uchar command, bool& isCommand);
@@ -584,3 +586,4 @@ struct AntFsFile
   bool saveToFile(const char* fileName = "antfs.bin");
 };
 
+}

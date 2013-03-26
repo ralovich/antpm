@@ -42,6 +42,9 @@
 
 using namespace std;
 
+namespace antpm{
+
+
 FIT::FIT()
 {
     messageTypeMap[0] = "File Id";
@@ -1218,4 +1221,6 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
     }
 
     return true;
+}
+
 }

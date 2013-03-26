@@ -27,6 +27,7 @@
 
 using namespace std;
 
+namespace antpm{
 
 std::string
 antFSCommand2Str(uchar cmd)
@@ -759,3 +760,5 @@ template bool AntMessage::saveAsAntParse<std::vector<AntMessage> >(const char* f
 template bool AntMessage::saveAsAntParse<std::list<AntMessage> >(std::ostream& os, const std::list<AntMessage>& messages);
 //template bool AntMessage::saveAsAntParse<std::queue<AntMessage> >(std::ostream& os, const std::queue<AntMessage>& messages);
 template bool AntMessage::saveAsAntParse<std::vector<AntMessage> >(std::ostream& os, const std::vector<AntMessage>& messages);
+
+}

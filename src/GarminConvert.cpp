@@ -37,6 +37,11 @@
 #include <iomanip>
 #include <ctype.h>
 
+using namespace std;
+
+namespace antpm{
+
+
 double GarminConvert::coord(int32_t coord)
 {
     double rv = coord;
@@ -159,4 +164,6 @@ string GarminConvert::hexDump(vector<uint8_t> &buf)
     }
 
     return sstr.str();
+}
+
 }
