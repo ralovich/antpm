@@ -10,6 +10,11 @@ PROJECT(antpm C CXX)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+set(CMAKE_CXX_FLAGS_RELEASE        "-DNDEBUG")
+#set(CMAKE_CXX_FLAGS_DEBUGFULL      "-g -Ob0 -noalign")
+#set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g")
+#set(CMAKE_C_FLAGS_RELEASE          "-O2")
+set(CMAKE_C_FLAGS_RELEASE          "-DNDEBUG")
 
 IF(MSVC)
 	IF(NOT DEP_ROOT)
@@ -24,6 +29,8 @@ ENDIF()
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
+  set(CMAKE_CXX_FLAGS_DEBUG          "-g3 -ggdb3")
+  set(CMAKE_C_FLAGS_DEBUG            "-g3 -ggdb3")
 ENDIF()
 
 INCLUDE(FindLIBUSB)

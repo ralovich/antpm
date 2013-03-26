@@ -40,11 +40,11 @@ namespace antpm
     LOG_DBG3             //< even more debug info (function trace, )
   };
 
-#ifdef __PSO_DEBUG__
+#ifndef NDEBUG
 # define psoLogMaxLogLevel antpm::LOG_DBG3
-#else // !__PSO_DEBUG__
+#else
 # define psoLogMaxLogLevel antpm::LOG_INF
-#endif // !__PSO_DEBUG__
+#endif
 
   inline
   const char*
@@ -162,9 +162,13 @@ namespace antpm
       return;
     }
 
-    std::string old = std::string(logFileName) + std::string(".old");
-    ::remove(old.c_str());
-    ::rename(logFileName, old.c_str());
+    // rotate previous log file
+    if(::access(logFileName, 0x00) != -1)
+    {
+      std::string old = std::string(logFileName) + std::string(".old");
+      ::remove(old.c_str());
+      ::rename(logFileName, old.c_str());
+    }
 
     _ofs.open(logFileName, std::ios::out | std::ios::trunc);
     if(!_ofs.is_open())
