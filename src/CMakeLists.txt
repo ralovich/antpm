@@ -64,6 +64,9 @@ SET(SRCS
   FIT.hpp FIT.cpp
   GPX.hpp GPX.cpp
   GarminConvert.hpp GarminConvert.cpp
+
+  Log.hpp
+  LazySingleton.hpp
 )
 IF(NOT WIN32)
   SET(SRCS

@@ -10,6 +10,8 @@ debian/changelog
 src
 src/CMakeLists.txt
 src/lqueue.hpp
+src/Log.hpp
+src/LazySingleton.hpp
 src/AntMessage.hpp
 src/SerialTty.hpp
 src/AntChannel.hpp

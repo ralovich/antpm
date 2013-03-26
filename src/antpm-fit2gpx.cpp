@@ -58,6 +58,8 @@ find_files(const fs::path & dir_path,         // in this directory,
 int
 main(int argc, char** argv)
 {
+  antpm::Log::instance()->addSink(std::cout);
+
   // Declare the supported options.
   std::string fitFolder;
   std::string fitRootFile;

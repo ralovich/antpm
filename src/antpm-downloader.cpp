@@ -19,6 +19,7 @@
 #include "AntMessage.hpp"
 #include "AntFr310XT.hpp"
 #include "common.hpp"
+#include "Log.hpp"
 
 #include <boost/program_options.hpp>
 
@@ -108,6 +109,8 @@ main(int argc, char** argv)
   signal(SIGINT, my_handler);
 #endif
 
+  antpm::Log::instance()->addSink(std::cout);
+
   // Declare the supported options.
   bool pairing         =false;
   bool dirOnly         =false;
@@ -154,7 +157,7 @@ main(int argc, char** argv)
 
   if(vm.count("help"))
   {
-    cout << desc << "\n";
+    logger() << desc << "\n";
     return EXIT_SUCCESS;
   }
   LOG_VAR4(pairing, dirOnly, int(dlFileIdx), int(eraseFileIdx));

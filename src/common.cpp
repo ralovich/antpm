@@ -21,14 +21,16 @@
 #include <sstream>
 #include <boost/date_time.hpp>
 #include <boost/filesystem.hpp>
+#include "Log.hpp"
 
 
-std::ostream&
-logger()
-{
-  std::cout.flush();
-  return std::cout;
-}
+//std::ostream&
+//logger()
+//{
+//  //antpm::Log::instance()->
+//  std::cout.flush();
+//  return std::cout;
+//}
 
 FILE*
 loggerc()

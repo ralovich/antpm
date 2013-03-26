@@ -15,18 +15,20 @@
 #include <string>
 #include <vector>
 #include "antdefs.hpp"
+#include "Log.hpp"
 
-#define CHECK_RETURN_FALSE(x) do { if(!(x)) { printf("E: %s\n", #x); return false; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
-#define CHECK_RETURN_FALSE_LOG_OK(x) do { if(!(x)) { printf("E: %s\n", #x); return false; } else { printf("ok: %s\n", #x); } } while(0)
-#define CHECK_RETURN_RV(x, rv) do { if(!(x)) { printf("E: %s\n", #x); return rv; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
-#define CHECK_RETURN_RV_LOG_OK(x, rv) do { if(!(x)) { printf("E: %s\n", #x); return rv; } else { printf("ok: %s\n", #x); } } while(0)
-#define CHECK_RETURN(x) do { if(!(x)) { printf("E: %s\n", #x); return; } else { printf("ok: %s\n", #x); } fflush(stdout); } while(0)
-#define LOG_VAR(x) do { logger() << #x << "= " << x << std::endl; logger().flush(); } while(0)
-#define LOG_VAR2(x,y) do { logger() << #x << "= " << x << ", " #y << "= " << y << std::endl; logger().flush(); } while(0)
-#define LOG_VAR3(x,y, z) do { logger() << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << std::endl; logger().flush(); } while(0)
-#define LOG_VAR4(x,y, z, w) do { logger() << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << std::endl; logger().flush(); } while(0)
+#define CHECK_RETURN_FALSE(x)         do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
+#define CHECK_RETURN_FALSE_LOG_OK(x)  do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } else { printf("ok: %s\n", #x); } } while(0)
+#define CHECK_RETURN_RV(x, rv)        do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return rv; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
+#define CHECK_RETURN_RV_LOG_OK(x, rv) do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return rv; } else { printf("ok: %s\n", #x); } } while(0)
+#define CHECK_RETURN(x)               do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return; } else { printf("ok: %s\n", #x); } fflush(stdout); } while(0)
+#define LOG_VAR(x) do { LOG(antpm::LOG_INF) << #x << "= " << x << std::endl; } while(0)
+#define LOG_VAR2(x,y) do { LOG(antpm::LOG_INF) << #x << "= " << x << ", " #y << "= " << y << std::endl; } while(0)
+#define LOG_VAR3(x,y, z) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << std::endl; } while(0)
+#define LOG_VAR4(x,y, z, w) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << std::endl; } while(0)
 
-std::ostream& logger();
+//std::ostream& logger();
+#define logger() LOG(antpm::LOG_INF)
 FILE* loggerc();
 
 void sleepms(const size_t timeout_ms);
