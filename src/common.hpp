@@ -29,7 +29,7 @@
 
 //std::ostream& logger();
 #define logger() LOG(antpm::LOG_INF)
-FILE* loggerc();
+//FILE* loggerc();
 
 void sleepms(const size_t timeout_ms);
 

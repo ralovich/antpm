@@ -32,12 +32,12 @@
 //  return std::cout;
 //}
 
-FILE*
-loggerc()
-{
-  fflush(stdout);
-  return stdout;
-}
+// FILE*
+// loggerc()
+// {
+//   fflush(stdout);
+//   return stdout;
+// }
 
 
 void
