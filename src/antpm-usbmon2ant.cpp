@@ -18,11 +18,24 @@
 
 #include "AntMessage.hpp"
 #include "common.hpp"
+#include "Log.hpp"
 
 #include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 using namespace std;
+
+namespace antpm
+{
+
+template<>
+Log*
+ClassInstantiator<Log>::instantiate()
+{
+  return new Log(NULL);
+}
+
+}
 
 
 int

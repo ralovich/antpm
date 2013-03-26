@@ -99,7 +99,7 @@ namespace antpm
     , public LazySingleton<Log, Log>
   {
   protected:
-    inline Log(const char* logFileName);
+    inline Log(const char* logFileName = NULL);
   public:
     inline virtual ~Log();
 
@@ -289,32 +289,41 @@ namespace antpm
     return (int)s.length();
   }
 
-  template<>
-  inline
-  Log*
-  ClassInstantiator<Log>::instantiate()
-  {
-    return new Log("antpm.txt");
-  }
+//  template<>
+//  inline
+//  Log*
+//  ClassInstantiator<Log>::instantiate()
+//  {
+//    return new Log("antpm.txt");
+//  }
 
-  template<>
-  template<>
-  inline
-  Log*
-  ClassInstantiator<Log>::instantiate<const char*>(const char* p1)
-  {
-    return new Log(p1);
-  }
+//  template<>
+//  template<>
+//  inline
+//  Log*
+//  ClassInstantiator<Log>::instantiate<const char*>(const char* p1)
+//  {
+//    return new Log(p1);
+//  }
 
   /**
    * Start a log line.
    */
+#ifdef _MSC_VER
 #define lprintf(level, format, ...)                                 \
   if(level > psoLogMaxLogLevel)                                     \
   {}                                                                \
   else if(level > antpm::Log::instance()->getLogReportingLevel())     \
   {}                                                                \
   else antpm::Log::instance()->lprintf2(level, format, __VA_ARGS__)
+#else // GCC
+#define lprintf(level, format, ...)                                 \
+  if(level > psoLogMaxLogLevel)                                     \
+  {}                                                                \
+  else if(level > antpm::Log::instance()->getLogReportingLevel())     \
+  {}                                                                \
+  else antpm::Log::instance()->lprintf2(level, format, ##__VA_ARGS__)
+#endif
 
 #define LOG(level)                                             \
   if(level > psoLogMaxLogLevel)                                   \

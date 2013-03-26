@@ -38,10 +38,10 @@ namespace antpm
     public:
       virtual    ~ClassInstantiator() {}
     protected:
-      static inline T* instantiate();
+      static /*inline*/ T* instantiate();
 
-      template < class P1 >
-      static inline T* instantiate(P1 p1);
+      // template < class P1 >
+      // static inline T* instantiate(P1 p1);
 
       template <class T1, class I1> friend class LazySingleton;
   };

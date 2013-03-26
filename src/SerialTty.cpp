@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <string.h>
+#include <cstring>
 #include <termios.h>
 #include <stdlib.h>
 #include <signal.h>
@@ -28,6 +28,8 @@
 #include <vector>
 #include <string>
 #include <boost/thread/thread_time.hpp>
+
+#include "Log.hpp"
 
 
 struct SerialTtyPrivate
@@ -78,7 +80,17 @@ SerialTty::~SerialTty()
   //printf("\n\nboost\n\n");
 }
 
-#define ENSURE_OR_RETURN_FALSE(e) do {  if(-1 == (e)) {perror(#e); return false;} } while(false)
+#define ENSURE_OR_RETURN_FALSE(e)                           \
+  do                                                        \
+  {                                                         \
+    if(-1 == (e))                                           \
+    {                                                       \
+      /*perror(#e);*/                                       \
+      const char* se=strerror(e);                          \
+      LOG(antpm::LOG_ERR) << se << "\n";                    \
+      return false;                                         \
+    }                                                       \
+  } while(false)
 
 
 bool

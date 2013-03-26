@@ -33,6 +33,20 @@ namespace po = boost::program_options;
 using namespace std;
 
 
+namespace antpm
+{
+
+template<>
+Log*
+ClassInstantiator<Log>::instantiate()
+{
+  std::string l=getConfigFolder() + "/antpm_" + getDateString() + ".txt";
+  return new Log(l.c_str());
+}
+
+}
+
+
 volatile int stop = 0;
 AntFr310XT2 watch2(false);
 

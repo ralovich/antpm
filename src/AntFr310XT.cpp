@@ -547,7 +547,7 @@ AntFr310XT2::changeState(const int newState)
 {
   int oldState = this->state;
   this->state = newState;
-  logger() << "\nSTATE: " << std::dec << oldState << " => " << newState
+  LOG(antpm::LOG_RAW) << "\nSTATE: " << std::dec << oldState << " => " << newState
     << "\t " << StateFSWork2Str(oldState) << " => " << StateFSWork2Str(newState)
     << "\n\n";
   return oldState;
@@ -559,7 +559,7 @@ AntFr310XT2::changeFSState(const AntFr310XT2::StateANTFS newState)
 {
   StateANTFS oldState = this->clientState;
   this->clientState = newState;
-  logger() << "\nFS: " << std::dec << oldState << " => " << newState << "\n\n";
+  LOG(antpm::LOG_RAW) << "\nFS: " << std::dec << oldState << " => " << newState << "\n\n";
   return oldState;
 }
 

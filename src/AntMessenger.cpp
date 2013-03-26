@@ -25,6 +25,7 @@
 #include <boost/thread/thread_time.hpp>
 #include <boost/foreach.hpp>
 
+#include "Log.hpp"
 
 
 
@@ -552,7 +553,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
   size_t fileSize = 0;
   size_t dlIter = 0;
   uint nextOffset = 0;
-  do 
+  do
   {
     //fprintf(loggerc(), "dlIter=%lu, crc=0x%04x, off=0x%08x\n", (unsigned long)dlIter, crc, nextOffset);
     //LOG_VAR2(dlIter, toString(crc,4,'0'));
@@ -667,7 +668,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     CHECK_RETURN_FALSE(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    logger() << "\n\nDownloaded " << std::dec << c2 << " of " << fileSize << " bytes. Total " << data.size() << " downloaded.\n\n";
+    logger() << "\n\nFile " << toString(file,4,'0') << ", downloaded " << std::dec << c2 << " of " << fileSize << " bytes. Total " << data.size() << " downloaded.\n\n";
     // TODO: keep reading until there is data left
     dlIter += 1;
   } while((data.size()<fileSize) /*&& (dlIter++<ANTPM_RETRIES)*/ );
@@ -796,7 +797,7 @@ AntMessenger::sendCommand(AntMessage &m, const size_t timeout_ms)
   bool rv = writeMessage(m);
   if(!rv)
   {
-    printf("E: writeMessage failed\n"); fflush(stdout);
+    lprintf(antpm::LOG_ERR, "writeMessage failed\n");
     return false;
   }
 
@@ -826,7 +827,7 @@ AntMessenger::sendRequest(uchar reqMsgId, uchar chan, AntMessage *response, cons
   bool rv = writeMessage(reqMsg);
   if(!rv)
   {
-    printf("E: writeMessage failed\n"); fflush(stdout);
+    lprintf(antpm::LOG_ERR, "writeMessage failed\n");
     return false;
   }
 
@@ -861,7 +862,7 @@ bool AntMessenger::writeMessage(AntMessage &m)
   size_t targetBytes = static_cast<size_t>(m.getLenPayload())+4;
   if(bytesWritten!=targetBytes)
   {
-    printf("E: wrote %d instead of %d bytes\n", (int)bytesWritten, (int)targetBytes);
+    lprintf(antpm::LOG_ERR, "wrote %d instead of %d bytes\n", (int)bytesWritten, (int)targetBytes);
     rv = false;
   }
 
@@ -892,7 +893,7 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
   bool rv = writeMessage(m);
   if(!rv)
   {
-    printf("E: writeMessage failed\n"); fflush(stdout);
+    lprintf(antpm::LOG_ERR, "writeMessage failed\n");
     return false;
   }
 
@@ -906,7 +907,7 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
 
     if(!found)
     {
-      //printf("E: no matching data ack before timeout\n"); fflush(stdout);
+      //lprintf(antpm::LOG_ERR, "no matching data ack before timeout\n"); fflush(stdout);
     }
     rv = rv && found;
 
@@ -970,7 +971,7 @@ bool AntMessenger::onMessage(std::vector<AntMessage> v)
   for(size_t i = 0; i < v.size(); i++)
   {
     AntMessage& m(v[i]);
-    printf("%s\n", m.str().c_str());
+    lprintf(antpm::LOG_DBG3, "%s\n", m.str().c_str());
 
     if(m.getMsgId()==MESG_RESPONSE_EVENT_ID
        || m.getMsgId()==MESG_BROADCAST_DATA_ID
@@ -994,7 +995,7 @@ bool AntMessenger::onMessage(std::vector<AntMessage> v)
     }
     else
     {
-      printf("unhandled 0x%0x\n", (int)m.getMsgId());
+      lprintf(antpm::LOG_WARN, "unhandled 0x%0x\n", (int)m.getMsgId());
     }
 
 //    if(m.getMsgId()==MESG_RESPONSE_EVENT_ID)
@@ -1075,7 +1076,7 @@ AntMessenger::waitForBurst(const uchar chan,
   found = lastFound = rv;
   if(!found || !lastFound)
   {
-    printf("E: couldn't reconstruct burst data transmission before timeout\n"); fflush(stdout);
+    lprintf(antpm::LOG_ERR, "couldn't reconstruct burst data transmission before timeout\n"); fflush(stdout);
     return false;
   }
 
@@ -1099,7 +1100,7 @@ AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t
   //M_ANTFS_Beacon* beacon(reinterpret_cast<M_ANTFS_Beacon*>(&reply->getPayloadRef()[1]));
   if(!found)
   {
-    printf("E: no matching bcast before timeout\n"); fflush(stdout);
+    lprintf(antpm::LOG_ERR, "no matching bcast before timeout\n"); fflush(stdout);
   }
   return found;
 }
@@ -1135,7 +1136,9 @@ AntMessenger::th_messageHandler()
     assemblePackets(q);
   }
   if(!q.empty())
-    fprintf(loggerc(), "%d remaining uninterpreted bytes\n", (int)q.size());
+  {
+    lprintf(antpm::LOG_WARN, "%d remaining uninterpreted bytes\n", (int)q.size());
+  }
   return NULL;
 }
 

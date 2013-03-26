@@ -19,6 +19,7 @@
 #include "AntMessage.hpp"
 #include "FIT.hpp"
 #include "common.hpp"
+#include "Log.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -27,6 +28,18 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 using namespace std;
 
+
+namespace antpm
+{
+
+template<>
+Log*
+ClassInstantiator<Log>::instantiate()
+{
+  return new Log(NULL);
+}
+
+}
 
 const
 std::vector<fs::path>
