@@ -443,7 +443,7 @@ bool AntMessage::interpret()
     }
     if(!vrfChkSum())
     {
-      printf("checksum verification failed: %s", dump().c_str());
+      lprintf(LOG_ERR, "checksum verification failed: %s", dump().c_str());
       return false;
     }
     // TODO: handle case where multiple messages are concatenated in this->bytes
