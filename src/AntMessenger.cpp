@@ -998,58 +998,6 @@ bool AntMessenger::onMessage(std::vector<AntMessage> v)
       lprintf(antpm::LOG_WARN, "unhandled 0x%0x\n", (int)m.getMsgId());
     }
 
-//    if(m.getMsgId()==MESG_RESPONSE_EVENT_ID)
-//    {
-//      uint8_t chan=m.getPayloadRef()[0];
-//      uint8_t msgId=m.getPayloadRef()[1];
-//      if(msgId==MESG_EVENT_ID)
-//      {
-//        uint8_t msgCode = m.getPayloadRef()[2];
-//        fprintf(loggerc(), "chan=%d event %s\n", int(chan), m.str2().c_str());
-//        if(msgCode==EVENT_RX_SEARCH_TIMEOUT)
-//        {
-//          //FIXME: handle  EVENT_RX_SEARCH_TIMEOUT
-//        }
-//        AntChannel& pc=chs[chan];
-//        pc.onChannelEvent(chan, msgCode, m);
-//      }
-//      else
-//      {
-//        //fprintf(loggerc(), "chan=%d resp\n", int(chan));
-//        AntChannel& pc=chs[chan];
-//        pc.onChannelResponse(chan, msgId, m);
-//      }
-//    }
-//    else if(m.getMsgId()==MESG_BROADCAST_DATA_ID)
-//    {
-//      uint8_t chan=m.getPayloadRef()[0];
-//      //fprintf(loggerc(), "chan=%d bcast\n", int(chan));
-//      AntChannel& pc=chs[chan];
-//      pc.onChannelBCast(chan, m);
-
-//    }
-//    else if(m.getMsgId()==MESG_BURST_DATA_ID)
-//    {
-//      if(m.getLenPayload()!=9)
-//        continue; // invalid packet
-//      const M_ANT_Burst* burst(reinterpret_cast<const M_ANT_Burst*>(m.getPayloadRef()));
-//      uint8_t chan=burst->chan;
-//      //chan = 0; // FIXME!!!
-//      //printf("burst? 0x%0x chan=%d\n", (int)m.getMsgId(), int(chan));
-//      AntChannel& pc=chs[chan];
-//      pc.onChannelMsg(chan, m);
-//    }
-//    else if(m.getMsgId()==MESG_CHANNEL_ID_ID
-//      || m.getMsgId()==MESG_CHANNEL_STATUS_ID)
-//    {
-//      uint8_t chan=m.getPayloadRef()[0];
-//      AntChannel& pc=chs[chan];
-//      pc.onChannelMsg(chan, m);
-//    }
-//    else
-//    {
-//      printf("unhandled 0x%0x\n", (int)m.getMsgId());
-//    }
   }
   return true;
 }
