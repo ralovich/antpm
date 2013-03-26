@@ -22,6 +22,8 @@
 #include "Log.hpp"
 
 #include <boost/program_options.hpp>
+#include <boost/bind.hpp>
+
 
 #ifdef _WIN32
 # include <Windows.h>
@@ -48,15 +50,15 @@ ClassInstantiator<Log>::instantiate()
 }
 
 
-volatile int stop = 0;
-AntFr310XT2 watch2(false);
+
+boost::function<void(void)> stopFunc;
 
 static
 void
 stopIt()
 {
-  stop = 1;
-  watch2.stopAsync();
+  if(stopFunc)
+    stopFunc();
 }
 
 #ifdef _WIN32
@@ -177,20 +179,9 @@ main(int argc, char** argv)
   }
   LOG_VAR4(pairing, dirOnly, int(dlFileIdx), int(eraseFileIdx));
 
-  //if(0)
-  //{
-  //  AntFr310XT watch;
 
-  //  watch.start();
-
-  //  while(!stop)
-  //  {
-  //    sleepms(1000);
-  //  }
-
-  //  watch.stop();
-  //}
-  //else
+  AntFr310XT2 watch2(false);
+  stopFunc = boost::bind(&AntFr310XT2::stopAsync, &watch2);
   {
     watch2.setModeDownloadAll();
     if(pairing) watch2.setModeForcePairing();
