@@ -59,6 +59,9 @@
 #include "usb.h"
 #endif
 
+
+namespace antpm {
+
 const uchar USB_ANT_CONFIGURATION = 1;
 const uchar USB_ANT_INTERFACE = 0;
 const uchar USB_ANT_EP_IN  = 0x81;
@@ -592,3 +595,4 @@ SerialUsb::isOpen() const
   return m_p.get() && m_p->dev;
 }
 
+}

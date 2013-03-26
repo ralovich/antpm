@@ -11,7 +11,7 @@
 // ***** END LICENSE BLOCK *****
 #pragma once
 
-
+namespace antpm{
 
 // Abstract interface for serial-like communication.
 class Serial
@@ -30,3 +30,5 @@ public:
   virtual const char* getImplName() = 0;
   virtual bool isOpen() const = 0;
 };
+
+}
