@@ -12,6 +12,7 @@
 * ANTFS authentication
 * ANTFS download file
 * ANTFS erase file
+* It generally helps to keep the watch close (20-30 cm) to the USB2ANT dongle while communicating.
 
 ** TODO
 * capture ant agent log: for downloading all, for erasing, for uploading
