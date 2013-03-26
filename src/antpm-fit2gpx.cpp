@@ -60,10 +60,12 @@ main(int argc, char** argv)
 {
   // Declare the supported options.
   std::string fitFolder;
+  std::string fitRootFile;
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help", "produce help message")
-    ("fitFolder,F", po::value<std::string>(&fitFolder)->required(), "Folder with FIT files")
+    ("fitFolder,F", po::value<std::string>(&fitFolder), "Folder with FIT files")
+    ("decode-fit-root,D", po::value<std::string>(&fitRootFile), "FIT file, encoding the root directory contents on a device")
     ;
 
   std::vector<const char*> args(argv, argv+argc);
@@ -82,12 +84,23 @@ main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  if(vm.count("help"))
+  if(vm.count("help")
+     || (fitFolder.empty() && fitRootFile.empty()))
   {
     cout << desc << "\n";
     return EXIT_SUCCESS;
   }
-  //LOG_VAR4(pairing, dirOnly, int(dlFileIdx), int(eraseFileIdx));
+
+  if(!fitRootFile.empty())
+  {
+    ZeroFileContent zfc;
+    FIT fit;
+    vector<uchar> v(readFile(fitRootFile.c_str()));
+    if(fit.parseZeroFile(v, zfc))
+       return EXIT_SUCCESS;
+    else
+      return EXIT_FAILURE;
+  }
 
   if(!fs::is_directory(fs::path(fitFolder)))
   {
