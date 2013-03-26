@@ -22,8 +22,10 @@
 #include <sstream>
 #ifdef _MSC_VER
 # include <crtdbg.h>
+# include <io.h>
 #endif
 #include <iostream>
+#include <ctime>
 
 namespace antpm
 {
@@ -135,7 +137,7 @@ namespace antpm
     ::time(&ltime);
     char tmp[26];
     tmp[25] = '\0';
-#ifdef __PSO_BUILD_WIN__
+#ifdef _MSC_VER
     ::ctime_s(tmp, 26, &ltime);
 #else
     ::ctime_r(&ltime, tmp);
