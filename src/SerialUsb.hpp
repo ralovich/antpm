@@ -18,6 +18,8 @@
 #include <list>
 #include "Serial.hpp"
 
+namespace antpm{
+
 struct SerialUsbPrivate;
 
 // Serial communication over a CP201X usb-serial port.
@@ -47,3 +49,4 @@ private:
   std::auto_ptr<SerialUsbPrivate> m_p;
 };
 
+}

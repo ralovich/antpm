@@ -19,6 +19,8 @@
 #include <list>
 #include "Serial.hpp"
 
+namespace antpm{
+
 struct SerialTtyPrivate;
 struct SerialTtyIOThread;
 // Serial communication over a POSIX serial port.
@@ -56,3 +58,4 @@ private:
   std::auto_ptr<SerialTtyPrivate> m_p;
 };
 
+}
