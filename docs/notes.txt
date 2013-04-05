@@ -24,6 +24,7 @@
 * send specific messages at the channel period??
 * ANTFS erase downloaded files (check ant agent logs for this)
 * ANTFS upload more waypoints??
+* save .fit files with correct date
 
 ** DONE
 * ANTFS pairing
