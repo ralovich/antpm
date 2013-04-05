@@ -25,6 +25,7 @@
 * ANTFS erase downloaded files (check ant agent logs for this)
 * ANTFS upload more waypoints??
 * save .fit files with correct date
+* Ctrl-C doesn't abort file downloads, as those are done in a tight loop inside the state machine...
 
 ** DONE
 * ANTFS pairing
