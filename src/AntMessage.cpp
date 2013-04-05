@@ -737,7 +737,7 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   if(bytes.empty()) return false;
   FILE *f=fopen(fileName, "wb");
   if(!f) return false;
-  if(bytes.size() != (size_t)fwrite(&bytes[0], bytes.size(), 1 , f)) { fclose(f); return false; }
+  if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { fclose(f); return false; }
   fclose(f);
   return true;
 }
