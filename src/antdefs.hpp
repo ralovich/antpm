@@ -122,6 +122,7 @@ static const unsigned char ANTP_NETKEY[8] = {0xA8,0xA4,0x23,0xB9,0xF5,0x5E,0x63,
 
 
 
+#define GARMIN_EPOCH 631065600
 
 
 

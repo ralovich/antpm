@@ -30,6 +30,7 @@
 // ***** END LICENSE BLOCK *****
 
 #include "GarminConvert.hpp"
+#include "antdefs.hpp"
 #include <stdio.h>
 #include <time.h>
 #include <iostream>

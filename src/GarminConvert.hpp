@@ -35,7 +35,6 @@
 #include <string>
 #include <vector>
 
-#define GARMIN_EPOCH 631065600
 
 namespace antpm{
 
