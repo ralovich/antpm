@@ -51,7 +51,7 @@ const uchar fsFreq = 0x46;  // other values seen: 0x46 0x50 0x0f
 const uchar beaconPer = 0x04;
 const uchar fsSearchTimeout = 0x03;
 
-uint maxFileDownloads = 1000;
+uint maxFileDownloads = 1;
 
 
 
@@ -311,7 +311,7 @@ AntFr310XT2::handleEvents()
     if(!beacon->dataAvail)
     {
       changeState(ST_ANTFS_NODATA);
-      logger() << "\n\nNo data available from client!\n\n\n";
+      LOG(LOG_RAW) << "\n\nNo data available from client!\n\n\n";
       return true;
     }
 
@@ -343,7 +343,7 @@ AntFr310XT2::handleEvents()
 
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_RequestClientDeviceSerialNumber(chan, hostSN, clientSN, clientDevName));
 
-    logger() << "\n\nFound client \"" << clientDevName << "\" SN=0x" << toString<uint>(clientSN,8,'0') << " SN=" << clientSN << "\n\n\n";
+    LOG(LOG_RAW) << "\n\nFound client \"" << clientDevName << "\" SN=0x" << toString<uint>(clientSN,8,'0') << " SN=" << clientSN << "\n\n\n";
 
     readUInt64(clientSN, pairedKey);
 
@@ -384,7 +384,7 @@ AntFr310XT2::handleEvents()
       return true;
     }
 
-    logger() << "\n\nClient authenticated successfully!\n\n\n";
+    LOG(LOG_RAW) << "\n\nClient authenticated successfully!\n\n\n";
 
     // channel status <>
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
@@ -411,7 +411,7 @@ AntFr310XT2::handleEvents()
       changeState(ST_ANTFS_RESTART);
       return true;
     }
-    logger() << "\n\nDownloaded directory file idx=0x0000\n\n\n";
+    LOG(LOG_RAW) << "\n\nDownloaded directory file idx=0x0000\n\n\n";
 
     AntFsFile file0;
     file0.bytes=dir;
@@ -445,7 +445,7 @@ AntFr310XT2::handleEvents()
     {
       LOG_VAR3(fileCnt, maxFileDownloads, zfc.waypointsFiles.size());
       ushort fileIdx = zfc.waypointsFiles[i];
-      logger() << "# Transfer waypoints file 0x" << hex << fileIdx << "\n";
+      logger() << "Transfer waypoints file 0x" << hex << fileIdx << "\n";
 
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
@@ -453,7 +453,7 @@ AntFr310XT2::handleEvents()
         changeState(ST_ANTFS_LAST);
         return true;
       }
-      logger() << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
+      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
       LOG_VAR(file0.checkCrc());
 
@@ -472,7 +472,7 @@ AntFr310XT2::handleEvents()
         changeState(ST_ANTFS_LAST);
         return true;
       }
-      logger() << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
+      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
 
       fit.parse(data, gpx);
@@ -482,7 +482,7 @@ AntFr310XT2::handleEvents()
     {
       LOG_VAR3(fileCnt, maxFileDownloads, zfc.courseFiles.size());
       ushort fileIdx = zfc.courseFiles[i];
-      logger() << "# Transfer course file 0x" << hex << fileIdx << "\n";
+      logger() << "Transfer course file 0x" << hex << fileIdx << "\n";
 
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
@@ -490,21 +490,21 @@ AntFr310XT2::handleEvents()
         changeState(ST_ANTFS_LAST);
         return true;
       }
-      logger() << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
+      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
 
       fit.parse(data, gpx);
     }
 
     std::string gpxFile=folder+"libantpm.gpx";
-    logger() << "# Writing output to '" << gpxFile << "'\n";
+    logger() << "Writing output to '" << gpxFile << "'\n";
     gpx.writeToFile(gpxFile);
 
     changeState(ST_ANTFS_LAST);
   }
   else if(state==ST_ANTFS_DL_SINGLE_FILE)
   {
-    logger() << "# Transfer of file 0x" << hex << singleFileIdx << dec << "\n";
+    logger() << "Transfer of file 0x" << hex << singleFileIdx << dec << "\n";
 
     createDownloadFolder();
 
@@ -514,14 +514,14 @@ AntFr310XT2::handleEvents()
       changeState(ST_ANTFS_LAST);
       return true;
     }
-    logger() << "\n\nDownloaded file idx=" << toString<ushort>(singleFileIdx,4,'0') << "\n\n\n";
+    LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(singleFileIdx,4,'0') << "\n\n\n";
     AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(singleFileIdx, 4, '0')+".fit").c_str());//...might not be a fit file
     LOG_VAR(file0.checkCrc());
 
     fit.parse(data, gpx);
 
     std::string gpxFile=folder+"libantpm.gpx";
-    logger() << "# Writing output to '" << gpxFile << "'\n";
+    logger() << "Writing output to '" << gpxFile << "'\n";
     gpx.writeToFile(gpxFile);
 
     changeState(ST_ANTFS_LAST);
@@ -530,7 +530,7 @@ AntFr310XT2::handleEvents()
   {
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Erase(chan, singleFileIdx));
 
-    logger() << "\n\nErased file idx=" << toString<ushort>(singleFileIdx,4,'0') << "\n\n\n";
+    LOG(LOG_RAW) << "\n\nErased file idx=" << toString<ushort>(singleFileIdx,4,'0') << "\n\n\n";
 
     changeState(ST_ANTFS_LAST);
   }
@@ -576,7 +576,7 @@ AntFr310XT2::createDownloadFolder()
     return;
   if(clientSN==0)
   {
-    logger() << "WW: this is strange, clientSN is 0\n";
+    LOG(LOG_WARN) << "this is strange, clientSN is 0\n";
   }
   std::stringstream ss;
   ss << getConfigFolder() << "/" << clientSN << "/" << getDateString() + "/";
