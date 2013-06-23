@@ -72,6 +72,8 @@ SET(SRCS
   GPX.hpp GPX.cpp
   GarminConvert.hpp GarminConvert.cpp
 
+  DeviceSettings.hpp DeviceSettings.cpp
+
   Log.hpp
   LazySingleton.hpp
 )
