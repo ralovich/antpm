@@ -838,18 +838,12 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
 bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
 {
     logger() << "Parsing FIT file\n";
-    //logFlush();
-/*
-    FILE *f=fopen("debug.FIT", "wb");
-    fwrite(&fitData[0], fitData.size(), 1 , f);
-    fclose(f);
-*/
-
-    uint8_t *ptr = &fitData.front();
 
     FITHeader fitHeader;
     if(fitData.size()<sizeof(fitHeader))
       return false;
+
+    uint8_t *ptr = &fitData.front();
     memcpy(&fitHeader, ptr, sizeof(fitHeader));
 
     // FIT header CRC
@@ -870,7 +864,6 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
     if (memcmp(fitHeader.signature, ".FIT", sizeof(fitHeader.signature)))
     {
         logger() << "FIT signature not found\n";
-        //logFlush();
         return false;
     }
 
@@ -879,19 +872,14 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
     {
         logger() << hex << uppercase << setw(4) << setfill('0');
         logger() << "Invalid FIT CRC (" << crc << "!=" << fitCRC << ")\n";
-        //logFlush();
-
         return false;
     }
 
     logger() << "FIT Protocol Version " << dec << (unsigned)fitHeader.protocolVersion << "\n";
-    //logFlush();
 
     logger() << "FIT Profile Version " << fitHeader.profileVersion << "\n";
-    //logFlush();
 
     logger() << "FIT Data size " << fitHeader.dataSize << " bytes\n";
-    //logFlush();
    
     map<uint8_t, RecordDef> recDefMap;
 
@@ -937,7 +925,6 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                 {
                     RecordDef rd = recDefMap[rh.normalHeader.localMessageType];
                     //logger() << "Local Message \"" << messageTypeMap[rd.rfx.globalNum] << "\"(" << rd.rfx.globalNum << "):\n";
-                    //logFlush();
                     
                     switch(rd.rfx.globalNum)
                     {
@@ -948,7 +935,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                         }
                     }
 
-                    uint32_t fileCreationTime;
+                    uint32_t fileCreationTime=0;
                     int8_t fileType=INT8_MAX;
 
                     uint32_t time;
@@ -962,7 +949,6 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
 
                         //logger() << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] <<
                         //            " (" << dataTypeMap[bt.bits.baseTypeNum] << ") " << getDataString(ptr, rf.size, bt.bits.baseTypeNum, rd.rfx.globalNum, rf.definitionNum) << "\n";
-                        //logFlush();
 
                         switch(rd.rfx.globalNum)
                         {
@@ -1116,9 +1102,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                 else
                 {
                   logger() << "Undefined Local Message Type: " << (unsigned)rh.normalHeader.localMessageType << "\n";
-                    //logFlush();
-
-                    return false;
+                  return false;
                 }
             }
         }
@@ -1128,24 +1112,173 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
             logger() << "Compressed Timestamp Header:" << endl;
             logger() << "  Local Message Type " << (unsigned)rh.ctsHeader.localMessageType << endl;
             logger() << "  Time Offset " << (unsigned)rh.ctsHeader.timeOffset << "\n";
-            //logFlush();
         }
     }
 
     return true;
 }
 
+bool FIT::getDate(std::vector<uint8_t> &fitData, std::time_t &creationTime)
+{
+  FITHeader fitHeader;
+  if(fitData.size()<sizeof(fitHeader))
+    return false;
+
+  uint8_t *ptr = &fitData.front();
+  memcpy(&fitHeader, ptr, sizeof(fitHeader));
+
+  // FIT header CRC
+  uint16_t crc = 0;
+  for (int i = 0; i < fitHeader.headerSize; i++)
+  {
+      crc = CRC_byte(crc, *(ptr+i));
+  }
+
+  ptr += fitHeader.headerSize;
+
+  // FIT data CRC
+  for (uint32_t i = 0; i < fitHeader.dataSize; i++)
+  {
+      crc = CRC_byte(crc, *(ptr+i));
+  }
+
+  if (memcmp(fitHeader.signature, ".FIT", sizeof(fitHeader.signature)))
+  {
+      logger() << "FIT signature not found\n";
+      return false;
+  }
+
+  uint16_t fitCRC = *(uint16_t *)(ptr+fitHeader.dataSize);
+  if (crc != fitCRC)
+  {
+      logger() << hex << uppercase << setw(4) << setfill('0');
+      logger() << "Invalid FIT CRC (" << crc << "!=" << fitCRC << ")\n";
+
+      return false;
+  }
+
+  //logger() << "FIT Protocol Version " << dec << (unsigned)fitHeader.protocolVersion << "\n";
+
+  //logger() << "FIT Profile Version " << fitHeader.profileVersion << "\n";
+
+  //logger() << "FIT Data size " << fitHeader.dataSize << " bytes\n";
+
+  map<uint8_t, RecordDef> recDefMap;
+
+  for (int bytes = fitHeader.dataSize; bytes > 0;)
+  {
+      RecordHeader rh;
+      memcpy(&rh, ptr, sizeof(rh));
+      ptr += sizeof(rh);
+      bytes -= sizeof(rh);
+
+      if (!rh.normalHeader.headerType)
+      {
+          // Normal Header
+          if (rh.normalHeader.messageType)
+          {
+              // Definition Message
+              RecordDef rd;
+
+              RecordFixed rfx;
+              memcpy(&rfx, ptr, sizeof(rfx));
+              ptr += sizeof(rfx);
+              bytes -= sizeof(rfx);
+
+              rd.rfx = rfx;
+
+              for (int i=0; i<rfx.fieldsNum; i++)
+              {
+                  RecordField rf;
+                  memcpy(&rf, ptr, sizeof(rf));
+                  ptr += sizeof(rf);
+                  bytes -= sizeof(rf);
+
+                  rd.rf.push_back(rf);
+              }
+
+              recDefMap[rh.normalHeader.localMessageType] = rd;
+          }
+          else
+          {
+              // Data Message
+              map<uint8_t, RecordDef>::iterator it=recDefMap.find(rh.normalHeader.localMessageType);
+              if (it != recDefMap.end())
+              {
+                  RecordDef rd = recDefMap[rh.normalHeader.localMessageType];
+                  //logger() << "Local Message \"" << messageTypeMap[rd.rfx.globalNum] << "\"(" << rd.rfx.globalNum << "):\n";
+
+
+                  int8_t fileType=INT8_MAX;
+
+                  uint32_t time;
+
+                  for (int i=0; i<rd.rfx.fieldsNum; i++)
+                  {
+                      RecordField &rf = rd.rf[i];
+
+                      BaseType bt;
+                      bt.byte = rf.baseType;
+
+                      //logger() << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] <<
+                      //            " (" << dataTypeMap[bt.bits.baseTypeNum] << ") " << getDataString(ptr, rf.size, bt.bits.baseTypeNum, rd.rfx.globalNum, rf.definitionNum) << "\n";
+
+                      switch(rd.rfx.globalNum)
+                      {
+                          case 0: // File Id
+                          {
+                              switch(rf.definitionNum)
+                              {
+                                  case 0: // Type
+                                  {
+                                      fileType = *(int8_t *)ptr;
+                                      break;
+                                  }
+                                  case 4: // Creation Time
+                                  {
+                                      uint32_t fileCreationTime = *(uint32_t*)ptr;
+                                      creationTime = fileCreationTime;
+                                      creationTime += GARMIN_EPOCH;
+                                      logger() << "creationTime:" << GarminConvert::localTime(fileCreationTime) << "\n";
+                                      //return true;
+                                      break;
+                                  }
+                              }
+                              break;
+                          }
+                      }
+
+                      ptr += rf.size;
+                      bytes -= rf.size;
+                  }
+              }
+              else
+              {
+                logger() << "Undefined Local Message Type: " << (unsigned)rh.normalHeader.localMessageType << "\n";
+                return false;
+              }
+          }
+      }
+      else
+      {
+          // Compressed Timestamp Header
+          logger() << "Compressed Timestamp Header:" << endl;
+          logger() << "  Local Message Type " << (unsigned)rh.ctsHeader.localMessageType << endl;
+          logger() << "  Time Offset " << (unsigned)rh.ctsHeader.timeOffset << "\n";
+      }
+  }
+
+  return true;
+}
+
 bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
 {
     logger() << "Parsing zero file...\n";
-    //logFlush();
     
     DirectoryHeader directoryHeader;
     if (data.size() < sizeof(directoryHeader))
     {
         logger() << "Zero file data is too short to get header\n";
-        //logFlush();
-        
         return false;
     }
 
@@ -1153,22 +1286,16 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
     data.erase(data.begin(), data.begin()+sizeof(directoryHeader));
     
     logger() << "Directory version: " << hex << setw(2) << (unsigned)directoryHeader.version << "\n";
-    //logFlush();
     logger() << "Structure length: " << dec << (unsigned)directoryHeader.structureLength << "\n";
-    //logFlush();
     logger() << "Time format: " << dec << (unsigned)directoryHeader.timeFormat << "\n";
-    //logFlush();
     logger() << "Current system time: " << GarminConvert::localTime(directoryHeader.currentSystemTime) << "\n";
-    //logFlush();
     logger() << "Directory modified time: " << GarminConvert::localTime(directoryHeader.directoryModifiedTime) << "\n";
-    //logFlush();
 
     int records = data.size() / directoryHeader.structureLength;
 
     if(data.empty() || data.size() < (sizeof(ZeroFileRecord)*records))
     {
       logger() << "Zero file data is truncated to read...\n";
-      //logFlush();
 
       return false;
     }
@@ -1198,7 +1325,6 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
         if (zfRecord.generalFileFlags.archive) LOG(antpm::LOG_RAW) << "[Ar]";
         if (zfRecord.generalFileFlags.crypto) LOG(antpm::LOG_RAW) << "[C]";
         LOG(antpm::LOG_RAW) << "\n";
-        //logFlush();
 
         switch(zfRecord.recordType)
         {

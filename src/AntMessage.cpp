@@ -23,9 +23,12 @@
 #include <queue>
 #include <boost/date_time/time_duration.hpp>
 #include <boost/date_time.hpp>
+#include <boost/filesystem.hpp>
+#include "FIT.hpp"
 
 
 using namespace std;
+
 
 namespace antpm{
 
@@ -734,11 +737,20 @@ bool
 AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
 {
   logger() << "Saving '" << fileName << "'...\n";
-  if(bytes.empty()) return false;
+  if(bytes.empty()) { LOG(LOG_ERR) << "nothing to save\n"; return false; }
   FILE *f=fopen(fileName, "wb");
-  if(!f) return false;
-  if(bytes.size() != (size_t)fwrite(&bytes[0], bytes.size(), 1 , f)) { fclose(f); return false; }
+  if(!f) { LOG(LOG_ERR) << "could not open \"" << fileName << "\"\n"; return false; }
+  if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { LOG(LOG_ERR) << "truncated fwrite\n"; fclose(f); return false; }
   fclose(f);
+
+  FIT fit;
+  std::time_t t=0;
+  CHECK_RETURN_FALSE_LOG_OK(fit.getDate(bytes, t));
+  char tbuf[256];
+  strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&t));
+  LOG_VAR(tbuf);
+  boost::filesystem::last_write_time(boost::filesystem::path(fileName), t);
+
   return true;
 }
 

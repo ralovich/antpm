@@ -38,6 +38,7 @@
 #include <map>
 #include <sstream>
 #include <boost/static_assert.hpp>
+#include <ctime>
 
 
 namespace antpm{
@@ -282,6 +283,7 @@ public:
     uint16_t CRC_byte(uint16_t crc, uint8_t byte);
     std::string getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t messageType, uint8_t fieldNum);
     bool parse(std::vector<uint8_t> &fitData, GPX &gpx);
+    bool getDate(std::vector<uint8_t> &fitData, std::time_t& creationTime);
     bool parseZeroFile(std::vector<uint8_t> &data, ZeroFileContent &zeroFileContent);
 
 private:
