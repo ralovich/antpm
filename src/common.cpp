@@ -241,3 +241,4 @@ template const std::string toStringDec(const int& val, const int width, const ch
 template const std::string toStringDec(const unsigned long& val, const int width, const char fill);
 template const std::string toStringDec(const double& val, const int width, const char fill);
 template const std::string toStringDec(const unsigned int& val, const int width, const char fill);
+template const std::string toStringDec(const uint64_t& val, const int width, const char fill);
