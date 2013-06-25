@@ -12,6 +12,9 @@
 // ***** END LICENSE BLOCK *****
 
 
+#include <ctime>
+
+
 namespace antpm {
 
 struct DeviceSettings
