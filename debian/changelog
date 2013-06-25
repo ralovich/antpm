@@ -1,3 +1,84 @@
+antpm (1.6-0) UNRELEASED; urgency=low
+
+  [ RALOVICH, Kristóf ]
+  * include Release builds in a .deb. package
+  * clarify build- and run-time dependencies
+  * add todo
+  * fix build with clang 3.0
+  * add some documentation
+  * fix build warning
+  * git should ignore build folder
+  * AntFr310XT2::createDownloadFolder()
+  * further define folder name based on device S/N
+  * cleanup
+  * deb: lower build time dependencies
+  * create download folder after knowing the device id
+  * fit2gpx: option to decode ANT root folder
+  * initial, file based logging
+  * docs: note on performance
+  * fix output
+  * use centralized logging in more places
+  * fix output
+  * introduce namespace antpm
+  * namespace conversion
+  * missing namespace
+  * more unified logging
+  * more unified logging
+  * cleanup
+  * fix an assertion failure
+  * unified logging replaced loggerc()
+  * reindent
+  * define NDEBUG in release
+  * avoid crashes
+
+  [ unknown ]
+  * build fixes
+
+  [ RALOVICH, Kristóf ]
+  * add todo
+  * add todo
+  * move GARMIN_EPOCH to antdefs.hpp
+  * bugfix: fix thinko
+  * try setting date of .fit files
+  * change logging
+  * first stub for centralized per-device setting
+
+  [ RALOVICH, Kristof ]
+  * missing include
+  * cmake: fix linking under win
+  * previously the x86 dll hada weird name...
+  * cmake: make sure the correct generator is invoked
+  * fix 64-bit linking
+  * cmake: fix determination of win64
+  * scripts: build helper for win64
+  * antpm-downloader: bugfix
+  * update discriution list
+
+  [ Kristof Ralovich ]
+  * deb: relax build time dependencies
+
+  [ RALOVICH, Kristof ]
+  * deb: libusb was missing as a build-dep
+
+  [ Kristof Ralovich ]
+  * bugfix: resolve gcc-4.4 build issues
+
+  [ RALOVICH, Kristof ]
+  * pkgconfig should look for libusb-1.0
+
+  [ Kristof Ralovich ]
+  * cleanup
+  * fix missing include
+  * debian: fixing dependencies
+  * account for boost:filesystem version changes
+
+  [ RALOVICH, Kristof ]
+  * cmake: fix finding libusb under nix
+
+  [ Ralovich Kristof ]
+
+ -- Ralovich Kristof <tade@cg.iit.bme.hu>  Tue, 25 Jun 2013 17:02:17 +0200
+
 antpm (1.0-1) UNRELEASED; urgency=low
 
   * Initial release.
