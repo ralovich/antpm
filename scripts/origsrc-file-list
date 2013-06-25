@@ -44,3 +44,5 @@ src/cmake/FindLIBUSB.cmake
 src/Serial.hpp
 src/common.hpp
 src/AntMessenger.cpp
+src/DeviceSettings.hpp
+src/DeviceSettings.cpp
