@@ -13,6 +13,7 @@
 
 
 #include <queue>
+#include <boost/function.hpp>
 #include <boost/thread.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <list>
@@ -83,7 +84,7 @@ template < class DataType>
 class lqueue3 : public lqueue2<DataType>
 {
 public:
-  typedef boost::function<bool (typename DataType&)>     Listener;
+  typedef boost::function<bool (DataType&)>     Listener;
   typedef boost::function<bool (std::vector<DataType>&)> Listener2;
   typedef lqueue2<DataType>                              Super;
 
