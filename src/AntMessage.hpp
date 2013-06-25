@@ -505,9 +505,6 @@ struct M_ANT_Burst
   bool isLast() const
   {
     bool isLast = ((last!=0x00)?true:false);
-    bool isLast2 = (((seqchan&0x80)==0x80)?true:false);
-    assert(isLast==isLast2);
-
     return isLast;
   }
 };
