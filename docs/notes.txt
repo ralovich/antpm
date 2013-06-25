@@ -4,6 +4,8 @@
 ** USERS GUIDE
 *
 
+** HOW TO HELP IF YOUR WATCH IS NOT PROPERLY HANDLED BY ANT+minus
+* 
 
 ** RELEASE CHECKLIST
 * make sure all files are listed in scripts/origsrc-file-list
