@@ -1,7 +1,18 @@
 // -*- mode: outline ; coding: utf-8-unix -*-
 
 
+** USERS GUIDE
+*
 
+
+** RELEASE CHECKLIST
+* make sure all files are listed in scripts/origsrc-file-list
+* update version in scripts/make-tarball
+* run scripts/make-tarball
+* update version in scrips/make-changelog
+* run scrips/make-changelog
+* run scrips/deb
+* commit above changes and tag respective version
 
 ** FEATURES
 * usbmon => ANT message decoder
