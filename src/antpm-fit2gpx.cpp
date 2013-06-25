@@ -130,7 +130,7 @@ main(int argc, char** argv)
   for (size_t i = 0; i < fitFiles.size(); i++)
   {
     const std::string in(fitFiles[i].string());
-#if BOOST_VERSION==104300
+#if BOOST_VERSION<=104300
     const std::string out(fitFiles[i].parent_path().string()+"//"+fitFiles[i].stem()+".gpx");
 #else
     const std::string out(fitFiles[i].parent_path().string()+"//"+fitFiles[i].stem().string()+".gpx");
