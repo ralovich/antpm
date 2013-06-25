@@ -5,7 +5,7 @@ set BUILD=..\build-vs2008\
 mkdir %BUILD%
 
 pushd %BUILD%
-cmake.exe -DBOOST_ROOT=%BOOST_ROOT% ..\src\
+cmake.exe -G "Visual Studio 9 2008" -DBOOST_ROOT=%BOOST_ROOT% ..\src\
 popd
 
 set PATH=%CD%\..\3rd_party\libusb-win32-bin-1.2.6.0\bin\x86\;%PATH%
