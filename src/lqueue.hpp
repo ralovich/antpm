@@ -83,9 +83,9 @@ template < class DataType>
 class lqueue3 : public lqueue2<DataType>
 {
 public:
-  typedef boost::function<bool (DataType&)> Listener;
+  typedef boost::function<bool (typename DataType&)>     Listener;
   typedef boost::function<bool (std::vector<DataType>&)> Listener2;
-  typedef lqueue2<DataType>                 Super;
+  typedef lqueue2<DataType>                              Super;
 
   struct ListenerProc
   {

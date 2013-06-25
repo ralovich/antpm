@@ -13,6 +13,7 @@
 
 #include "AntMessage.hpp"
 #include <boost/thread.hpp>
+#include <boost/scoped_ptr.hpp>
 
 
 namespace antpm{
