@@ -743,12 +743,12 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
                     case MessageFieldTypeManufacturer:
                     {
                         manufacturer = val;
-                        strstrm << manufacturerMap[manufacturer];
+                        strstrm << manufacturerMap[static_cast<uint8_t>(manufacturer)];
                         break;
                     }
                     case MessageFieldTypeProduct:
                     {
-                        strstrm << productMap[manufacturer][val];
+                        strstrm << productMap[static_cast<uint8_t>(manufacturer)][val];
                         break;
                     }
                     default:
