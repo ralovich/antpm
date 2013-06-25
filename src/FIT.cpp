@@ -1211,7 +1211,7 @@ bool FIT::getDate(std::vector<uint8_t> &fitData, std::time_t &creationTime)
 
                   int8_t fileType=INT8_MAX;
 
-                  uint32_t time;
+                  //uint32_t time;
 
                   for (int i=0; i<rd.rfx.fieldsNum; i++)
                   {
@@ -1291,7 +1291,7 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
     logger() << "Current system time: " << GarminConvert::localTime(directoryHeader.currentSystemTime) << "\n";
     logger() << "Directory modified time: " << GarminConvert::localTime(directoryHeader.directoryModifiedTime) << "\n";
 
-    int records = data.size() / directoryHeader.structureLength;
+    int records = static_cast<int>(data.size()) / directoryHeader.structureLength;
 
     if(data.empty() || data.size() < (sizeof(ZeroFileRecord)*records))
     {

@@ -131,12 +131,12 @@ string GarminConvert::gString(uint8_t *str, int maxSize)
     return rv;
 }
 
-string GarminConvert::gHex(uint8_t *buf, int size)
+string GarminConvert::gHex(uint8_t *buf, size_t size)
 {
     ostringstream sstr;
     sstr << uppercase << setw(2) << setfill('0');
 
-    for(int i=0; i<size; i++)
+    for(size_t i=0; i<size; i++)
     {
         sstr << hex << setw(2) << (unsigned)buf[i];
         if (i < size-1)

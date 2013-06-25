@@ -50,7 +50,7 @@ public:
     static std::string localTime(uint32_t time);
     static std::string gTime(uint32_t time);
     static std::string gString(uint8_t *str, int maxSize);
-    static std::string gHex(uint8_t *buf, int size);
+    static std::string gHex(uint8_t *buf, size_t size);
     static std::string gHex(std::vector<uint8_t> &buf);
     static std::string hexDump(std::vector<uint8_t> &buf);
 };
