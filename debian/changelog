@@ -9,7 +9,7 @@ antpm (1.6-2) UNRELEASED; urgency=low
 
 antpm (1.6-0) UNRELEASED; urgency=low
 
-  [ RALOVICH, Kristóf ]
+  [ RALOVICH, KristÃ³f ]
   * include Release builds in a .deb. package
   * clarify build- and run-time dependencies
   * add todo
@@ -43,7 +43,7 @@ antpm (1.6-0) UNRELEASED; urgency=low
   [ unknown ]
   * build fixes
 
-  [ RALOVICH, Kristóf ]
+  [ RALOVICH, KristÃ³f ]
   * add todo
   * add todo
   * move GARMIN_EPOCH to antdefs.hpp
