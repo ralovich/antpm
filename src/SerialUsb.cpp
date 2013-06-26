@@ -346,6 +346,8 @@ struct SerialUsbPrivate
 
 SerialUsb::SerialUsb()
 {
+  LOG(LOG_INF) << "Using SerialUsb...\n";
+
   m_p.reset(new SerialUsbPrivate());
   m_p->m_recvThKill = 0;
   m_p->dev = 0;

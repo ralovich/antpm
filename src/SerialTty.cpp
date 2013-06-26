@@ -68,6 +68,8 @@ struct SerialTtyIOThread
 SerialTty::SerialTty()
   : m_p(new SerialTtyPrivate())
 {
+  LOG(LOG_INF) << "Using SerialTty...\n";
+
   m_p->m_devName = "/dev/ttyUSB0";
   m_p->m_fd = -1;
   //, m_p->m_recvTh = 0;
@@ -101,16 +103,24 @@ SerialTty::open()
 
   bool rv = false;
 
+  LOG(LOG_INF) << "opening " << m_p->m_devName << "\n";
   m_p->m_fd = ::open(m_p->m_devName.c_str(), O_RDWR | O_NONBLOCK);
   if(m_p->m_fd < 1)
   {
     m_p->m_devName = "/dev/ttyUSB1";
+    LOG(LOG_INF) << "opening " << m_p->m_devName << "\n";
     m_p->m_fd = ::open(m_p->m_devName.c_str(), O_RDWR | O_NONBLOCK);
   }
 
-  ENSURE_OR_RETURN_FALSE(m_p->m_fd);
+  //ENSURE_OR_RETURN_FALSE(m_p->m_fd);
   if(m_p->m_fd<0)
+  {
+    LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and either /dev/ttyUSB0 or /dev/ttyUSB1 was created by cp210x!\n";
+    char se[256];
+    strerror_r(m_p->m_fd, se, sizeof(se));
+    LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << se << "\n";
     return rv;
+  }
 
   //printf("m_fd=%d\n", m_fd);
 
