@@ -1,11 +1,39 @@
 // -*- mode: outline ; coding: utf-8-unix -*-
 
 
-** USERS GUIDE
-*
+** LINUX USER'S GUIDE (from pre-built packages)
+* Make sure that the cp210x kernel module is loaded: "sudo modprobe cp210x". Verify by looking at non-empty output of "lsmod | grep cp210x".
+* Make sure that the USB2ANT stick is connected to the machine.
+* Make sure cp210x driver was assigned to your USB2ANT. Verify by "dmesg | grep tty" and look for a line similar to: "[ 3274.854726] usb 6-2: cp210x converter now attached to ttyUSB0". Also make sure "ls /dev/ttyUSB*" lists your device node.
+* Install the antpm binary package.
+* Enable "pairing mode" on your watch.
+* Bring your watch to ~50cm from the USB2ANT stick. Sometimes avoiding the proximity of a WiFi network helps.
+* Run "antpm-downloader" on your machine. This will attempt connecting to the watch and pair with it first.
+* During pairing, you have to click "Yes" on the watch to complete pairing.
+* Afterwards all activity information from the watch is downloaded to your machine. This can take some time.
+* The downloaded files are stored on your machine to the folder ConfigFolder/*device-id*/*current-date-time* (where ConfigFolder equals $XDG_CONFIG_HOME which usually points to $HOME/.config/antpm/ or $ANTPM_DIR/ if that is set).
+* The 310XT stores all information in .fit files. These files can describe waypoints/tracks/activities.
+* To convert the downloaded .fit files to a more commonly used .gpx format, issue the command "antpm-fit2gpx -F ConfigFolder/*device-id*/*current-date-time*" e.g. "antpm-fit2gpx -F ~/.config/antpm/4531082473/2013_03_26_10_58_19". This will populate the given folder with .gpx files.
+
+** WINDOWS USER'S GUIDE (from pre-built packages)
+* Make sure that the USB2ANT stick is connected to the machine.
+* Install the libusb driver by running "3rd_party/libusb-win32-bin-1.2.6.0/driver_installer/inf-wizard.exe"
+* 
 
 ** HOW TO HELP IF YOUR WATCH IS NOT PROPERLY HANDLED BY ANT+minus
-* 
+* In this case your device talks a different dialect of ANT/ANT+/ANT-FS that we've seen so far.
+* To solve this, we'll need a dump of the USB communication between your watch (USB2ANT stick) and garmin's ant agent. This may be facilitated in a VirtualBox environment.
+* Install e.g. VirtualBox on linux, including proprietary oracle usb extensions
+* Install win xp in vbox, set up usb filter to pass through all devices
+* Install garmin's ant agent in virtual xp, but do not start it!
+* Plug in your USB2ANT stick to the host, make sure the cp201x driver didn't grab it, by unloading cp201x kernel module.
+* Under linux host, figure out usb bus address of your USB2ANT stick: "lsusb"
+* Increase usbmon lower threshold for message truncation to say 100 characters: ./usbmon -i <USB bus> -fu -s 100
+* Start capturing usb traffic under linux host: cat /sys/kernel/debug/usb/usbmon/6u > ~/ant-usb-log-001.usbmon
+* Start garmin's ant agent in virtual xp. Once the download is done, quit ant agent. Also terminate the above "cat" process. The dump of your usb communication is not saved to ~/ant-usb-log-001.usbmon.
+* decode the ANT traffic from the usb packets: ./antpm-usbmon2ant --op=parse ~/ant-usb-log-001.usbmon
+* At this point, you can either start debugging antpm and try to see where our code sends/awaits different replies/messages, or you may provide the .usbmon file to the maintainers to do the same. Note that the dump file most likely contains your activities from your watch, and could be of personal nature!!
+
 
 ** RELEASE CHECKLIST
 * make sure all files are listed in scripts/origsrc-file-list
@@ -32,7 +60,6 @@
 * capture ant agent log: for firmware upload
 * fix all TODO/FIXME in the code
 * resume downloader connections
-* write all logs into %DATE% folder
 * split ANT framing / messaging functionality into two separate classes
 * send specific messages at the channel period??
 * ANTFS erase downloaded files (check ant agent logs for this)
@@ -48,6 +75,7 @@
 * directory parsing
 * decoding downloaded FIT workout files
 * download a particular file
+* write all logs into %DATE% folder
 
 ** PLAN
 * install vbox on linux, including proprietary oracle usb extensions
@@ -61,13 +89,6 @@
 
 
 ** ISSUES
-doesn't work on T500 if in docking station, the ant stick is given /dev/ttyUSB4, open() already fails, see http://www.spinics.net/linux/fedora/fedora-users/msg382670.html
-
-
- used interceptty to capture data coming in/going out over a serial line. 
-http://www.suspectclass.com/~sgifford/interceptty/
-
-
 *** usbmon truncates output to 32 bytes http://mrmekon.tumblr.com/post/5146693470/usbmon-truncation
 The USB debug driver, usbmon, truncates the ‘u’ format devices to 32 bytes by default!
 
@@ -119,7 +140,6 @@ https://github.com/braiden/python-ant-downloader
 https://github.com/Tigge/Garmin-Forerunner-610-Extractor
 
 http://sportwatcher.googlecode.com/svn/trunk/
-http://sportwatcher.http://sportwatcher.googlecode.com/svn/trunk/
 
 http://sourceforge.net/projects/pytrainer/
 http://sourceforge.net/projects/turtlesport/?source=recommended
