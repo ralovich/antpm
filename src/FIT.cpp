@@ -1278,7 +1278,7 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
     DirectoryHeader directoryHeader;
     if (data.size() < sizeof(directoryHeader))
     {
-        logger() << "Zero file data is too short to get header\n";
+        LOG(LOG_WARN) << "Zero file data is too short to get header\n";
         return false;
     }
 
