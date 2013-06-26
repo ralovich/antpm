@@ -136,7 +136,7 @@ main(int argc, char** argv)
   uint16_t eraseFileIdx=0x0000;
   po::options_description desc("Allowed options");
   desc.add_options()
-    ("help", "produce help message")
+    ("help,h",                                                                    "produce help message")
     ("pairing,P", po::value<bool>(&pairing)->zero_tokens()->implicit_value(true), "Force pairing first")
     ("dir-only",  po::value<bool>(&dirOnly)->zero_tokens()->implicit_value(true), "Download and list device directory")
     ("download,D",po::value<std::string>(),                                       "Download a file (hex id e.g. 0x12FB) from device")

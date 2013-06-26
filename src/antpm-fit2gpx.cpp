@@ -79,8 +79,8 @@ main(int argc, char** argv)
   std::string fitRootFile;
   po::options_description desc("Allowed options");
   desc.add_options()
-    ("help", "produce help message")
-    ("fitFolder,F", po::value<std::string>(&fitFolder), "Folder with FIT files")
+    ("help,h",                                                  "produce help message")
+    ("fitFolder,F", po::value<std::string>(&fitFolder),         "Folder with FIT files")
     ("decode-fit-root,D", po::value<std::string>(&fitRootFile), "FIT file, encoding the root directory contents on a device")
     ;
 
