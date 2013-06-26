@@ -5,7 +5,7 @@
 * Make sure that the cp210x kernel module is loaded: "sudo modprobe cp210x". Verify by looking at non-empty output of "lsmod | grep cp210x".
 * Make sure that the USB2ANT stick is connected to the machine.
 * Make sure cp210x driver was assigned to your USB2ANT. Verify by "dmesg | grep tty" and look for a line similar to: "[ 3274.854726] usb 6-2: cp210x converter now attached to ttyUSB0". Also make sure "ls /dev/ttyUSB*" lists your device node.
-* Your user must be able to access the /dev/ttyUSB0 device. This can be achieved e.g. by the installing the http://antpm.googlecode.com/git/scripts/80-ant-stick.rules udev rule into /etc/udev/rules.d . Verify by "cat /dev/ttyUSB0".
+* Your user must be able to access the /dev/ttyUSB0 device. This can be achieved e.g. by the installing the http://antpm.googlecode.com/git/scripts/80-ant-stick.rules udev rule into /etc/udev/rules.d . Restart udev. Verify by "cat /dev/ttyUSB0".
 * Install the antpm binary package.
 * Enable "pairing mode" on your watch.
 * Bring your watch to ~50cm from the USB2ANT stick. Sometimes avoiding the proximity of a WiFi network helps.
