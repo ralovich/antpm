@@ -1,3 +1,15 @@
+antpm (1.6-3) UNRELEASED; urgency=low
+
+  [ RALOVICH, Kristóf ]
+  * docs: more notes
+  * this change was only necessary for win64
+  * debian: refine c++ compiler dependency
+  * serial: add more verbosity to output
+
+  [ Ralovich Kristof ]
+
+ -- Ralovich Kristof <tade@cg.iit.bme.hu>  Wed, 26 Jun 2013 11:43:35 +0200
+
 antpm (1.6-2) UNRELEASED; urgency=low
 
   [ Kristof Ralovich ]
