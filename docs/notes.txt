@@ -15,12 +15,20 @@
 * The 310XT stores all information in .fit files. These files can describe waypoints/tracks/activities.
 * To convert the downloaded .fit files to a more commonly used .gpx format, issue the command "antpm-fit2gpx -F ConfigFolder/*device-id*/*current-date-time*" e.g. "antpm-fit2gpx -F ~/.config/antpm/4531082473/2013_03_26_10_58_19". This will populate the given folder with .gpx files.
 
+** HOW TO SUBMIT A BUG-REPORT
+* You may open a bug report at http://code.google.com/p/antpm/issues/list
+* In your report please include:
+*  the log of the program in question. This is usually saved under ~/.config/antpm
+*  What steps will reproduce the problem?
+*  What is the expected output? What do you see instead?
+*  What version of the product are you using? On what operating system? Is it pre-built of from sources.
+
 ** WINDOWS USER'S GUIDE (from pre-built packages)
 * Make sure that the USB2ANT stick is connected to the machine.
 * Install the libusb driver by running "3rd_party/libusb-win32-bin-1.2.6.0/driver_installer/inf-wizard.exe"
 * 
 
-** HOW TO HELP IF YOUR WATCH IS NOT PROPERLY HANDLED BY ANT+minus
+** HOW TO HELP IF YOUR WATCH'S PROTOCOL IS NOT PROPERLY HANDLED BY ANT+minus
 * In this case your device talks a different dialect of ANT/ANT+/ANT-FS that we've seen so far.
 * To solve this, we'll need a dump of the USB communication between your watch (USB2ANT stick) and garmin's ant agent. This may be facilitated in a VirtualBox environment.
 * Install e.g. VirtualBox on linux, including proprietary oracle usb extensions
