@@ -1238,7 +1238,6 @@ bool FIT::getDate(std::vector<uint8_t> &fitData, std::time_t &creationTime)
                                   {
                                       uint32_t fileCreationTime = *(uint32_t*)ptr;
                                       creationTime = fileCreationTime;
-                                      creationTime += GARMIN_EPOCH;
                                       logger() << "creationTime:" << GarminConvert::localTime(fileCreationTime) << "\n";
                                       //return true;
                                       break;
