@@ -51,7 +51,7 @@ const uchar fsFreq = 0x46;  // other values seen: 0x46 0x50 0x0f
 const uchar beaconPer = 0x04;
 const uchar fsSearchTimeout = 0x03;
 
-uint maxFileDownloads = 1;
+uint maxFileDownloads = 1000;
 
 
 
