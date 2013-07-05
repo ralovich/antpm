@@ -1,3 +1,20 @@
+antpm (1.7-1) UNRELEASED; urgency=low
+
+  * antpm-*: recongize -h option for --help too
+  * fit: this is a run-time warning
+  * docs: start writing user's guide
+  * docs: how to submit a bug report
+  * docs: add a note on installing the udev rule for user access to the
+    USB2ANT stick
+  * docs: refine udev procedure
+  * docs: split maintainer documentation from end-user documentation
+  * FIT: bugfix: don't offset timestamps twice
+  * bugfix: this was a crippling bug
+  * docs: add todo
+  * new version
+
+ -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 06 Jul 2013 00:11:34 +0200
+
 antpm (1.6-3) UNRELEASED; urgency=low
 
   [ RALOVICH, Kristóf ]
