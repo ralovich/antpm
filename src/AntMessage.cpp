@@ -746,6 +746,7 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   FIT fit;
   std::time_t t=0;
   CHECK_RETURN_FALSE_LOG_OK(fit.getDate(bytes, t));
+  t = GarminConvert::gOffsetTime(t);
   char tbuf[256];
   strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&t));
   LOG_VAR(tbuf);
