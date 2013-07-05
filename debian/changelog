@@ -1,3 +1,10 @@
+antpm (1.8-1) UNRELEASED; urgency=low
+
+  * GarminConvert: add a method that offsets the timestamps
+  * AntMessage: bugfix: correctly convert file creation time
+
+ -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 06 Jul 2013 00:46:18 +0200
+
 antpm (1.7-1) UNRELEASED; urgency=low
 
   * antpm-*: recongize -h option for --help too

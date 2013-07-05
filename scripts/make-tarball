@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VER=1.7
+VER=1.8
 GIT_VER=`git log | head -1 | awk '{print $2 }'`
 OUTNAME=antpm_${VER}.orig.tar
 
