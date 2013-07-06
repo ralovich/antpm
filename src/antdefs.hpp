@@ -122,8 +122,9 @@ static const unsigned char ANTP_NETKEY[8] = {0xA8,0xA4,0x23,0xB9,0xF5,0x5E,0x63,
 
 
 
-#define GARMIN_EPOCH 631065600
-
+// $ date -u --date='@631065600'
+#define GARMIN_EPOCH 631065600 // Sun Dec 31 00:00:00 UTC 1989
+//#define GARMIN_EPOCH 627666624 // Tue Nov 21 15:50:24 UTC 1989
 
 
 #define ANTP_PAIR(x) {x,#x}
