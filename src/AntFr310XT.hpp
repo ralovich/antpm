@@ -21,6 +21,7 @@
 
 namespace antpm{
 
+class DeviceSettings;
 struct AntFr310XT2_EventLoop;
 // State-machine for ANT+ communication with Forerunner 310XT.
 class AntFr310XT2: public AntCallback
@@ -59,6 +60,7 @@ protected:
   boost::thread m_eventTh;
   lqueue4<AntMessage> m_evQue;
   AntParsedLoggerCallback aplc;
+  boost::scoped_ptr<DeviceSettings> m_ds;
 
   FIT             fit;
   ZeroFileContent zfc;
@@ -80,7 +82,7 @@ private:
   bool handleEvents();
   int changeState(const int newState);
   StateANTFS changeFSState(const StateANTFS newState);
-  void createDownloadFolder();
+  bool createDownloadFolder();
 };
 
 }

@@ -15,6 +15,7 @@
 #include "SerialUsb.hpp"
 #include "antdefs.hpp"
 #include "common.hpp"
+#include "DeviceSettings.hpp"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -28,8 +29,6 @@
 #include "stdintfwd.hpp"
 
 
-//#include <boost/property_tree/ptree.hpp>
-//#include <boost/property_tree/ini_parser.hpp>
 
 using namespace std;
 
@@ -50,8 +49,6 @@ const ushort waveform = 0x5300;
 const uchar fsFreq = 0x46;  // other values seen: 0x46 0x50 0x0f
 const uchar beaconPer = 0x04;
 const uchar fsSearchTimeout = 0x03;
-
-uint maxFileDownloads = 1000;
 
 
 
@@ -76,20 +73,13 @@ struct AntFr310XT2_EventLoop
 AntFr310XT2::AntFr310XT2(bool eventLoopInBgTh)
   : m_serial(new ANTPM_SERIAL_IMPL())
   , m_antMessenger(new AntMessenger(eventLoopInBgTh))
-  , aplc(getConfigFolder()+std::string("libantpm_")+getDateString()+".antparse.txt")
+  , aplc(getConfigFolder()+std::string("antparse_")+getDateString()+".txt")
   , clientSN(0)
   , pairedKey(0)
   , m_eventLoopInBgTh(eventLoopInBgTh)
   , doPairing(false)
   , mode(MD_DOWNLOAD_ALL)
 {
-  //boost::property_tree::ptree pt;
-  //std::string confFile = getConfigFileName();
-  //boost::property_tree::ini_parser::read_ini(confFile.c_str(), pt);
-  //std::cout << pt.get<uint>("libantpm.MaxFileDownloads") << std::endl;
-  //std::cout << pt.get<std::string>("Section1.Value2") << std::endl;
-  //maxFileDownloads = pt.get<uint>("libantpm.MaxFileDownloads");
-
   m_antMessenger->setHandler(m_serial.get());
   m_antMessenger->setCallback(this);
   state = ST_ANTFS_0;
@@ -323,6 +313,7 @@ AntFr310XT2::handleEvents()
   }
   else if(state == ST_ANTFS_BAD)
   {
+    // TODO: acc counter how many BADs we handle, then bail out
     m_antMessenger->ANT_CloseChannel(chan);
     sleepms(800);
     changeState(ST_ANTFS_RESTART);
@@ -344,6 +335,12 @@ AntFr310XT2::handleEvents()
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_RequestClientDeviceSerialNumber(chan, hostSN, clientSN, clientDevName));
 
     LOG(LOG_RAW) << "\n\nFound client \"" << clientDevName << "\" SN=0x" << toString<uint>(clientSN,8,'0') << " SN=" << clientSN << "\n\n\n";
+
+    m_ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
+    assert(m_ds.get());
+    m_ds->loadDefaultValues();
+    m_ds->loadFromFile(m_ds->getConfigFileName().c_str());
+    m_ds->saveToFile(m_ds->getConfigFileName().c_str());
 
     readUInt64(clientSN, pairedKey);
 
@@ -400,7 +397,7 @@ AntFr310XT2::handleEvents()
   }
   else if(state == ST_ANTFS_DL_DIRECTORY)
   {
-    createDownloadFolder();
+    CHECK_RETURN_FALSE(createDownloadFolder());
 
     //ANTFS_Upload(); //command pipe
     //ANTFS_UploadData();
@@ -438,12 +435,12 @@ AntFr310XT2::handleEvents()
     // dl activity files
     // dl course files
 
-    createDownloadFolder();
+    CHECK_RETURN_FALSE(createDownloadFolder());
 
     uint fileCnt=0;
-    for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<maxFileDownloads; i++, fileCnt++)
+    for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++, fileCnt++)
     {
-      LOG_VAR3(fileCnt, maxFileDownloads, zfc.waypointsFiles.size());
+      LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.waypointsFiles.size());
       ushort fileIdx = zfc.waypointsFiles[i];
       logger() << "Transfer waypoints file 0x" << hex << fileIdx << "\n";
 
@@ -460,9 +457,9 @@ AntFr310XT2::handleEvents()
       fit.parse(data, gpx);
     }
 
-    for (size_t i=0; i<zfc.activityFiles.size() && fileCnt<maxFileDownloads; i++, fileCnt++)
+    for (size_t i=0; i<zfc.activityFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++, fileCnt++)
     {
-      LOG_VAR3(fileCnt, maxFileDownloads, zfc.activityFiles.size());
+      LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.activityFiles.size());
       ushort fileIdx = zfc.activityFiles[i];
       logger() << "# Transfer activity file 0x" << hex << fileIdx << "\n";
 
@@ -478,9 +475,9 @@ AntFr310XT2::handleEvents()
       fit.parse(data, gpx);
     }
 
-    for (size_t i=0; i<zfc.courseFiles.size() && fileCnt<maxFileDownloads; i++, fileCnt++)
+    for (size_t i=0; i<zfc.courseFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++, fileCnt++)
     {
-      LOG_VAR3(fileCnt, maxFileDownloads, zfc.courseFiles.size());
+      LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.courseFiles.size());
       ushort fileIdx = zfc.courseFiles[i];
       logger() << "Transfer course file 0x" << hex << fileIdx << "\n";
 
@@ -506,7 +503,7 @@ AntFr310XT2::handleEvents()
   {
     logger() << "Transfer of file 0x" << hex << singleFileIdx << dec << "\n";
 
-    createDownloadFolder();
+    CHECK_RETURN_FALSE(createDownloadFolder());
 
     std::vector<uchar> data;
     if(!m_antMessenger->ANTFS_Download(chan, singleFileIdx, data))
@@ -569,20 +566,27 @@ AntFr310XT2::changeFSState(const AntFr310XT2::StateANTFS newState)
 }
 
 
-void
+bool
 AntFr310XT2::createDownloadFolder()
 {
   if(!folder.empty())
-    return;
+  {
+    LOG(LOG_WARN) << "folder is \"" << folder << "\", why not empty?\n";
+    return false;
+  }
+  CHECK_RETURN_FALSE(m_ds);
   if(clientSN==0)
   {
-    LOG(LOG_WARN) << "this is strange, clientSN is 0\n";
+    LOG(LOG_WARN) << "this is strange, clientSN is 0!\n";
+    return false;
   }
   std::stringstream ss;
-  ss << getConfigFolder() << "/" << clientSN << "/" << getDateString() + "/";
+  //ss << getConfigFolder() << "/" << clientSN << "/" << getDateString() + "/";
+  ss << m_ds->getFolder()  << "/" << getDateString() + "/";
   folder = ss.str();
   //folder = getConfigFolder() + "/" + getDateString() + "/";
-  CHECK_RETURN(mkDir(folder.c_str()));
+  CHECK_RETURN_FALSE(mkDir(folder.c_str()));
+  return true;
 }
 
 }

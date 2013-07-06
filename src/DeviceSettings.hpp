@@ -13,15 +13,31 @@
 
 
 #include <ctime>
-
+#include <string>
 
 namespace antpm {
 
-struct DeviceSettings
+class DeviceSettings
 {
-  int         MaxFileDownloads;
-  std::time_t LastUserProfileTime;
-  std::time_t LastTransferredTime;
+public:
+  DeviceSettings(const char* devId);
+
+  void loadDefaultValues();
+  const std::string getConfigFileName() const;
+  const std::string getFolder() const;
+  bool saveToFile(const char* fname);
+  bool loadFromFile(const char* fname);
+  void mergeLastUserProfileTime(const std::time_t t);
+  void mergeLastTransferredTime(const std::time_t t);
+
+  static std::time_t str2time(const char* from);
+  static const std::string time2str(const std::time_t t);
+
+  uint        MaxFileDownloads;
+  std::time_t LastUserProfileTime; // date of the latest activity downloaded, represented as GMT/UTC
+  std::time_t LastTransferredTime; // last time data was downloaded from the device, represented as GMT/UTC
+private:
+  std::string mDevId;
 };
 
 }
