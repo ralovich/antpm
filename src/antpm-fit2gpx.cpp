@@ -123,13 +123,24 @@ main(int argc, char** argv)
     LOG_VAR(fitFolder);
     CHECK_RETURN_RV_LOG_OK(fs::is_directory(fs::path(fitFolder)), EXIT_FAILURE);
   }
-  
 
   std::vector<fs::path> fitFiles(find_files(fs::path(fitFolder), ".fit"));
+  std::sort(fitFiles.begin(), fitFiles.end());
 
   for (size_t i = 0; i < fitFiles.size(); i++)
   {
     const std::string in(fitFiles[i].string());
+#if 0 // for fixing up FIT file dates created before fixing time conversion bug
+    vector<uchar> v(readFile(in.c_str()));
+    FIT fit;
+    std::time_t fileCreationTime;
+    bool ok = fit.getDate(v, fileCreationTime);
+    cout << in << "\t" << ok << "\t" << uint32_t(fileCreationTime) << "\t" << GarminConvert::localTime(fileCreationTime) << "\t" << GarminConvert::gmTime(fileCreationTime) << "\t" << GarminConvert::gTime(fileCreationTime) << "\n";
+
+    std::time_t t = fileCreationTime;
+    t = GarminConvert::gOffsetTime(t);
+    boost::filesystem::last_write_time(boost::filesystem::path(in), t);
+#else
 #if BOOST_VERSION<=104300
     const std::string out(fitFiles[i].parent_path().string()+"//"+fitFiles[i].stem()+".gpx");
 #else
@@ -141,8 +152,8 @@ main(int argc, char** argv)
     vector<uchar> v(readFile(in.c_str()));
     if(fit.parse(v, gpx))
       gpx.writeToFile(out);
+#endif
   }
-  
 
 
   return EXIT_SUCCESS;
