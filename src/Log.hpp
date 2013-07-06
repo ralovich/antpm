@@ -31,9 +31,7 @@ namespace antpm
 {
   enum LogLevel
   {
-    LOG_RAW,             //< dont insert any suffix
-    LOG_SKIP_CONSOLE,    //< dont send message to the console
-    LOG_CONSOLE_CONTENT, //< suffix with the prompt, coming from the console
+    LOG_RAW,             //< dont insert any prefix
     LOG_ERR,             //< runtime error
     LOG_WARN,            //< suppressable runtime error
     LOG_INF,             //< runtime information
@@ -55,8 +53,6 @@ namespace antpm
     switch(level)
     {
       case LOG_RAW:             return "";
-      case LOG_SKIP_CONSOLE:    return "";
-      case LOG_CONSOLE_CONTENT: return "#> ";
       case LOG_ERR:             return "ERROR: ";
       case LOG_WARN:            return "WW: ";
       case LOG_INF:             return "II: ";
@@ -187,6 +183,25 @@ namespace antpm
                      __FUNCTION__,
                      logFileName,
                      getTimeStamp().c_str());
+#ifdef __linux__
+# define ANTPM_OS "linux"
+#elif defined(_WIN64)
+# define ANTPM_OS "win64"
+#elif defined(_WIN32)
+# define ANTPM_OS "win32"
+#else
+# define ANTPM_OS "unknown_os"
+#endif
+#ifdef __GNUC__
+# define ANTPM_CC "GCC "__VERSION__
+#elif defined(_MSC_VER)
+# define ANTPM_CC "MSVC "_MSC_FULL_VER
+#else
+# define ANTPM_CC "unknow_compiler"
+#endif
+      this->lprintf2(LOG_INF, "Built \"%s\" under \"%s\" with \"%s\"\n", __DATE__, ANTPM_OS, ANTPM_CC);
+#undef ANTPM_OS
+#undef ANTPM_CC
     }
   }
 
