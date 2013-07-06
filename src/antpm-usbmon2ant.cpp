@@ -211,26 +211,3 @@ main(int argc, char** argv)
 }
 
 
-#ifdef USE_GOOGLE_TEST
-#include <gtest/gtest.h>
-
-
-TEST(usbmon2ant, Zero0) {
-  EXPECT_EQ(14, 13);
-}
-
-class MyFixture2 : public ::testing::Test
-{
-protected:
-  int foo;
-
-  virtual void SetUp() { foo = 0; }
-};
-TEST_F(MyFixture2, FooStartsAtZero) {
-  EXPECT_EQ(0, foo);
-}
-
-
-//int gtest_PullInMyLibrary_antlib2() { return 0; }
-
-#endif
