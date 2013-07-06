@@ -7,6 +7,8 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 PROJECT(antpm C CXX)
 
+OPTION(USE_COVERAGE "use gcov" FALSE)
+OPTION(USE_BOOST_TEST "use boost::test" FALSE)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
@@ -32,6 +34,12 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
   set(CMAKE_CXX_FLAGS_DEBUG          "-g3 -ggdb3")
   set(CMAKE_C_FLAGS_DEBUG            "-g3 -ggdb3")
+
+  IF(USE_COVERAGE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
+    set(CMAKE_EXE_LINKER_FLAGS
+      "${CMAKE_EXE_LINKER_FLAGS} -fprofile-arcs -ftest-coverage")
+  ENDIF()
 ENDIF()
 
 INCLUDE(FindLIBUSB)
@@ -149,3 +157,6 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0)")
 #set(CPACK_DEBIAN_PACKAGE_VERSION 	Package version 	${CPACK_PACKAGE_VERSION}+lenny1
 INCLUDE(CPack)
 
+IF(USE_BOOST_TEST)
+  ADD_SUBDIRECTORY(tests)
+ENDIF()
