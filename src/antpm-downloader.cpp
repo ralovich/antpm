@@ -116,14 +116,13 @@ void my_handler(int s)
 int
 main(int argc, char** argv)
 {
+  printf("press Ctrl-C to exit\n");
 #ifdef _WIN32
   if( !SetConsoleCtrlHandler( (PHANDLER_ROUTINE) CtrlHandler, TRUE ) )
   {
     printf( "\nERROR: Could not set control handler...");
-    //return 1;
   }
 #elif defined(__linux)
-  printf("press Ctrl-C to exit\n");
   signal(SIGINT, my_handler);
 #endif
 
