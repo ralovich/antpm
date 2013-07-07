@@ -24,3 +24,7 @@ override_dh_auto_build:
 DESTDIR=../debian/antpm/
 override_dh_install:
 	cd cmake-build && $(MAKE) install DESTDIR=$(DESTDIR)
+	dh_installudev 
+
+build:
+	cp scripts/80-ant-stick.rules debian/antpm.udev

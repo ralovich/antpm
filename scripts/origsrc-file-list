@@ -1,4 +1,3 @@
-debian
 debian/rules
 debian/source
 debian/source/format
@@ -7,7 +6,7 @@ debian/control
 debian/gpl-2.0.txt
 debian/compat
 debian/changelog
-src
+scripts/80-ant-stick.rules
 src/CMakeLists.txt
 src/lqueue.hpp
 src/Log.hpp
