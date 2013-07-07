@@ -56,6 +56,7 @@ protected:
   typedef enum { LINK,AUTHENTICATION,TRANSPORT,BUSY} StateANTFS;
   StateANTFS clientState;
   int state;
+  boost::mutex stateMtx;
   volatile int m_eventThKill;
   boost::thread m_eventTh;
   lqueue4<AntMessage> m_evQue;
@@ -80,7 +81,7 @@ private:
   friend struct AntFr310XT2_EventLoop;
   void* th_eventLoop();
   bool handleEvents();
-  int changeState(const int newState);
+  int changeState(const int newState, bool force = false);
   StateANTFS changeFSState(const StateANTFS newState);
   bool createDownloadFolder();
 };

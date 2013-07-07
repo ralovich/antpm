@@ -168,7 +168,7 @@ AntFr310XT2::start()
 
   //m_antMessenger->addListener(boost::bind(&AntFr310XT2::listenerFunc2, this, _1));
 
-  //m_antMessenger->setCallback(&aplc); 
+  //m_antMessenger->setCallback(&aplc);
 
   changeState(ST_ANTFS_START0);
 
@@ -189,11 +189,14 @@ void AntFr310XT2::stop()
     m_antMessenger->ANT_ResetSystem();
   }
   m_serial->close();
-  changeState(ST_ANTFS_START0);
+  changeState(ST_ANTFS_START0, true);
 }
 
 void AntFr310XT2::stopAsync()
 {
+  // FIXME: setting ST_ANTFS_LAST might not be enough for stopping immediately,
+  //        as other thread might be
+  //        sleeping in a listener, and we stop only when that returns.
   changeState(ST_ANTFS_LAST);
 }
 
@@ -201,12 +204,14 @@ void AntFr310XT2::stopAsync()
 const int
 AntFr310XT2::getSMState() const
 {
+  //boost::unique_lock<boost::mutex> lock(this->stateMtx); // not needed, as this is a atomic read
   return state;
 }
 
 const char*
 AntFr310XT2::getSMStateStr() const
 {
+  //boost::unique_lock<boost::mutex> lock(this->stateMtx); // not needed, as this is a atomic read
   return StateFSWork2Str(state);
 }
 
@@ -242,6 +247,22 @@ AntFr310XT2::th_eventLoop()
 bool
 AntFr310XT2::handleEvents()
 {
+#define changeStateSafe(x) do                                           \
+  {                                                                     \
+    boost::unique_lock<boost::mutex> lock(this->stateMtx);              \
+    if(this->state == ST_ANTFS_LAST)                                    \
+    {                                                                   \
+      lock.unlock();                                                    \
+      this->stop();                                                     \
+      return true;                                                      \
+    }                                                                   \
+    else                                                                \
+    {                                                                   \
+      lock.unlock();                                                    \
+      this->changeState(x);                                             \
+    }                                                                   \
+  } while(0)
+
   while(!m_evQue.empty())
   {
     AntMessage m;
@@ -268,7 +289,7 @@ AntFr310XT2::handleEvents()
     //m_antMessenger->clearRxQueue();
     m_antMessenger->ANT_ResetSystem();
     m_antMessenger->ANT_ResetSystem();
-    changeState(ST_ANTFS_START0);
+    changeStateSafe(ST_ANTFS_START0);
   }
   if(state==ST_ANTFS_START0)
   {
@@ -289,7 +310,7 @@ AntFr310XT2::handleEvents()
     CHECK_RETURN_FALSE(m_antMessenger->ANT_OpenChannel(chan));
     CHECK_RETURN_FALSE(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    changeState(ST_ANTFS_LINKING);
+    changeStateSafe(ST_ANTFS_LINKING);
   }
   else if(state==ST_ANTFS_LINKING)
   {
@@ -300,7 +321,7 @@ AntFr310XT2::handleEvents()
     // TODO:handle case of no available data
     if(!beacon->dataAvail)
     {
-      changeState(ST_ANTFS_NODATA);
+      changeStateSafe(ST_ANTFS_NODATA);
       LOG(LOG_RAW) << "\n\nNo data available from client!\n\n\n";
       return true;
     }
@@ -309,14 +330,14 @@ AntFr310XT2::handleEvents()
 
     CHECK_RETURN_FALSE(m_antMessenger->ANTFS_Link(chan, fsFreq, beaconPer, hostSN));
 
-    changeState(ST_ANTFS_AUTH0_SN);
+    changeStateSafe(ST_ANTFS_AUTH0_SN);
   }
   else if(state == ST_ANTFS_BAD)
   {
     // TODO: acc counter how many BADs we handle, then bail out
     m_antMessenger->ANT_CloseChannel(chan);
     sleepms(800);
-    changeState(ST_ANTFS_RESTART);
+    changeStateSafe(ST_ANTFS_RESTART);
     return true;
   }
   else if(state == ST_ANTFS_AUTH0_SN)
@@ -346,9 +367,9 @@ AntFr310XT2::handleEvents()
 
     LOG_VAR3(doPairing, toString<uint64_t>(pairedKey,16,'0'), clientSN);
     if(doPairing || pairedKey==0)
-      changeState(ST_ANTFS_AUTH1_PAIR);
+      changeStateSafe(ST_ANTFS_AUTH1_PAIR);
     else
-      changeState(ST_ANTFS_AUTH1_PASS);
+      changeStateSafe(ST_ANTFS_AUTH1_PASS);
   }
   else if(state == ST_ANTFS_AUTH1_PAIR)
   {
@@ -356,15 +377,15 @@ AntFr310XT2::handleEvents()
     uint dummy;
     if(!m_antMessenger->ANTFS_Pairing(chan, hostSN, hostName, dummy, pairedKey))
     {
-      changeState(ST_ANTFS_LAST);
+      changeStateSafe(ST_ANTFS_LAST);
       return true;
     }
     writeUInt64(clientSN, pairedKey);
 
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    //changeState(ST_ANTFS_LAST);
-    changeState(ST_ANTFS_AUTH1_PASS);
+    //changeStateSafe(ST_ANTFS_LAST);
+    changeStateSafe(ST_ANTFS_AUTH1_PASS);
   }
   else if(state == ST_ANTFS_AUTH1_PAIR)
   {
@@ -377,7 +398,7 @@ AntFr310XT2::handleEvents()
 
     if(!m_antMessenger->ANTFS_Authenticate(chan, hostSN, pairedKey))
     {
-      changeState(ST_ANTFS_RESTART);
+      changeStateSafe(ST_ANTFS_RESTART);
       return true;
     }
 
@@ -387,13 +408,13 @@ AntFr310XT2::handleEvents()
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
     if(mode==MD_DOWNLOAD_ALL || mode==MD_DIRECTORY_LISTING)
-      changeState(ST_ANTFS_DL_DIRECTORY);
+      changeStateSafe(ST_ANTFS_DL_DIRECTORY);
     else if(mode==MD_DOWNLOAD_SINGLE_FILE)
-      changeState(ST_ANTFS_DL_SINGLE_FILE);
+      changeStateSafe(ST_ANTFS_DL_SINGLE_FILE);
     else if(mode==MD_ERASE_SINGLE_FILE)
-      changeState(ST_ANTFS_ERASE_SINGLE_FILE);
+      changeStateSafe(ST_ANTFS_ERASE_SINGLE_FILE);
     else
-      changeState(ST_ANTFS_LAST);
+      changeStateSafe(ST_ANTFS_LAST);
   }
   else if(state == ST_ANTFS_DL_DIRECTORY)
   {
@@ -405,7 +426,7 @@ AntFr310XT2::handleEvents()
     std::vector<uchar> dir;
     if(!m_antMessenger->ANTFS_Download(chan, 0x0000, dir))
     {
-      changeState(ST_ANTFS_RESTART);
+      changeStateSafe(ST_ANTFS_RESTART);
       return true;
     }
     LOG(LOG_RAW) << "\n\nDownloaded directory file idx=0x0000\n\n\n";
@@ -425,12 +446,13 @@ AntFr310XT2::handleEvents()
     // channel status <>
     //CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
     if(mode==MD_DIRECTORY_LISTING)
-      changeState(ST_ANTFS_LAST);
+      changeStateSafe(ST_ANTFS_LAST);
     else
-      changeState(ST_ANTFS_DL_FILES);
+      changeStateSafe(ST_ANTFS_DL_FILES);
   }
   else if(state==ST_ANTFS_DL_FILES)
   {
+    // standard operation: download everything between LastUserProfileTime and now
     // dl waypoint files
     // dl activity files
     // dl course files
@@ -447,7 +469,7 @@ AntFr310XT2::handleEvents()
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
       {
-        changeState(ST_ANTFS_LAST);
+        changeStateSafe(ST_ANTFS_LAST);
         return true;
       }
       LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
@@ -466,7 +488,7 @@ AntFr310XT2::handleEvents()
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
       {
-        changeState(ST_ANTFS_LAST);
+        changeStateSafe(ST_ANTFS_LAST);
         return true;
       }
       LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
@@ -484,7 +506,7 @@ AntFr310XT2::handleEvents()
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
       {
-        changeState(ST_ANTFS_LAST);
+        changeStateSafe(ST_ANTFS_LAST);
         return true;
       }
       LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
@@ -497,7 +519,7 @@ AntFr310XT2::handleEvents()
     logger() << "Writing output to '" << gpxFile << "'\n";
     gpx.writeToFile(gpxFile);
 
-    changeState(ST_ANTFS_LAST);
+    changeStateSafe(ST_ANTFS_LAST);
   }
   else if(state==ST_ANTFS_DL_SINGLE_FILE)
   {
@@ -508,7 +530,7 @@ AntFr310XT2::handleEvents()
     std::vector<uchar> data;
     if(!m_antMessenger->ANTFS_Download(chan, singleFileIdx, data))
     {
-      changeState(ST_ANTFS_LAST);
+      changeStateSafe(ST_ANTFS_LAST);
       return true;
     }
     LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(singleFileIdx,4,'0') << "\n\n\n";
@@ -521,7 +543,7 @@ AntFr310XT2::handleEvents()
     logger() << "Writing output to '" << gpxFile << "'\n";
     gpx.writeToFile(gpxFile);
 
-    changeState(ST_ANTFS_LAST);
+    changeStateSafe(ST_ANTFS_LAST);
   }
   else if(state==ST_ANTFS_ERASE_SINGLE_FILE)
   {
@@ -529,11 +551,11 @@ AntFr310XT2::handleEvents()
 
     LOG(LOG_RAW) << "\n\nErased file idx=" << toString<ushort>(singleFileIdx,4,'0') << "\n\n\n";
 
-    changeState(ST_ANTFS_LAST);
+    changeStateSafe(ST_ANTFS_LAST);
   }
   else if(state==ST_ANTFS_NODATA)
   {
-    changeState(ST_ANTFS_LAST);
+    changeStateSafe(ST_ANTFS_LAST);
   }
   else if(state==ST_ANTFS_LAST)
   {
@@ -541,13 +563,20 @@ AntFr310XT2::handleEvents()
   }
 
   return true;
+#undef changeStateSafe
 }
 
 
 int
-AntFr310XT2::changeState(const int newState)
+AntFr310XT2::changeState(const int newState, bool force)
 {
+  boost::unique_lock<boost::mutex> lock(stateMtx);
   int oldState = this->state;
+  if(oldState == ST_ANTFS_LAST && newState != ST_ANTFS_LAST&& !force)
+  {
+    LOG(LOG_WARN) << "This seems to be a bug, we've tried ST_ANTFS_LAST => " << StateFSWork2Str(newState) << "!\n\n";
+    return oldState;
+  }
   this->state = newState;
   LOG(antpm::LOG_RAW) << "\nSTATE: " << std::dec << oldState << " => " << newState
     << "\t " << StateFSWork2Str(oldState) << " => " << StateFSWork2Str(newState)
