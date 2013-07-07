@@ -35,7 +35,7 @@
 #include <sstream>
 #include <iomanip>
 #include <map>
-
+#include <algorithm>
 #include <iostream> // DEBUG
 
 #include "common.hpp"
@@ -1303,9 +1303,11 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
 
     logger() << "_idx" << "|d" << "ata" << "type|" << "recordType|" << "_rt_" << "++ID++" << "__fileSize|" << "+++++++++++++++++++|" << "flags" << "\n";
     uint8_t *ptr = &data.front();
-    ZeroFileRecord zfRecord;
+    std::vector<ZeroFileRecord> zfRecords;
+    zeroFileContent.lastActivityTime = GARMIN_EPOCH;
     for (int i=0; i<records; i++)
     {
+      ZeroFileRecord zfRecord;
         memcpy(&zfRecord, ptr, sizeof(zfRecord));
         ptr += sizeof(zfRecord);
 
@@ -1317,32 +1319,46 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
             "(" << setw(4) << setfill('0') << (unsigned)zfRecord.identifier << ")" <<
             dec << setw(10) << setfill(' ') << (unsigned)zfRecord.fileSize << " " <<
             GarminConvert::localTime(zfRecord.timeStamp) << " ";
-        if (zfRecord.generalFileFlags.read) LOG(antpm::LOG_RAW) << "[R]";
-        if (zfRecord.generalFileFlags.write) LOG(antpm::LOG_RAW) << "[W]";
-        if (zfRecord.generalFileFlags.erase) LOG(antpm::LOG_RAW) << "[E]";
-        if (zfRecord.generalFileFlags.append) LOG(antpm::LOG_RAW) << "[Ap]";
-        if (zfRecord.generalFileFlags.archive) LOG(antpm::LOG_RAW) << "[Ar]";
-        if (zfRecord.generalFileFlags.crypto) LOG(antpm::LOG_RAW) << "[C]";
+        if (zfRecord.generalFileFlags.read)    { LOG(antpm::LOG_RAW) << "[R]"; }
+        if (zfRecord.generalFileFlags.write)   { LOG(antpm::LOG_RAW) << "[W]"; }
+        if (zfRecord.generalFileFlags.erase)   { LOG(antpm::LOG_RAW) << "[E]"; }
+        if (zfRecord.generalFileFlags.append)  { LOG(antpm::LOG_RAW) << "[Ap]"; }
+        if (zfRecord.generalFileFlags.archive) { LOG(antpm::LOG_RAW) << "[Ar]"; }
+        if (zfRecord.generalFileFlags.crypto)  { LOG(antpm::LOG_RAW) << "[C]"; }
         LOG(antpm::LOG_RAW) << "\n";
+      zfRecords.push_back(zfRecord);
+      zeroFileContent.lastActivityTime = std::max(zeroFileContent.lastActivityTime, static_cast<time_t>(zfRecord.timeStamp));
+    }
 
-        switch(zfRecord.recordType)
+    struct DateSorter
+    {
+      bool operator()(const ZeroFileRecord& a, const ZeroFileRecord& b) { return a.timeStamp > b.timeStamp; }
+    } dateSorter;
+    std::sort(zfRecords.begin(), zfRecords.end(), dateSorter);
+
+    for(size_t i = 0; i < zfRecords.size(); i++)
+    {
+      ZeroFileRecord& zfRecord(zfRecords[i]);
+      logger() << hex << setw(4) << setfill('0') << (unsigned)zfRecord.index << ": " <<
+                  GarminConvert::localTime(zfRecord.timeStamp) << "\n";
+      switch(zfRecord.recordType)
+      {
+        case 4: // Activity
         {
-            case 4: // Activity
-            {
-                zeroFileContent.activityFiles.push_back(zfRecord.index);
-                break;
-            }
-            case 6: // Course
-            {
-                zeroFileContent.courseFiles.push_back(zfRecord.index);
-                break;
-            }
-            case 8: // Waypoints
-            {
-                zeroFileContent.waypointsFiles.push_back(zfRecord.index);
-                break;
-            }
+          zeroFileContent.activityFiles.push_back(zfRecord.index);
+          break;
         }
+        case 6: // Course
+        {
+          zeroFileContent.courseFiles.push_back(zfRecord.index);
+          break;
+        }
+        case 8: // Waypoints
+        {
+          zeroFileContent.waypointsFiles.push_back(zfRecord.index);
+          break;
+        }
+      }
     }
 
     return true;

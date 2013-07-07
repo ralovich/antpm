@@ -272,6 +272,7 @@ public:
     std::vector<uint16_t> activityFiles;
     std::vector<uint16_t> waypointsFiles;
     std::vector<uint16_t> courseFiles;
+    std::time_t           lastActivityTime; // represented in GMT/UTC
 };
 
 class FIT
