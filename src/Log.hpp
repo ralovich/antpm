@@ -193,9 +193,9 @@ namespace antpm
 # define ANTPM_OS "unknown_os"
 #endif
 #ifdef __GNUC__
-# define ANTPM_CC "GCC "__VERSION__
+# define ANTPM_CC "GCC " __VERSION__
 #elif defined(_MSC_VER)
-# define ANTPM_CC "MSVC "_MSC_FULL_VER
+# define ANTPM_CC "MSVC " _MSC_FULL_VER
 #else
 # define ANTPM_CC "unknow_compiler"
 #endif
