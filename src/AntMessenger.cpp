@@ -369,7 +369,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
 
   // ANTFS_RespAuthenticate
   std::vector<uchar> burstData;
-  bool rv = bl.collectBurst(burstData, 30*1000); // 30s to allow user confirmation
+  /*bool rv =*/ bl.collectBurst(burstData, 30*1000); // 30s to allow user confirmation
   //pc.rmMsgListener(&bl);
 
   CHECK_RETURN_FALSE_LOG_OK(burstData.size()==3*8);
@@ -742,7 +742,7 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   CHECK_RETURN_FALSE_LOG_OK(ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 2000));
 
   std::vector<uchar> burstData;
-  bool rv = bl.collectBurst(burstData, 5000);
+  /*bool rv =*/ bl.collectBurst(burstData, 5000);
   //pc.rmMsgListener(&bl);
 
   // TODO: interpret event:EVENT_TRANSFER_RX_FAILED as signal of failed bursting
@@ -1012,7 +1012,7 @@ AntMessenger::waitForBurst(const uchar chan,
   // keep reading ...
   // read last one
 
-  uchar expectedSeq=0;
+  //uchar expectedSeq=0;
   bool found=false;
   bool lastFound=false;
 

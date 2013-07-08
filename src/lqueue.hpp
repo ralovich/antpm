@@ -146,7 +146,7 @@ public:
         Super::m_q.pop_front();
       }
       if(mCallback)
-        bool rv = mCallback(v);
+        /*bool rv =*/ mCallback(v);
     }
   }
 

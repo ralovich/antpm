@@ -944,8 +944,8 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                     {
                         RecordField &rf = rd.rf[i];
 
-                        BaseType bt;
-                        bt.byte = rf.baseType;
+                        //BaseType bt;
+                        //bt.byte = rf.baseType;
 
                         //logger() << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] <<
                         //            " (" << dataTypeMap[bt.bits.baseTypeNum] << ") " << getDataString(ptr, rf.size, bt.bits.baseTypeNum, rd.rfx.globalNum, rf.definitionNum) << "\n";
@@ -1209,7 +1209,7 @@ bool FIT::getDate(std::vector<uint8_t> &fitData, std::time_t &creationTime)
                   //logger() << "Local Message \"" << messageTypeMap[rd.rfx.globalNum] << "\"(" << rd.rfx.globalNum << "):\n";
 
 
-                  int8_t fileType=INT8_MAX;
+                  //int8_t fileType=INT8_MAX;
 
                   //uint32_t time;
 
@@ -1217,8 +1217,8 @@ bool FIT::getDate(std::vector<uint8_t> &fitData, std::time_t &creationTime)
                   {
                       RecordField &rf = rd.rf[i];
 
-                      BaseType bt;
-                      bt.byte = rf.baseType;
+                      //BaseType bt;
+                      //bt.byte = rf.baseType;
 
                       //logger() << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] <<
                       //            " (" << dataTypeMap[bt.bits.baseTypeNum] << ") " << getDataString(ptr, rf.size, bt.bits.baseTypeNum, rd.rfx.globalNum, rf.definitionNum) << "\n";
@@ -1231,7 +1231,7 @@ bool FIT::getDate(std::vector<uint8_t> &fitData, std::time_t &creationTime)
                               {
                                   case 0: // Type
                                   {
-                                      fileType = *(int8_t *)ptr;
+                                      //fileType = *(int8_t *)ptr;
                                       break;
                                   }
                                   case 4: // Creation Time

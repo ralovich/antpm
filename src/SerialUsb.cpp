@@ -299,6 +299,7 @@ struct SerialUsbPrivate
     dBuses = usb_find_busses ();
     dDevices = usb_find_devices ();
 
+    LOG_VAR2(dBuses, dDevices);
     lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
 
     for (UsbBus = usb_get_busses(); UsbBus; UsbBus = UsbBus->next)
@@ -388,7 +389,7 @@ SerialUsb::open()
 {
   close();
 
-  bool rv = false;
+  //bool rv = false;
 
   // ffff8800b1c470c0 1328871577 S Co:3:002:0 s 00 09 0001 0000 0000 0
   // ffff8800b1c470c0 1328873340 C Co:3:002:0 0 0

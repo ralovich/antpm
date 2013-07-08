@@ -117,7 +117,7 @@ bool AntMessage::vrfChkSum() const
   size_t chkIdx=getLenPayload()+3; // index of checksum byte, not necessary the last one
   uchar chk = getCheckSum();
   bool match= (chk == bytes[chkIdx]);
-  if(!match) lprintf(LOG_ERR, "checksum mismatch\n");
+  if(!match) { lprintf(LOG_ERR, "checksum mismatch\n"); }
   return match;
 }
 
@@ -256,7 +256,7 @@ AntMessage::str2() const
   }
   else if(getMsgId()==MESG_BROADCAST_DATA_ID)
   {
-    int len = getLenPayload();
+    //int len = getLenPayload();
     vector<uchar> payl=getPayload();
     sstr << " chan=0x" + toString<int>(getPayload()[0], 2, '0');
     sstr << antfs2Str();
@@ -450,7 +450,7 @@ bool AntMessage::interpret()
       return false;
     }
     // TODO: handle case where multiple messages are concatenated in this->bytes
-    ptrdiff_t residue = bytes.end()-bytes.begin()+getLenPacket();
+    //ptrdiff_t residue = bytes.end()-bytes.begin()+getLenPacket();
     //fprintf(loggerc(), "%d bytes for next decode\n", (int)residue);
     bytes.erase(bytes.begin()+getLenPacket(), bytes.end());
   }

@@ -38,14 +38,6 @@
 #include <map>
 #include "stdintfwd.hpp"
 
-//#ifndef _MSC_VER
-#define INT8_MAX 0x7F
-#define UINT8_MAX 0xFF
-#define INT16_MAX 0x7FFF
-#define UINT16_MAX 0xFFFF
-#define INT32_MAX 0x7FFFFFFF
-#define UINT32_MAX 0xFFFFFFFF
-//#endif
 
 namespace antpm{
 
