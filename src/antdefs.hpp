@@ -127,81 +127,11 @@ static const unsigned char ANTP_NETKEY[8] = {0xA8,0xA4,0x23,0xB9,0xF5,0x5E,0x63,
 //#define GARMIN_EPOCH 627666624 // Tue Nov 21 15:50:24 UTC 1989
 
 
-#define ANTP_PAIR(x) {x,#x}
-static struct { int i; const char* s; } msgNames[]={
-  ANTP_PAIR(MESG_EVENT_ID),
-  ANTP_PAIR(MESG_ACKNOWLEDGED_DATA_ID),
-  ANTP_PAIR(MESG_ASSIGN_CHANNEL_ID),
-  ANTP_PAIR(MESG_BROADCAST_DATA_ID),
-  ANTP_PAIR(MESG_BURST_DATA_ID),
-  ANTP_PAIR(MESG_CAPABILITIES_ID),
-  ANTP_PAIR(MESG_CHANNEL_ID_ID),
-  ANTP_PAIR(MESG_CHANNEL_MESG_PERIOD_ID),
-  ANTP_PAIR(MESG_CHANNEL_RADIO_FREQ_ID),
-  ANTP_PAIR(MESG_CHANNEL_SEARCH_TIMEOUT_ID),
-  ANTP_PAIR(MESG_CHANNEL_STATUS_ID),
-  ANTP_PAIR(MESG_VERSION_ID),
-  ANTP_PAIR(MESG_GET_SERIAL_NUM_ID),
-  ANTP_PAIR(MESG_CLOSE_CHANNEL_ID),
-  ANTP_PAIR(MESG_EXT_ACKNOWLEDGED_DATA_ID),
-  ANTP_PAIR(MESG_EXT_BROADCAST_DATA_ID),
-  ANTP_PAIR(MESG_EXT_BURST_DATA_ID),
-  ANTP_PAIR(MESG_NETWORK_KEY_ID),
-  ANTP_PAIR(MESG_OPEN_CHANNEL_ID),
-  ANTP_PAIR(MESG_OPEN_RX_SCAN_ID),
-  ANTP_PAIR(MESG_REQUEST_ID),
-  ANTP_PAIR(MESG_RESPONSE_EVENT_ID),
-  ANTP_PAIR(MESG_SEARCH_WAVEFORM_ID),
-  ANTP_PAIR(MESG_SYSTEM_RESET_ID),
-  ANTP_PAIR(MESG_UNASSIGN_CHANNEL_ID),
-  {-1,"UNKNOWN"}
-};
+extern struct MsgNames { int i; const char* s; } msgNames[];
+extern struct ResponseNames { int i; const char* s; } responseNames[];
+extern struct AntFSCommandNames {int i; const char* s; } antFSCommandNames[];
+extern struct AntFSResponseNames {int i; const char* s; } antFSResponseNames[];
 
-static struct { int i; const char* s; } responseNames[]={
-  ANTP_PAIR(RESPONSE_NO_ERROR),
-  ANTP_PAIR(EVENT_RX_SEARCH_TIMEOUT),
-  ANTP_PAIR(EVENT_RX_FAIL),
-  ANTP_PAIR(EVENT_TX),
-  ANTP_PAIR(EVENT_TRANSFER_RX_FAILED),
-  ANTP_PAIR(EVENT_TRANSFER_TX_COMPLETED),
-  ANTP_PAIR(EVENT_TRANSFER_TX_FAILED),
-  ANTP_PAIR(EVENT_CHANNEL_CLOSED),
-  ANTP_PAIR(EVENT_RX_FAIL_GO_TO_SEARCH),
-  ANTP_PAIR(EVENT_CHANNEL_COLLISION),
-  ANTP_PAIR(EVENT_TRANSFER_TX_START),
-  ANTP_PAIR(CHANNEL_IN_WRONG_STATE),
-  ANTP_PAIR(CHANNEL_NOT_OPENED),
-  ANTP_PAIR(CHANNEL_ID_NOT_SET),
-  ANTP_PAIR(CLOSE_ALL_CHANNELS),
-  ANTP_PAIR(TRANSFER_IN_PROGRESS),
-  ANTP_PAIR(TRANSFER_SEQUENCE_NUMBER_ERROR),
-  ANTP_PAIR(TRANSFER_IN_ERROR),
-  {-1,"UNKNOWN"}
-};
-
-
-static struct {int i; const char* s; } antFSCommandNames[]={
-  ANTP_PAIR(ANTFS_CmdLink),
-  ANTP_PAIR(ANTFS_CmdDisconnect),
-  ANTP_PAIR(ANTFS_CmdAuthenticate),
-  ANTP_PAIR(ANTFS_CmdPing),
-  ANTP_PAIR(ANTFS_ReqDownload),
-  ANTP_PAIR(ANTFS_ReqUpload),
-  ANTP_PAIR(ANTFS_ReqErase),
-  ANTP_PAIR(ANTFS_UploadData),
-  {-1,"UNKNOWN"}
-};
-
-static struct {int i; const char* s; } antFSResponseNames[]={
-  ANTP_PAIR(ANTFS_RespAuthenticate),
-  ANTP_PAIR(ANTFS_RespDownload),
-  ANTP_PAIR(ANTFS_RespUpload),
-  ANTP_PAIR(ANTFS_RespErase),
-  ANTP_PAIR(ANTFS_RespUploadData),
-  {-1,"UNKNOWN"}
-};
-
-#undef ANTP_PAIR
 
 // FIXME: message codes!
 
@@ -240,7 +170,7 @@ typedef enum StateFSWork {
 //#undef ENUMERATE
 //} StateFSWorkNames;
 
-static
+static inline
 const char*
 StateFSWork2Str(const int id)
 {
@@ -293,7 +223,7 @@ typedef enum ModeOfOperation {
 //#undef ENUMERATE
 //} StateFSWorkNames;
 
-static
+static inline
 const char*
 ModeOfOperation2Str(const int id)
 {
@@ -321,5 +251,3 @@ ModeOfOperation2Str(const int id)
 #undef ENUMERATE_LIST
 #undef ENUMERATE1
 
-
-/* vim: se sw=8 ts=8: */
