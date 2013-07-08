@@ -69,6 +69,9 @@ readFile(const char* fileName);
 bool
 mkDir(const char* dirName);
 
+std::string
+getVersionString();
+
 enum
 {
   ANTPM_RETRIES=10,

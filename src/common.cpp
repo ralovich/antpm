@@ -227,6 +227,32 @@ mkDir(const char* dirName)
   return boost::filesystem::create_directories(ddir);
 }
 
+std::string
+getVersionString()
+{
+  return std::string("") + APP_NAME + " built " __DATE__ "" //+#ANTPM_SERIAL_IMPL
+      + " under "
+#ifdef __linux__
+  "linux"
+#elif defined(_WIN64)
+  "win64"
+#elif defined(_WIN32)
+  "win32"
+#else
+  "unknown_os"
+#endif
+      + " with "
+#ifdef __GNUC__
+  "GCC " __VERSION__
+#elif defined(_MSC_VER)
+  "MSVC " _MSC_FULL_VER
+#else
+  "unknow_compiler"
+#endif
+      + "";
+}
+
+
 // explicit template instantiation
 
 template const std::string toString(const int& val, const int width, const char fill);
@@ -241,6 +267,9 @@ template const std::string toStringDec(const int& val, const int width, const ch
 template const std::string toStringDec(const unsigned long& val, const int width, const char fill);
 template const std::string toStringDec(const double& val, const int width, const char fill);
 template const std::string toStringDec(const unsigned int& val, const int width, const char fill);
+
+
+
 #ifdef _WIN64
 template const std::string toStringDec(const uint64_t& val, const int width, const char fill);
 #endif
