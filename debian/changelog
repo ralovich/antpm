@@ -1,3 +1,44 @@
+antpm (1.9-1) UNRELEASED; urgency=low
+
+  * docs: update todo list
+  * cleanup
+  * antpm-fit2gpx: sort file names
+  * Log: mention build info in logs
+  * allow saving/loading per-device settings
+  * tests: DeviceSettings testing
+  * remove unused code
+  * more research on GARMIN_EPOCH
+  * cleanup
+  * FIT: sort directory based on date
+  * docs: add todo
+  * AntFr310XT: bugfix: improve stopAsync()
+  * improve comments
+  * deb: properly hook-up udev rule installation
+  * fix build with gcc 4.7
+  * getVersionString()
+  * remove a bunch of warnings
+  * remove a bunch of warnings
+  * DeviceSettings: comment the code
+  * DeviceSettings: bugfix: don't count daylight saving here
+  * tests: remove unused code
+  * these parts were outside of the namespace, fix it
+  * Log: add missing header
+  * Log: set verbosity to maximum
+  * FIT: rework timestamp retrieval
+  * tests: test-case for FIT date-time handling
+  * antpm-fit2gpx: many additions
+  * fix typo in pervious commit
+  * fix an other build fallout
+  * fix typo
+  * fix typo 2
+  * fix types
+  * require at least boost 1.41
+  * antpm-downloader: run-time log level, version info
+  * AntMessage: don't create the protocol log if not necessary
+  * preparing for new release
+
+ -- RALOVICH, Kristóf <tade60@freemail.hu>  Tue, 09 Jul 2013 19:05:03 +0200
+
 antpm (1.8-1) UNRELEASED; urgency=low
 
   * GarminConvert: add a method that offsets the timestamps

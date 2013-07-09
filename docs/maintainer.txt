@@ -19,10 +19,10 @@
 ** RELEASE CHECKLIST
 * make sure all files are listed in scripts/origsrc-file-list
 * update version info in src/VERSION
-* run scripts/make-tarball
 * optional: update version minor in scrips/make-changelog
-* run scrips/make-changelog
-* run scrips/deb
+* run scripts/make-changelog
+* run scripts/make-tarball
+* run scripts/deb
 * commit above changes and tag respective version
 
 ** FEATURES
