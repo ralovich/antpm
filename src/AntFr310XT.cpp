@@ -463,7 +463,7 @@ AntFr310XT2::handleEvents()
     {
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.waypointsFiles.size());
       ushort fileIdx = zfc.waypointsFiles[i];
-      time_t t       = GarminConvert::garmin2GMT(zfc.getFitFileTime(fileIdx));
+      time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
       if(t < m_ds->LastUserProfileTime)
       {
         logger() << "Skipping waypoints file 0x" << hex << setw(4) << setfill('0')
@@ -497,7 +497,7 @@ AntFr310XT2::handleEvents()
     {
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.activityFiles.size());
       ushort fileIdx = zfc.activityFiles[i];
-      time_t t       = GarminConvert::garmin2GMT(zfc.getFitFileTime(fileIdx));
+      time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
       if(t < m_ds->LastUserProfileTime)
       {
         logger() << "Skipping activity file 0x" << hex << setw(4) << setfill('0')
@@ -526,7 +526,7 @@ AntFr310XT2::handleEvents()
       }
       else
       {
-        fitDate = GarminConvert::garmin2GMT(fitDate);
+        fitDate = GarminConvert::gOffsetTime(fitDate);
         LOG_VAR3(DeviceSettings::time2str(fitDate), DeviceSettings::time2str(t), DeviceSettings::time2str(m_ds->LastUserProfileTime));
       }
       //m_ds->mergeLastUserProfileTime(fitDate); // can't update it in the middle of the loop
@@ -538,7 +538,7 @@ AntFr310XT2::handleEvents()
     {
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.courseFiles.size());
       ushort fileIdx = zfc.courseFiles[i];
-      time_t t       = GarminConvert::garmin2GMT(zfc.getFitFileTime(fileIdx));
+      time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
       if(t < m_ds->LastUserProfileTime)
       {
         logger() << "Skipping course file 0x" << hex << setw(4) << setfill('0')

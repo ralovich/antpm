@@ -97,6 +97,7 @@ string GarminConvert::localTime(const uint32_t time)
 }
 
 
+/// returns in GMT/UTC timestamp
 uint32_t
 GarminConvert::gOffsetTime(const uint32_t time)
 {
