@@ -466,8 +466,8 @@ AntFr310XT2::handleEvents()
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
       if(t < m_ds->LastUserProfileTime)
       {
-        logger() << "Skipping waypoints file 0x" << hex << setw(4) << setfill('0')
-                 << fileIdx << "@" << DeviceSettings::time2str(t) << " older than "
+        logger() << "Skipping waypoints file 0x" << toString<ushort>(fileIdx,4,'0')
+                 << "@" << DeviceSettings::time2str(t) << " older than "
                  << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
         continue;
       }
@@ -500,8 +500,8 @@ AntFr310XT2::handleEvents()
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
       if(t < m_ds->LastUserProfileTime)
       {
-        logger() << "Skipping activity file 0x" << hex << setw(4) << setfill('0')
-                 << fileIdx << "@" << DeviceSettings::time2str(t) << " older than "
+        logger() << "Skipping activity file 0x" << toString<ushort>(fileIdx,4,'0')
+                 << "@" << DeviceSettings::time2str(t) << " older than "
                  << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
         continue;
       }
@@ -541,8 +541,8 @@ AntFr310XT2::handleEvents()
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
       if(t < m_ds->LastUserProfileTime)
       {
-        logger() << "Skipping course file 0x" << hex << setw(4) << setfill('0')
-                 << fileIdx << "@" << DeviceSettings::time2str(t) << " older than "
+        logger() << "Skipping course file 0x" << toString<ushort>(fileIdx,4,'0')
+                 << "@" << DeviceSettings::time2str(t) << " older than "
                  << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
         continue;
       }
