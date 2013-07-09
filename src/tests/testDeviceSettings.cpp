@@ -34,41 +34,9 @@
 //#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 
-
+using namespace std;
 using namespace antpm;
 
-BOOST_AUTO_TEST_CASE( free_test_function )
-{
-  BOOST_CHECK( true /* test assertion */ );
-}
-
-BOOST_AUTO_TEST_CASE( dummy2_test )
-{
-  BOOST_CHECK_EQUAL( 6, 6 );
-}
-
-int add( int i, int j ) { return i+j; }
-
-BOOST_AUTO_TEST_CASE( my_test )
-{
-    // seven ways to detect and report the same error:
-    BOOST_CHECK( add( 2,2 ) == 4 );        // #1 continues on error
-
-    BOOST_REQUIRE( add( 2,2 ) == 4 );      // #2 throws on error
-
-    if( add( 2,2 ) != 4 )
-      BOOST_ERROR( "Ouch..." );            // #3 continues on error
-
-    if( add( 2,2 ) != 4 )
-      BOOST_FAIL( "Ouch..." );             // #4 throws on error
-
-    if( add( 2,2 ) != 4 ) throw "Ouch..."; // #5 throws on error
-
-    BOOST_CHECK_MESSAGE( add( 2,2 ) == 4,  // #6 continues on error
-                         "add(..) result: " << add( 2,2 ) );
-
-    BOOST_CHECK_EQUAL( add( 2,2 ), 4 );	  // #7 continues on error
-}
 
 namespace antpm
 {
@@ -80,6 +48,15 @@ ClassInstantiator<Log>::instantiate()
   return new Log(NULL);
 }
 
+}
+
+BOOST_AUTO_TEST_CASE( free_test_function )
+{
+  BOOST_CHECK( true /* test assertion */ );
+
+  antpm::Log::instance()->addSink(std::cout);
+
+  LOG(LOG_INF) << getVersionString() << "\n";
 }
 
 BOOST_AUTO_TEST_CASE(convert)
@@ -116,8 +93,6 @@ BOOST_AUTO_TEST_CASE(convert)
 
 BOOST_AUTO_TEST_CASE(load_save)
 {
-  antpm::Log::instance()->addSink(std::cout);
-
   boost::scoped_ptr<DeviceSettings> m_ds;
   uint clientSN = 1279010136;
   const char* fname = TEST_ROOT"/config.ini";
@@ -143,10 +118,10 @@ BOOST_AUTO_TEST_CASE(load_save)
 
   BOOST_CHECK(m_ds->loadFromFile(fname_tmp));
   BOOST_CHECK(m_ds->MaxFileDownloads==1000);
-  //std::cout << m_ds->LastUserProfileTime << "\n"; // 946684800
-  //std::cout << m_ds->LastTransferredTime << "\n"; // 946684800
-  //std::cout << DeviceSettings::time2str(m_ds->LastUserProfileTime) << "\n"; // 2000-01-01T00:00:00Z
-  //std::cout << DeviceSettings::time2str(m_ds->LastTransferredTime) << "\n"; // 2000-01-01T00:00:00Z
+  std::cout << m_ds->LastUserProfileTime << "\n"; // 946684800
+  std::cout << m_ds->LastTransferredTime << "\n"; // 946684800
+  std::cout << DeviceSettings::time2str(m_ds->LastUserProfileTime) << "\n"; // 2000-01-01T00:00:00Z
+  std::cout << DeviceSettings::time2str(m_ds->LastTransferredTime) << "\n"; // 2000-01-01T00:00:00Z
   BOOST_CHECK(DeviceSettings::time2str(m_ds->LastUserProfileTime)=="2000-01-01T00:00:00Z");
   BOOST_CHECK(DeviceSettings::time2str(m_ds->LastTransferredTime)=="2000-01-01T00:00:00Z");
   BOOST_CHECK(m_ds->LastUserProfileTime == 946684800);
@@ -155,16 +130,5 @@ BOOST_AUTO_TEST_CASE(load_save)
 
 }
 
-
-// a test fixture or test context is the collection of one or more of the following items, required to perform the test:
-//  preconditions
-//  particular states of tested unites
-//  necessary cleanup procedures
-class MyFixture { public: MyFixture() : foo(0) { /* setup here */} int foo; };
-
-BOOST_FIXTURE_TEST_CASE( my_test_fixture, MyFixture )
-{
-  BOOST_CHECK_EQUAL(0, foo);
-}
 
 
