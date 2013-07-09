@@ -292,8 +292,8 @@ AntMessage::str2() const
       {
         std::stringstream sstr;
         sstr
-          << " chan=0x" << ::toString<int>(chan,2,'0') << ", devNum=0x" << ::toString<int>(devNum,4,'0')
-          << ", typ=0x" << ::toString<int>(devTypeId,2,'0') << ", man=0x" << ::toString<int>(manId,2,'0');
+          << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", devNum=0x" << antpm::toString<int>(devNum,4,'0')
+          << ", typ=0x" << antpm::toString<int>(devTypeId,2,'0') << ", man=0x" << antpm::toString<int>(manId,2,'0');
         return sstr.str();
       }
     };

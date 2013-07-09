@@ -109,11 +109,11 @@ struct M_ANTFS_Beacon
   }
   const std::string strDeviceDescriptor() const
   {
-    return std::string("dev=0x") + ::toString(this->dev, 4, '0') + std::string("manuf=0x") + ::toString(this->manuf, 4, '0');
+    return std::string("dev=0x") + antpm::toString(this->dev, 4, '0') + std::string("manuf=0x") + antpm::toString(this->manuf, 4, '0');
   }
   const std::string strDeviceSerial() const
   {
-    return std::string("SN=0x") + ::toString(this->sn, 8, '0');
+    return std::string("SN=0x") + antpm::toString(this->sn, 8, '0');
   }
   void getDeviceDescriptor(ushort& dev, ushort& manuf) const
   {
@@ -128,7 +128,7 @@ struct M_ANTFS_Beacon
   {
     assert(beaconId==0x43);
     std::stringstream sstr;
-    sstr << " ANTFS_BEACON(0x" << ::toString(unsigned(beaconId), 2, '0') << ") "
+    sstr << " ANTFS_BEACON(0x" << antpm::toString(unsigned(beaconId), 2, '0') << ") "
       << this->szBeaconChannelPeriod()
       << ", " << this->szPairingEnabled()
       << ", " << this->szUploadEnabled()
@@ -177,7 +177,7 @@ struct M_ANTFS_Command
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << "freq=0x" << ::toString(unsigned(chanFreq), 2, '0') << ", period=0x" << ::toString(unsigned(chanPeriod), 2, '0') << ", SNhost=0x" << ::toString(sn, 8, '0');
+        sstr << "freq=0x" << antpm::toString(unsigned(chanFreq), 2, '0') << ", period=0x" << antpm::toString(unsigned(chanPeriod), 2, '0') << ", SNhost=0x" << antpm::toString(sn, 8, '0');
         return sstr.str();
       }
     } link;
@@ -221,7 +221,7 @@ struct M_ANTFS_Command
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << szCmdType() << ", authStrLen=" << int(authStrLen) << ", SNhost=0x" << ::toString(sn, 8, '0');
+        sstr << szCmdType() << ", authStrLen=" << int(authStrLen) << ", SNhost=0x" << antpm::toString(sn, 8, '0');
         return sstr.str();
       }
     } authenticate;
@@ -234,7 +234,7 @@ struct M_ANTFS_Command
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << "file=0x" << ::toString(dataFileIdx, 4, '0') << ", dataOffset=0x" << ::toString(dataOffset, 8, '0');
+        sstr << "file=0x" << antpm::toString(dataFileIdx, 4, '0') << ", dataOffset=0x" << antpm::toString(dataOffset, 8, '0');
         return sstr.str();
       }
     } downloadRequest;
@@ -246,7 +246,7 @@ struct M_ANTFS_Command
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << "file=0x" << ::toString(dataFileIdx, 4, '0') << ", maxSize=0x" << ::toString(maxSize, 8, '0');
+        sstr << "file=0x" << antpm::toString(dataFileIdx, 4, '0') << ", maxSize=0x" << antpm::toString(maxSize, 8, '0');
         return sstr.str();
       }
     } uploadRequest;
@@ -257,7 +257,7 @@ struct M_ANTFS_Command
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << "dataFileIdx=0x" << ::toString(dataFileIdx, 4, '0');
+        sstr << "dataFileIdx=0x" << antpm::toString(dataFileIdx, 4, '0');
         return sstr.str();
       }
     } eraseRequest;
@@ -271,7 +271,7 @@ struct M_ANTFS_Command
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << "crcSeed=0x" << ::toString(crcSeed, 4, '0') << ", dataOffset=0x" << ::toString(dataOffset, 8, '0');
+        sstr << "crcSeed=0x" << antpm::toString(crcSeed, 4, '0') << ", dataOffset=0x" << antpm::toString(dataOffset, 8, '0');
         return sstr.str();
       }
     } uploadData;
@@ -280,7 +280,7 @@ struct M_ANTFS_Command
   {
     assert(commandId==0x44);
     std::stringstream sstr;
-    sstr << " ANTFS_CMD(0x" << ::toString(unsigned(commandId),2,'0') << ") "
+    sstr << " ANTFS_CMD(0x" << antpm::toString(unsigned(commandId),2,'0') << ") "
       << antFSCommand2Str(command);
     if(command==ANTFS_CmdLink) sstr << " " << detail.link.toString();
     else if(command==ANTFS_CmdDisconnect) sstr << " " << detail.disconnect.toString();
@@ -364,7 +364,7 @@ struct M_ANTFS_Response
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << szRespType() << ", authStrLen=" << int(authStrLen) << ", SNclient=0x" << ::toString(sn, 8, '0');
+        sstr << szRespType() << ", authStrLen=" << int(authStrLen) << ", SNclient=0x" << antpm::toString(sn, 8, '0');
         return sstr.str();
       }
     } authenticateResponse;
@@ -388,7 +388,7 @@ struct M_ANTFS_Response
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << szResponseVal() << ", remainingBytes=0x" << ::toString(remainingBytes, 8, '0');
+        sstr << szResponseVal() << ", remainingBytes=0x" << antpm::toString(remainingBytes, 8, '0');
         return sstr.str();
       }
     } downloadRequestResponse;
@@ -411,7 +411,7 @@ struct M_ANTFS_Response
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << szResponseVal() << ", lastDataOffset=0x" << ::toString(lastDataOffset, 8, '0');
+        sstr << szResponseVal() << ", lastDataOffset=0x" << antpm::toString(lastDataOffset, 8, '0');
         return sstr.str();
       }
     } uploadRequestResponse;
@@ -428,7 +428,7 @@ struct M_ANTFS_Response
       const std::string toString() const
       {
         std::stringstream sstr;
-        sstr << szResponseVal() << " 0x" << ::toString<int>(int(responseVal),2,'0');
+        sstr << szResponseVal() << " 0x" << antpm::toString<int>(int(responseVal),2,'0');
         return sstr.str();
       }
     } eraseRequestResponse;
@@ -454,7 +454,7 @@ struct M_ANTFS_Response
   {
     assert(responseId==0x44);
     std::stringstream sstr;
-    sstr << " ANTFS_RESP(0x" << ::toString(unsigned(responseId),2,'0') << ") "
+    sstr << " ANTFS_RESP(0x" << antpm::toString(unsigned(responseId),2,'0') << ") "
       << antFSResponse2Str(response);
     if(response==ANTFS_RespAuthenticate) sstr << " " << detail.authenticateResponse.toString();
     else if(response==ANTFS_RespDownload) sstr << " " << detail.downloadRequestResponse.toString();
@@ -499,7 +499,7 @@ struct M_ANT_Burst
   const std::string toString() const
   {
     std::stringstream sstr;
-    sstr << " chan=0x" << ::toString<int>(chan,2,'0') << ", seq=" << ::toStringDec<int>(seq,1,' ') << ", last=" << (isLast()?"yes":"no ");
+    sstr << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", seq=" << antpm::toStringDec<int>(seq,1,' ') << ", last=" << (isLast()?"yes":"no ");
     return sstr.str();
   }
   bool isLast() const

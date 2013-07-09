@@ -18,6 +18,8 @@
 //#include <cstdint>
 #include "stdintfwd.hpp"
 
+namespace antpm {
+
 typedef uint8_t uchar;
 typedef uint16_t ushort;
 typedef uint32_t uint;
@@ -250,4 +252,6 @@ ModeOfOperation2Str(const int id)
 
 #undef ENUMERATE_LIST
 #undef ENUMERATE1
+
+}
 

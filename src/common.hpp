@@ -14,8 +14,10 @@
 #include <ostream>
 #include <string>
 #include <vector>
-#include "antdefs.hpp"
+//#include "antdefs.hpp"
 #include "Log.hpp"
+
+namespace antpm {
 
 #define CHECK_RETURN_FALSE(x)         do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
 #define CHECK_RETURN_FALSE_LOG_OK(x)  do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } else { printf("ok: %s\n", #x); } } while(0)
@@ -63,7 +65,7 @@ readUInt64(const uint clientSN, uint64_t& pairedKey);
 void
 writeUInt64(const uint clientSN, const uint64_t& ui);
 
-std::vector<uchar>
+std::vector<unsigned char>
 readFile(const char* fileName);
 
 bool
@@ -85,3 +87,5 @@ enum
 #else
 # define ANTPM_SERIAL_IMPL SerialUsb
 #endif
+
+}

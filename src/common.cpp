@@ -22,7 +22,10 @@
 #include <boost/date_time.hpp>
 #include <boost/filesystem.hpp>
 #include "Log.hpp"
+#include "antdefs.hpp"
 
+
+namespace antpm {
 
 //std::ostream&
 //logger()
@@ -199,14 +202,14 @@ writeUInt64(const uint clientSN, const uint64_t& pairedKey)
   }
 }
 
-std::vector<uchar>
+std::vector<unsigned char>
 readFile(const char* fileName)
 {
-  std::vector<uchar> v;
+  std::vector<unsigned char> v;
   FILE* f=fopen(fileName, "rb");
   if(f)
   {
-    uchar buf[256];
+    unsigned char buf[256];
     size_t lastRead=0;
     do
     {
@@ -371,3 +374,5 @@ template const std::string toStringDec(const unsigned int& val, const int width,
 #ifdef _WIN64
 template const std::string toStringDec(const uint64_t& val, const int width, const char fill);
 #endif
+
+}
