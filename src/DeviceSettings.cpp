@@ -119,10 +119,10 @@ bool DeviceSettings::loadFromFile(const char *fname)
     return false;
   }
 
-  LOG_VAR(pt.get<uint>("antpm.MaxFileDownloads"));
+  LOG_VAR(pt.get<unsigned int>("antpm.MaxFileDownloads"));
   LOG_VAR(pt.get<std::string>("antpm.LastUserProfileTime"));
   LOG_VAR(pt.get<std::string>("antpm.LastTransferredTime"));
-  MaxFileDownloads    = pt.get<uint>("antpm.MaxFileDownloads");
+  MaxFileDownloads    = pt.get<unsigned int>("antpm.MaxFileDownloads");
   LastUserProfileTime = str2time(pt.get<std::string>("antpm.LastUserProfileTime").c_str());
   LastTransferredTime = str2time(pt.get<std::string>("antpm.LastTransferredTime").c_str());
   return true;

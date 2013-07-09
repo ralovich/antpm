@@ -33,9 +33,9 @@ public:
   static std::time_t str2time(const char* from);
   static const std::string time2str(const std::time_t t);
 
-  uint        MaxFileDownloads;
-  std::time_t LastUserProfileTime; // date of the latest activity successfully downloaded fromt the device, represented as GMT/UTC
-  std::time_t LastTransferredTime; // last timepoint, communication happened with the device, represented as GMT/UTC
+  unsigned int MaxFileDownloads;
+  std::time_t  LastUserProfileTime; // date of the latest activity successfully downloaded fromt the device, represented as GMT/UTC
+  std::time_t  LastTransferredTime; // last timepoint, communication happened with the device, represented as GMT/UTC
 private:
   std::string mDevId;
 };
