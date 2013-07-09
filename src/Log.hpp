@@ -24,6 +24,9 @@
 # include <crtdbg.h>
 # include <io.h>
 #endif
+#ifdef __linux__
+# include <unistd.h>
+#endif
 #include <iostream>
 #include <ctime>
 
@@ -183,25 +186,6 @@ namespace antpm
                      __FUNCTION__,
                      logFileName,
                      getTimeStamp().c_str());
-#ifdef __linux__
-# define ANTPM_OS "linux"
-#elif defined(_WIN64)
-# define ANTPM_OS "win64"
-#elif defined(_WIN32)
-# define ANTPM_OS "win32"
-#else
-# define ANTPM_OS "unknown_os"
-#endif
-#ifdef __GNUC__
-# define ANTPM_CC "GCC " __VERSION__
-#elif defined(_MSC_VER)
-# define ANTPM_CC "MSVC " _MSC_FULL_VER
-#else
-# define ANTPM_CC "unknow_compiler"
-#endif
-      this->lprintf2(LOG_INF, "Built \"%s\" under \"%s\" with \"%s\"\n", __DATE__, ANTPM_OS, ANTPM_CC);
-#undef ANTPM_OS
-#undef ANTPM_CC
     }
   }
 
