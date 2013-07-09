@@ -60,10 +60,10 @@ const std::string
 getConfigFolder();
 
 void
-readUInt64(const uint clientSN, uint64_t& pairedKey);
+readUInt64(const unsigned int clientSN, uint64_t& pairedKey);
 
 void
-writeUInt64(const uint clientSN, const uint64_t& ui);
+writeUInt64(const usigned int clientSN, const uint64_t& ui);
 
 std::vector<unsigned char>
 readFile(const char* fileName);
