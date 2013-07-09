@@ -63,15 +63,23 @@ private:
 class AntParsedLoggerCallback : public AntCallback
 {
 public:
-  AntParsedLoggerCallback(const std::string& s) : m_logFileName(s), cnt(0) {LOG_VAR(m_logFileName); }
-  virtual ~AntParsedLoggerCallback() { AntMessage::saveAsAntParse(m_logFileName.c_str(), m_l.getListCopy()); }
+  AntParsedLoggerCallback(const std::string& s) : m_logFileName(s), cnt(0)
+  {
+    LOG(LOG_DBG3) << "Protocol log file: " << m_logFileName << "\n";
+  }
+  virtual ~AntParsedLoggerCallback()
+  {
+    AntMessage::saveAsAntParse(m_logFileName.c_str(), m_l.getListCopy());
+    m_l.clear();
+  }
   virtual void onAntReceived(const AntMessage m) {m_l.push(m); saveIfNeeded(); }
   virtual void onAntSent(const AntMessage m) {m_l.push(m); saveIfNeeded(); }
 protected:
   void saveIfNeeded()
   {
-    if(++cnt%10)
+    if(++cnt%10==0)
     {
+      LOG(LOG_DBG3) << "cnt=" << cnt << " saving protocol log\n";
       cnt=0;
       AntMessage::saveAsAntParse(m_logFileName.c_str(), m_l.getListCopy());
       m_l.clear();

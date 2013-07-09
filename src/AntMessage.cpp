@@ -577,6 +577,9 @@ template <class Container>
 bool
 AntMessage::saveAsUsbMon(std::ostream& os, const Container& messages)
 {
+  if(messages.empty())
+    return true;
+
   CHECK_RETURN_FALSE(os.good());
   // dd65f0e8 4128379752 S Bo:1:005:2 -115 31 = 55534243 5e000000 00000000 00000600 00000000 00000000 00000000 000000
   // dd65f0e8 4128379808 C Bo:1:005:2 0 31 >
@@ -614,6 +617,9 @@ template <class Container>
 bool
 AntMessage::saveAsAntParse(const char* fileName, const Container& messages)
 {
+  if(messages.empty())
+    return true;
+
   std::ofstream of(fileName, ios_base::out | ios_base::app );
   CHECK_RETURN_FALSE(of.is_open());
 
