@@ -233,7 +233,9 @@ mkDir(const char* dirName)
 std::string
 getVersionString()
 {
-  return std::string("") + APP_NAME + " built " __DATE__ "" //+#ANTPM_SERIAL_IMPL
+  return std::string("") + APP_NAME
+      + " v" + std::string(BOOST_STRINGIZE(ANTPM_VERSION))
+      + " built " __DATE__ "" //+#ANTPM_SERIAL_IMPL
       + " under "
 #ifdef __linux__
   "linux"
