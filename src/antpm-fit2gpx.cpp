@@ -73,15 +73,25 @@ int
 main(int argc, char** argv)
 {
   antpm::Log::instance()->addSink(std::cout);
+#ifndef NDEBUG
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG);
+#else
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_INF);
+#endif
 
   // Declare the supported options.
   std::string fitFolder;
   std::string fitRootFile;
+  bool        fixLastWrt = false;
+  int         verbosityLevel = antpm::Log::instance()->getLogReportingLevel();
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help,h",                                                  "produce help message")
-    ("fitFolder,F", po::value<std::string>(&fitFolder),         "Folder with FIT files")
-    ("decode-fit-root,D", po::value<std::string>(&fitRootFile), "FIT file, encoding the root directory contents on a device")
+    ("fitFolder,F",      po::value<std::string>(&fitFolder),    "Folder with FIT files")
+    ("decode-fit-root,D", po::value<std::string>(&fitRootFile), "FIT file, encoding the root directory contents on a device, e.g. /tmp/0000.fit")
+    ("fix-last-write,L", po::value<bool>(&fixLastWrt)->zero_tokens()->implicit_value(true), "Correct last-written time of .fit files on disk. No conversion to GPX takes place.")
+    ("v",                po::value<int>(&verbosityLevel),       "Adjust verbosity level, varies in [1, 6]")
+    ("version,V",                                               "Print version information")
     ;
 
   std::vector<const char*> args(argv, argv+argc);
@@ -100,7 +110,21 @@ main(int argc, char** argv)
     return EXIT_FAILURE;
   }
 
-  if(vm.count("help")
+  if(vm.count("version") || vm.count("V"))
+  {
+    cout << argv[0] << " " << antpm::getVersionString() << "\n";
+    return EXIT_SUCCESS;
+  }
+
+  if(vm.count("v"))
+  {
+    if(verbosityLevel >= antpm::LOG_ERR && verbosityLevel <= antpm::LOG_DBG3)
+    {
+      antpm::Log::instance()->setLogReportingLevel(static_cast<antpm::LogLevel>(verbosityLevel));
+    }
+  }
+
+  if(vm.count("help") || vm.count("h")
      || (fitFolder.empty() && fitRootFile.empty()))
   {
     cout << desc << "\n";
@@ -130,29 +154,53 @@ main(int argc, char** argv)
   for (size_t i = 0; i < fitFiles.size(); i++)
   {
     const std::string in(fitFiles[i].string());
-#if 0 // for fixing up FIT file dates created before fixing time conversion bug
-    vector<uchar> v(readFile(in.c_str()));
-    FIT fit;
-    std::time_t fileCreationTime;
-    bool ok = fit.getDate(v, fileCreationTime);
-    cout << in << "\t" << ok << "\t" << uint32_t(fileCreationTime) << "\t" << GarminConvert::localTime(fileCreationTime) << "\t" << GarminConvert::gmTime(fileCreationTime) << "\t" << GarminConvert::gTime(fileCreationTime) << "\n";
+    if(fixLastWrt) // for fixing up FIT file dates created before fixing time conversion bug
+    {
+      vector<uchar> fitBytes(readFile(in.c_str()));
+      std::time_t fileCreationTime; // GMT/UTC
+      bool has_ct = FIT::getCreationDate(fitBytes, fileCreationTime);
+      time_t lastWrite             = fs::last_write_time(fs::path(in)); // GMT/UTC
 
-    std::time_t t = fileCreationTime;
-    t = GarminConvert::gOffsetTime(t);
-    boost::filesystem::last_write_time(boost::filesystem::path(in), t);
-#else
+      char tbuf[256];
+      strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&lastWrite));
+
+      char tbuf2[256];
+      strftime(tbuf2, sizeof(tbuf2), "%d-%m-%Y %H:%M:%S", localtime(&fileCreationTime));
+
+      if(has_ct)
+      {
+        if(abs(lastWrite-fileCreationTime)>1)
+        {
+          LOG(LOG_INF) << in << ", fixing "
+               << " new=" << tbuf2
+               << "  ---->  old=" << tbuf
+               << "\n";
+          fs::last_write_time(fs::path(in), fileCreationTime);
+        }
+        else
+        {
+          LOG(LOG_DBG) << "Last write time already correct: " << in << "\n";
+        }
+      }
+      else
+      {
+        LOG(LOG_INF) << "No FIT creation time: " << in << "\n";
+      }
+    }
+    else
+    {
 #if BOOST_VERSION<=104300
-    const std::string out(fitFiles[i].parent_path().string()+"//"+fitFiles[i].stem()+".gpx");
+      const std::string out(fitFiles[i].parent_path().string()+"//"+fitFiles[i].stem()+".gpx");
 #else
-    const std::string out(fitFiles[i].parent_path().string()+"//"+fitFiles[i].stem().string()+".gpx");
+      const std::string out(fitFiles[i].parent_path().string()+"//"+fitFiles[i].stem().string()+".gpx");
 #endif
-    LOG_VAR2(in, out);
-    GPX gpx;
-    FIT fit;
-    vector<uchar> v(readFile(in.c_str()));
-    if(fit.parse(v, gpx))
-      gpx.writeToFile(out);
-#endif
+      LOG_VAR2(in, out);
+      GPX gpx;
+      FIT fit;
+      vector<uchar> v(readFile(in.c_str()));
+      if(fit.parse(v, gpx))
+        gpx.writeToFile(out);
+    }
   }
 
 
