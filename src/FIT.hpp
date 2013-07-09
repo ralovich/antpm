@@ -269,10 +269,11 @@ enum GarminProducts
 class ZeroFileContent
 {
 public:
+    std::vector<ZeroFileRecord> zfRecords;
     std::vector<uint16_t> activityFiles;
     std::vector<uint16_t> waypointsFiles;
     std::vector<uint16_t> courseFiles;
-    std::time_t           lastActivityTime; // represented in GMT/UTC
+    std::time_t getFitFileTime(const uint16_t idx); // represented in garmintime
 };
 
 class FIT
@@ -284,8 +285,12 @@ public:
     uint16_t CRC_byte(uint16_t crc, uint8_t byte);
     std::string getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t messageType, uint8_t fieldNum);
     bool parse(std::vector<uint8_t> &fitData, GPX &gpx);
-    bool getDate(std::vector<uint8_t> &fitData, std::time_t& creationTime);
     bool parseZeroFile(std::vector<uint8_t> &data, ZeroFileContent &zeroFileContent);
+
+    static bool getCreationDate(std::vector<uint8_t> &fitData, std::time_t& ct);
+    std::time_t getCreationTimestamp() const { return mCreationTimestamp; }
+    std::time_t getFirstTimestamp()    const { return mFirstTimestamp; }
+    std::time_t getLastTimestamp()     const { return mLastTimestamp; }
 
 private:
     std::map<uint8_t, std::string> messageTypeMap;
@@ -296,6 +301,10 @@ private:
     std::map<uint8_t, std::string> manufacturerMap;
     std::map<uint8_t, std::map<uint16_t, std::string> > productMap;
     int16_t manufacturer;
+
+    std::time_t mCreationTimestamp; /// in garmin timestamp representation
+    std::time_t mFirstTimestamp; /// in garmin timestamp representation
+    std::time_t mLastTimestamp; /// in garmin timestamp representation
 };
 
 }

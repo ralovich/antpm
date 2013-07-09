@@ -456,14 +456,21 @@ AntFr310XT2::handleEvents()
     // dl waypoint files
     // dl activity files
     // dl course files
-
-    CHECK_RETURN_FALSE(createDownloadFolder());
+    // NOTE: seems like, if a file was downloaded, it's date in the directory file changes to the date of transfer
 
     uint fileCnt=0;
-    for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++, fileCnt++)
+    for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.waypointsFiles.size());
       ushort fileIdx = zfc.waypointsFiles[i];
+      time_t t       = GarminConvert::garmin2GMT(zfc.getFitFileTime(fileIdx));
+      if(t < m_ds->LastUserProfileTime)
+      {
+        logger() << "Skipping waypoints file 0x" << hex << setw(4) << setfill('0')
+                 << fileIdx << "@" << DeviceSettings::time2str(t) << " older than "
+                 << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
+        continue;
+      }
       logger() << "Transfer waypoints file 0x" << hex << fileIdx << "\n";
 
       std::vector<uchar> data;
@@ -477,12 +484,27 @@ AntFr310XT2::handleEvents()
       LOG_VAR(file0.checkCrc());
 
       fit.parse(data, gpx);
+
+      time_t fitDate;
+      if(!FIT::getCreationDate(data, fitDate))
+        fitDate = t;
+      //m_ds->mergeLastUserProfileTime(fitDate);
+
+      fileCnt++;
     }
 
-    for (size_t i=0; i<zfc.activityFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++, fileCnt++)
+    for (size_t i=0; i<zfc.activityFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.activityFiles.size());
       ushort fileIdx = zfc.activityFiles[i];
+      time_t t       = GarminConvert::garmin2GMT(zfc.getFitFileTime(fileIdx));
+      if(t < m_ds->LastUserProfileTime)
+      {
+        logger() << "Skipping activity file 0x" << hex << setw(4) << setfill('0')
+                 << fileIdx << "@" << DeviceSettings::time2str(t) << " older than "
+                 << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
+        continue;
+      }
       logger() << "# Transfer activity file 0x" << hex << fileIdx << "\n";
 
       std::vector<uchar> data;
@@ -495,12 +517,35 @@ AntFr310XT2::handleEvents()
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
 
       fit.parse(data, gpx);
+
+      time_t fitDate=0;
+      if(!FIT::getCreationDate(data, fitDate))
+      {
+        LOG_VAR3(fitDate, t, m_ds->LastUserProfileTime);
+        fitDate = t;
+      }
+      else
+      {
+        fitDate = GarminConvert::garmin2GMT(fitDate);
+        LOG_VAR3(DeviceSettings::time2str(fitDate), DeviceSettings::time2str(t), DeviceSettings::time2str(m_ds->LastUserProfileTime));
+      }
+      //m_ds->mergeLastUserProfileTime(fitDate); // can't update it in the middle of the loop
+
+      fileCnt++;
     }
 
-    for (size_t i=0; i<zfc.courseFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++, fileCnt++)
+    for (size_t i=0; i<zfc.courseFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.courseFiles.size());
       ushort fileIdx = zfc.courseFiles[i];
+      time_t t       = GarminConvert::garmin2GMT(zfc.getFitFileTime(fileIdx));
+      if(t < m_ds->LastUserProfileTime)
+      {
+        logger() << "Skipping course file 0x" << hex << setw(4) << setfill('0')
+                 << fileIdx << "@" << DeviceSettings::time2str(t) << " older than "
+                 << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
+        continue;
+      }
       logger() << "Transfer course file 0x" << hex << fileIdx << "\n";
 
       std::vector<uchar> data;
@@ -513,19 +558,26 @@ AntFr310XT2::handleEvents()
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
 
       fit.parse(data, gpx);
+
+      time_t fitDate;
+      if(!FIT::getCreationDate(data, fitDate))
+        fitDate = t;
+      //m_ds->mergeLastUserProfileTime(fitDate);
+
+      fileCnt++;
     }
 
     std::string gpxFile=folder+"libantpm.gpx";
     logger() << "Writing output to '" << gpxFile << "'\n";
     gpx.writeToFile(gpxFile);
 
+    m_ds->mergeLastTransferredTime(time(NULL));
+
     changeStateSafe(ST_ANTFS_LAST);
   }
   else if(state==ST_ANTFS_DL_SINGLE_FILE)
   {
     logger() << "Transfer of file 0x" << hex << singleFileIdx << dec << "\n";
-
-    CHECK_RETURN_FALSE(createDownloadFolder());
 
     std::vector<uchar> data;
     if(!m_antMessenger->ANTFS_Download(chan, singleFileIdx, data))

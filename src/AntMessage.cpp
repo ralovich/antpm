@@ -744,13 +744,12 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   fclose(f);
 
   FIT fit;
-  std::time_t t=0;
-  CHECK_RETURN_FALSE_LOG_OK(fit.getDate(bytes, t));
-  t = GarminConvert::gOffsetTime(t);
+  std::time_t ct=0;
+  CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
   char tbuf[256];
-  strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&t));
-  LOG_VAR(tbuf);
-  boost::filesystem::last_write_time(boost::filesystem::path(fileName), t);
+  strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&ct));
+  //LOG_VAR(tbuf);
+  boost::filesystem::last_write_time(boost::filesystem::path(fileName), ct);
 
   return true;
 }
