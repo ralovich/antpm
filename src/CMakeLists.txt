@@ -67,6 +67,10 @@ IF(MSVC)
   #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:libboost_date_time-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_thread-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_program_options-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_filesystem-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_system-vc90-mt-s-1_43.lib")
 ENDIF()
 
+FILE(READ "${PROJECT_SOURCE_DIR}/VERSION" ANTPM_VERSION)
+MESSAGE("ANTPM_VERSION=\\\"${ANTPM_VERSION}\\\"")
+ADD_DEFINITIONS(-DANTPM_VERSION=${ANTPM_VERSION})
+
 SET(SRCS
   antdefs.hpp
   SmartPtrFwd.hpp   w_inttypes.h w_stdint.h stdintfwd.hpp
@@ -90,10 +94,10 @@ SET(SRCS
 )
 IF(NOT WIN32)
   SET(SRCS
-	${SRCS}
+	  ${SRCS}
     SerialTty.hpp SerialTty.cpp
-	)
-SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
+	  )
+  SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
 ENDIF()
 
 

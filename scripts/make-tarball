@@ -1,7 +1,11 @@
 #!/bin/bash
 
-VER=1.8
+VER=`cat src/VERSION | head -n 1`
 GIT_VER=`git log | head -1 | awk '{print $2 }'`
+
+echo 'VER='$VER
+echo 'GIT_VER='$GIT_VER
+
 OUTNAME=antpm_${VER}.orig.tar
 
 FILES=`find . -type f -name \* -print | grep -v .git`
@@ -17,3 +21,5 @@ TMP_LIST=`mktemp`
 rm -fv ${OUTNAME}.gz ${OUTNAME}.xz
 #tar -czvf ${OUTNAME}.gz -T scripts/origsrc-file-list
 tar --xz -cf ${OUTNAME}.xz -T scripts/origsrc-file-list
+
+echo 'OK: ' ${OUTNAME}

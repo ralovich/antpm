@@ -1,3 +1,6 @@
 #!/bin/sh
 
-git-dch --git-author -vaN 1.8-1
+VER=`cat src/VERSION | head -n 1`
+DEB_VER_MINOR=1
+
+git-dch --git-author -vaN $VER-$DEB_VER_MINOR

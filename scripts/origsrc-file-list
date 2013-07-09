@@ -7,6 +7,16 @@ debian/gpl-2.0.txt
 debian/compat
 debian/changelog
 scripts/80-ant-stick.rules
+src/VERSION
+src/cmake
+src/cmake/Findlibusb-1.0.cmake
+src/cmake/FindLIBUSB.cmake
+src/tests
+src/tests/0046.fit
+src/tests/CMakeLists.txt
+src/tests/config.ini
+src/tests/testDateTime.cpp
+src/tests/testDeviceSettings.cpp
 src/CMakeLists.txt
 src/lqueue.hpp
 src/Log.hpp
@@ -37,9 +47,6 @@ src/AntMessage.cpp
 src/FIT.cpp
 src/GPX.hpp
 src/SmartPtrFwd.hpp
-src/cmake
-src/cmake/Findlibusb-1.0.cmake
-src/cmake/FindLIBUSB.cmake
 src/Serial.hpp
 src/common.hpp
 src/AntMessenger.cpp
