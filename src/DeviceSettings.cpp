@@ -36,6 +36,7 @@ DeviceSettings::loadDefaultValues()
   struct tm y2k; // 2000-01-01T00:00:00Z 946684800
   y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
   y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
+  y2k.tm_isdst = -1;
   LastUserProfileTime = ::mktime(&y2k) - timezone;
   LastTransferredTime = ::mktime(&y2k) - timezone;
 }
