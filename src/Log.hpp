@@ -46,7 +46,7 @@ namespace antpm
 #ifndef NDEBUG
 # define psoLogMaxLogLevel antpm::LOG_DBG3
 #else
-# define psoLogMaxLogLevel antpm::LOG_INF
+# define psoLogMaxLogLevel antpm::LOG_DBG3
 #endif
 
   inline
