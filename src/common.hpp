@@ -16,6 +16,7 @@
 #include <vector>
 //#include "antdefs.hpp"
 #include "Log.hpp"
+#include "stdintfwd.hpp"
 
 namespace antpm {
 
@@ -63,7 +64,7 @@ void
 readUInt64(const unsigned int clientSN, uint64_t& pairedKey);
 
 void
-writeUInt64(const usigned int clientSN, const uint64_t& ui);
+writeUInt64(const unsigned int clientSN, const uint64_t& ui);
 
 std::vector<unsigned char>
 readFile(const char* fileName);
