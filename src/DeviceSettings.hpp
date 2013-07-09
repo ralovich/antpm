@@ -27,8 +27,8 @@ public:
   const std::string getFolder() const;
   bool saveToFile(const char* fname);
   bool loadFromFile(const char* fname);
-  void mergeLastUserProfileTime(const std::time_t t);
-  void mergeLastTransferredTime(const std::time_t t);
+  void mergeLastUserProfileTime(const std::time_t gmt);
+  void mergeLastTransferredTime(const std::time_t gmt);
 
   static std::time_t str2time(const char* from);
   static const std::string time2str(const std::time_t t);

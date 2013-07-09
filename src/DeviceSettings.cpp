@@ -69,6 +69,7 @@ DeviceSettings::str2time(const char* from)
   return ::mktime(&tm) - timezone;
 }
 
+/// Both input and output are represented in GMT/UTC.
 const
 std::string
 DeviceSettings::time2str(const std::time_t t)
@@ -128,17 +129,21 @@ bool DeviceSettings::loadFromFile(const char *fname)
 
 ///
 /// \param t expected to be represented as local time
-void DeviceSettings::mergeLastUserProfileTime(const std::time_t t)
+void DeviceSettings::mergeLastUserProfileTime(const std::time_t gmt)
 {
-  std::time_t gmt = t + timezone;
-  LastUserProfileTime = std::max(LastUserProfileTime, gmt);
+  //std::time_t gmt = t + timezone;
+  LOG(LOG_DBG) << "LastUserProfileTime: " << time2str(LastUserProfileTime) << " => " << time2str(gmt) << "\n";
+  if(gmt > LastUserProfileTime)
+  {
+    LastUserProfileTime = gmt;
+  }
 }
 
 ///
 /// \param t expected to be represented as local time
-void DeviceSettings::mergeLastTransferredTime(const std::time_t t)
+void DeviceSettings::mergeLastTransferredTime(const std::time_t gmt)
 {
-  std::time_t gmt = t + timezone;
+  //std::time_t gmt = t + timezone;
   LastTransferredTime = std::max(LastTransferredTime, gmt);
 }
 
