@@ -42,6 +42,12 @@ ClassInstantiator<Log>::instantiate()
 int
 main(int argc, char** argv)
 {
+#ifndef NDEBUG
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG);
+#else
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_INF);
+#endif
+
   istream* in=0;
   ifstream f;
 
@@ -61,6 +67,7 @@ main(int argc, char** argv)
     //("u", po::value<bool>(&usbmon)->zero_tokens(), "generate pseudo usbmon output")
     //("f", po::value<bool>(&filter)->zero_tokens(), "just filter ANT messages from usbmon stream")
     ("input-file,P", po::value<string>(&inputFile)->zero_tokens(),   "input file, if not given reads from standard input")
+    ("version,V",                                               "Print version information")
     ;
 
   po::variables_map vm;
@@ -75,6 +82,12 @@ main(int argc, char** argv)
   {
     cerr << desc << "\n";
     return EXIT_FAILURE;
+  }
+
+  if(vm.count("version") || vm.count("V"))
+  {
+    cout << argv[0] << " " << antpm::getVersionString() << "\n";
+    return EXIT_SUCCESS;
   }
 
   if(vm.count("help"))

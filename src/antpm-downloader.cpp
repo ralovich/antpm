@@ -126,6 +126,11 @@ main(int argc, char** argv)
   signal(SIGINT, my_handler);
 #endif
 
+#ifndef NDEBUG
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG);
+#else
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_INF);
+#endif
   antpm::Log::instance()->addSink(std::cout);
 
   // Declare the supported options.
@@ -133,13 +138,16 @@ main(int argc, char** argv)
   bool dirOnly         =false;
   uint16_t dlFileIdx   =0x0000;
   uint16_t eraseFileIdx=0x0000;
+  int         verbosityLevel = antpm::Log::instance()->getLogReportingLevel();
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help,h",                                                                    "produce help message")
     ("pairing,P", po::value<bool>(&pairing)->zero_tokens()->implicit_value(true), "Force pairing first")
     ("dir-only",  po::value<bool>(&dirOnly)->zero_tokens()->implicit_value(true), "Download and list device directory")
-    ("download,D",po::value<std::string>(),                                       "Download a file (hex id e.g. 0x12FB) from device")
-    ("erase",     po::value<std::string>(),                                       "Erase a file (hex id e.g. 0x12FB) from device")
+    ("download,D",po::value<std::string>(),                                       "Download a single file (hex id e.g. 0x12FB) from device")
+    ("erase",     po::value<std::string>(),                                       "Erase a single file (hex id e.g. 0x12FB) from device")
+    ("v",                po::value<int>(&verbosityLevel),       "Adjust verbosity level, varies in [1, 6]")
+    ("version,V",                                               "Print version information")
     ;
 
   std::vector<const char*> args(argv, argv+argc);
@@ -170,6 +178,20 @@ main(int argc, char** argv)
     cerr << error.what() << "\n";
     cerr << desc << "\n";
     return EXIT_FAILURE;
+  }
+
+  if(vm.count("version") || vm.count("V"))
+  {
+    cout << argv[0] << " " << antpm::getVersionString() << "\n";
+    return EXIT_SUCCESS;
+  }
+
+  if(vm.count("v"))
+  {
+    if(verbosityLevel >= antpm::LOG_ERR && verbosityLevel <= antpm::LOG_DBG3)
+    {
+      antpm::Log::instance()->setLogReportingLevel(static_cast<antpm::LogLevel>(verbosityLevel));
+    }
   }
 
   if(vm.count("help"))
