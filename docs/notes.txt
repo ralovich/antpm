@@ -2,6 +2,7 @@
 
 
 ** LINUX USER'S GUIDE (from pre-built packages)
+* Make sure you're using the latest released version of ANT+minus.
 * Make sure that the cp210x kernel module is loaded: "sudo modprobe cp210x". Verify by looking at non-empty output of "lsmod | grep cp210x".
 * Make sure that the USB2ANT stick is connected to the machine.
 * Make sure cp210x driver was assigned to your USB2ANT. Verify by "dmesg | grep tty" and look for a line similar to: "[ 3274.854726] usb 6-2: cp210x converter now attached to ttyUSB0". Also make sure "ls /dev/ttyUSB*" lists your device node.
@@ -16,13 +17,16 @@
 * The 310XT stores all information in .fit files. These files can describe waypoints/tracks/activities.
 * To convert the downloaded .fit files to a more commonly used .gpx format, issue the command "antpm-fit2gpx -F ConfigFolder/*device-id*/*current-date-time*" e.g. "antpm-fit2gpx -F ~/.config/antpm/4531082473/2013_03_26_10_58_19". This will populate the given folder with .gpx files.
 
+
 ** HOW TO SUBMIT A BUG-REPORT
-* You may open a bug report at http://code.google.com/p/antpm/issues/list
+* Please open a bug report at http://code.google.com/p/antpm/issues/list
 * In your report please include:
-*  the log of the program in question. This is usually saved under ~/.config/antpm
+*  The log of the program in question. This is usually saved under ~/.config/antpm
 *  What steps will reproduce the problem?
 *  What is the expected output? What do you see instead?
-*  What version of the product are you using? On what operating system? Is it pre-built of from sources.
+*  What version of ANT+minus are you using? On what operating system? Is it pre-built of from sources?
+*  What GPS are you trying to use? What firmware version?
+
 
 ** WINDOWS USER'S GUIDE (from pre-built packages)
 * Make sure that the USB2ANT stick is connected to the machine.
