@@ -169,7 +169,8 @@ main(int argc, char** argv)
 
       if(has_ct)
       {
-        if(abs(lastWrite-fileCreationTime)>1)
+        time_t diff = (lastWrite-fileCreationTime);
+        if(diff>1 || diff<-1)
         {
           LOG(LOG_INF) << in << ", fixing "
                << " new=" << tbuf2
