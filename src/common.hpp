@@ -72,6 +72,9 @@ readFile(const char* fileName);
 bool
 mkDir(const char* dirName);
 
+bool
+folderExists(const char* dirName);
+
 std::string
 getVersionString();
 

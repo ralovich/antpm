@@ -225,17 +225,29 @@ readFile(const char* fileName)
 bool
 mkDir(const char* dirName)
 {
-  //QDir qdir; CHECK_RETURN(qdir.mkpath(folder.c_str()));
   try
   {
     boost::filesystem::path ddir(dirName);
+    LOG(LOG_DBG) << "mkDir: \"" << ddir << "\"\n";
     return boost::filesystem::create_directories(ddir);
   }
   // Throws:  basic_filesystem_error<Path> if exists(p) && !is_directory(p)
   catch(boost::filesystem::basic_filesystem_error<boost::filesystem::path>& bfe)
   {
+    LOG(LOG_WARN) << "mkDir: failed\n"
+                  << "\twhat  " << bfe.what() << "\n"
+                  << "\tpath1 =" << bfe.path1() << "\n"
+                  << "\tpath2 =" << bfe.path2() << "\n";
     return false;
   }
+}
+
+
+bool
+folderExists(const char* dirName)
+{
+  boost::filesystem::path ddir(dirName);
+  return boost::filesystem::exists(ddir) && boost::filesystem::is_directory(ddir);
 }
 
 std::string
