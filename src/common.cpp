@@ -250,7 +250,7 @@ folderExists(const char* dirName)
   return boost::filesystem::exists(ddir) && boost::filesystem::is_directory(ddir);
 }
 
-std::string
+const std::string
 getVersionString()
 {
   return std::string("") + APP_NAME
@@ -270,11 +270,17 @@ getVersionString()
 #ifdef __GNUC__
   "GCC " __VERSION__
 #elif defined(_MSC_VER)
-  "MSVC " _MSC_FULL_VER
+# define STRINGIFY( L )       #L
+# define MAKESTRING( M, L )   M(L)
+# define STRINGIZE(X)         MAKESTRING( STRINGIFY, X )
+  + std::string("MSVC " STRINGIZE(_MSC_FULL_VER))
+# undef STRINGIZE
+# undef MAKESTRING
+# undef STRINGIFY
 #else
   "unknow_compiler"
 #endif
-      + "";
+      + std::string("");
 }
 
 

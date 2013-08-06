@@ -75,7 +75,7 @@ mkDir(const char* dirName);
 bool
 folderExists(const char* dirName);
 
-std::string
+const std::string
 getVersionString();
 
 enum
