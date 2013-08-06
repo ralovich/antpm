@@ -226,8 +226,16 @@ bool
 mkDir(const char* dirName)
 {
   //QDir qdir; CHECK_RETURN(qdir.mkpath(folder.c_str()));
-  boost::filesystem::path ddir(dirName);
-  return boost::filesystem::create_directories(ddir);
+  try
+  {
+    boost::filesystem::path ddir(dirName);
+    return boost::filesystem::create_directories(ddir);
+  }
+  // Throws:  basic_filesystem_error<Path> if exists(p) && !is_directory(p)
+  catch(boost::filesystem::basic_filesystem_error<boost::filesystem::path>& bfe)
+  {
+    return false;
+  }
 }
 
 std::string
