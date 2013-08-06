@@ -30,6 +30,7 @@
 #include <iostream>
 #include <ctime>
 
+
 namespace antpm
 {
   enum LogLevel
@@ -72,6 +73,9 @@ namespace antpm
   {
     return left << logLevelToString(level);
   }
+  
+  extern const std::string getVersionString();
+
 
   /**
    * Encapsulates a series of C++ style (<<) writes to a log in a
@@ -181,11 +185,16 @@ namespace antpm
     {
       addSink(_ofs);
 
+      std::string ts(getTimeStamp());
       this->lprintf2(LOG_INF,
                      "%s(): Log file \"%s\" opened at %s",
                      __FUNCTION__,
                      logFileName,
-                     getTimeStamp().c_str());
+                     ts.c_str());
+      std::string v(antpm::getVersionString());
+      this->lprintf2(LOG_INF,
+                     "%s\n",
+                     v.c_str());
     }
   }
 
