@@ -653,7 +653,7 @@ AntFr310XT2::createDownloadFolder()
   if(!folder.empty())
   {
     LOG(LOG_WARN) << "folder is \"" << folder << "\", why not empty?\n";
-    return false;
+    //return false;
   }
   CHECK_RETURN_FALSE(m_ds);
   if(clientSN==0)
