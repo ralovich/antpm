@@ -43,7 +43,7 @@ template<>
 Log*
 ClassInstantiator<Log>::instantiate()
 {
-  mkDir(getConfigFolder().c_str());
+  mkDirNoLog(getConfigFolder().c_str());
   std::string l=getConfigFolder() + "/antpm_" + getDateString() + ".txt";
   return new Log(l.c_str());
 }

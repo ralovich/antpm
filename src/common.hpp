@@ -73,6 +73,9 @@ bool
 mkDir(const char* dirName);
 
 bool
+mkDirNoLog(const char* dirName);
+
+bool
 folderExists(const char* dirName);
 
 const std::string

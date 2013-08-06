@@ -244,6 +244,26 @@ mkDir(const char* dirName)
 
 
 bool
+mkDirNoLog(const char* dirName)
+{
+  try
+  {
+    boost::filesystem::path ddir(dirName);
+    return boost::filesystem::create_directories(ddir);
+  }
+  // Throws:  basic_filesystem_error<Path> if exists(p) && !is_directory(p)
+  catch(boost::filesystem::filesystem_error& bfe)
+  {
+    std::cerr << "mkDir: failed\n"
+              << "\twhat  " << bfe.what() << "\n"
+              << "\tpath1 =" << bfe.path1() << "\n"
+              << "\tpath2 =" << bfe.path2() << "\n";
+    return false;
+  }
+}
+
+
+bool
 folderExists(const char* dirName)
 {
   boost::filesystem::path ddir(dirName);
