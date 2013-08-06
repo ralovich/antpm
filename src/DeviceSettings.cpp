@@ -18,6 +18,7 @@
 #include "common.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include "Log.hpp"
 
 
@@ -64,10 +65,16 @@ DeviceSettings::str2time(const char* from)
   struct tm tm;
   memset(&tm, 0, sizeof(struct tm));
   //strptime("2001-11-12 18:31:01", "%Y-%m-%d %H:%M:%S", &tm);
+#ifndef _WIN32
   char* rv = ::strptime(from, "%Y-%m-%dT%H:%M:%SZ", &tm);
   bool ok = rv==from+::strlen(from);
   if(!ok)
     return 0;
+#else
+  //std::string ts("2002-01-20 23:59:59.000");
+  boost::posix_time::ptime t(boost::posix_time::time_from_string(from));
+  tm = boost::posix_time::to_tm( t );
+#endif
   return ::mktime(&tm) - timezone;
 }
 
@@ -80,7 +87,11 @@ DeviceSettings::time2str(const std::time_t t)
   memset(outstr, 0, sizeof(outstr));
   struct tm tm;
   memset(&tm, 0, sizeof(struct tm));
+#ifndef _WIN32
   ::gmtime_r(&t, &tm);
+#else
+  gmtime_s(&tm, &t);
+#endif
 
   if(::strftime(outstr, sizeof(outstr), "%Y-%m-%dT%TZ", &tm) == 0)
     return "";
