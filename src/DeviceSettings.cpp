@@ -14,6 +14,7 @@
 
 #include "DeviceSettings.hpp"
 #include <ctime>
+#include <cstring> // memset
 #include "common.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
