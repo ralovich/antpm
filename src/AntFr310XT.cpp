@@ -666,7 +666,16 @@ AntFr310XT2::createDownloadFolder()
   ss << m_ds->getFolder()  << "/" << getDateString() + "/";
   folder = ss.str();
   //folder = getConfigFolder() + "/" + getDateString() + "/";
-  CHECK_RETURN_FALSE(mkDir(folder.c_str()));
+  if(!mkDir(folder.c_str()))
+  {
+    if(folderExists(folder.c_str()))
+      return true;
+    else
+    {
+      LOG(LOG_ERR) << "Folder \"" << folder << "\" doesn't exist, and could not be created either!\n";
+      return false;
+    }
+  }
   return true;
 }
 
