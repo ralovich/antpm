@@ -232,7 +232,7 @@ mkDir(const char* dirName)
     return boost::filesystem::create_directories(ddir);
   }
   // Throws:  basic_filesystem_error<Path> if exists(p) && !is_directory(p)
-  catch(boost::filesystem::filesystem_error<boost::filesystem::path>& bfe)
+  catch(boost::filesystem::filesystem_error& bfe)
   {
     LOG(LOG_WARN) << "mkDir: failed\n"
                   << "\twhat  " << bfe.what() << "\n"
