@@ -1164,6 +1164,12 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
     return true;
 }
 
+struct DateSorter
+{
+  bool operator()(const ZeroFileRecord& a, const ZeroFileRecord& b) const
+  { return a.timeStamp > b.timeStamp; }
+} dateSorter;
+
 
 bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
 {
@@ -1222,10 +1228,6 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
       zeroFileContent.zfRecords.push_back(zfRecord);
     }
 
-    struct DateSorter
-    {
-      bool operator()(const ZeroFileRecord& a, const ZeroFileRecord& b) { return a.timeStamp > b.timeStamp; }
-    } dateSorter;
     std::sort(zeroFileContent.zfRecords.begin(), zeroFileContent.zfRecords.end(), dateSorter);
 
     for(size_t i = 0; i < zeroFileContent.zfRecords.size(); i++)
