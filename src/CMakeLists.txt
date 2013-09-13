@@ -162,5 +162,6 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0)")
 INCLUDE(CPack)
 
 IF(USE_BOOST_TEST)
+  enable_testing()
   ADD_SUBDIRECTORY(tests)
 ENDIF()
