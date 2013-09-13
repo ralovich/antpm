@@ -1,0 +1,16 @@
+language: cpp
+script: cmake
+compiler:
+  - clang
+  - gcc
+notifications:
+  recipients:
+    - tade60@freemail.hu
+  email:
+    on_success: change
+    on_failure: always
+
+before_install: sudo apt-get update
+install: sudo apt-get install libboost-dev libusb-dev
+before_script: mkdir cmake-build
+script: cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr && make
