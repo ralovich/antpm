@@ -3,4 +3,10 @@
 VER=`cat src/VERSION | head -n 1`
 DEB_VER_MINOR=1
 
+echo 'VER='$VER
+echo 'DEB_VER_MINOR='$DEB_VER_MINOR
+
+cp debian/changelog.2 debian/changelog.3
+cp debian/changelog.1 debian/changelog.2
+cp debian/changelog debian/changelog.1
 git-dch --git-author -vaN $VER-$DEB_VER_MINOR
