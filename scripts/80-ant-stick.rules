@@ -1,1 +1,2 @@
 ATTRS{idProduct}=="1004", ATTRS{idVendor}=="0fcf", GROUP="plugdev"
+ATTRS{idProduct}=="1008", ATTRS{idVendor}=="0fcf", GROUP="plugdev"
