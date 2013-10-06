@@ -233,7 +233,7 @@ SerialTty::~SerialTty()
   } while(false)
 
 struct contains : public std::binary_function<vector<string>, string,bool> {
-  inline bool operator() (vector<string> v, string e) {return find(v.begin(), v.end(), e) != v.end();}
+  inline bool operator() (vector<string> v, string e) const {return find(v.begin(), v.end(), e) != v.end();}
 };
 
 bool
