@@ -162,5 +162,17 @@ set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0)")
 INCLUDE(CPack)
 
 IF(USE_BOOST_TEST)
+
+  if(${VALGRIND_PREFIX})
+    message(STATUS "Valgrind Prefix: ${VALGRIND_PREFIX}")
+  endif()
+  find_program(VALGRIND_PROGRAM NAMES valgrind PATH /usr/bin /usr/local/bin ${VALGRIND_PREFIX}/bin)
+  IF(VALGRIND_PROGRAM)
+    message(STATUS "Found Valgrind: ${VALGRIND_PROGRAM}")
+    SET(MEMORYCHECK_COMMAND:FILEPATH=${VALGRIND_PROGRAM})
+    # You can add additional options by specifying MEMORYCHECK_COMMAND_OPTIONS and MEMORYCHECK_SUPPRESSIONS_FILE. 
+  ENDIF()
+
+  enable_testing()
   ADD_SUBDIRECTORY(tests)
 ENDIF()

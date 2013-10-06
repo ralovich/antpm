@@ -78,8 +78,9 @@ main(int argc, char** argv)
     po::store(parsed, vm);
     po::notify(vm);
   }
-  catch(po::error& /*error*/)
+  catch(po::error& error)
   {
+    cerr << error.what() << "\n";
     cerr << desc << "\n";
     return EXIT_FAILURE;
   }
