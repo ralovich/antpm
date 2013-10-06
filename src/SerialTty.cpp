@@ -29,7 +29,13 @@
 #include <string>
 #include <boost/thread/thread_time.hpp>
 
+#include <boost/filesystem.hpp>
+
 #include "Log.hpp"
+#include "common.hpp"
+
+namespace fs = boost::filesystem;
+using namespace std;
 
 namespace antpm{
 
@@ -41,9 +47,10 @@ struct SerialTtyPrivate
   mutable boost::mutex m_queueMtx;
   boost::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
-  //lqueue<uchar> m_recvQueue2;
   volatile int m_recvThKill;
-  //AntCallback* m_callback;
+
+  bool guessDeviceName(vector<string>& guessedNames);
+  bool openDevice(vector<string>& names);
 };
 
 // runs in other thread
@@ -65,22 +72,152 @@ struct SerialTtyIOThread
 };
 
 
+string
+find_file_starts_with(const fs::path & dir,
+                      const string& start)
+{
+  fs::directory_iterator end_iter;
+  for( fs::directory_iterator dir_iter(dir) ; dir_iter != end_iter ; ++dir_iter)
+  {
+    fs::path p = *dir_iter;
+    if(p.leaf().string().find(start)==0)
+    {
+      return p.leaf().string();
+    }
+  }
+  return "";
+}
+
+
+struct InvalidChar
+{
+    bool operator()(char c) const {
+        return !isprint((unsigned)c);
+    }
+};
+
+
+bool
+SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
+{
+#ifdef __linux__
+  // check for cp210x kernel module
+  std::string line;
+  std::ifstream mods("/proc/modules");
+  bool cp210x_found=false;
+  if(!mods.is_open())
+    LOG(LOG_WARN) << "Could not open /proc/modules!\n";
+  else
+  {
+    while (mods.good())
+    {
+      getline(mods,line);
+      if(line.find("cp210x ")==0)
+        cp210x_found = true;
+    }
+    mods.close();
+    if(cp210x_found)
+      LOG(LOG_DBG) << "Found loaded cp210x kernel module, good.\n";
+    else
+      LOG(LOG_WARN) << "cp210x is not listed among loaded kernel modules!\n";
+  }
+  // check for usb ids inside /sys/bus/usb/devices/N-N/idProduct|idVendor
+
+  // /sys/bus/usb/drivers/cp210x
+
+  // check /sys/bus/usb/drivers/cp210x/6-2:1.0/interface for "Dynastream ANT2USB"
+  const char* driverDir="/sys/bus/usb/drivers/cp210x";
+  if(!folderExists(driverDir))
+    LOG(LOG_WARN) << driverDir << " doesn't exist!\n";
+  else
+  {
+    LOG(LOG_DBG) << "Detecting in " << driverDir << " ...\n";
+    for(fs::recursive_directory_iterator end, iter(driverDir, fs::symlink_option::recurse); iter != end; ++iter)
+    {
+      if(iter.level()>=2)
+      {
+        iter.pop();
+        continue;
+      }
+      //cout << dir.level() << ", " << *dir << std::endl;
+      fs::path p = iter->path();
+      //cout << p.parent_path() << "\n";
+      if(iter.level()==1 && p.leaf()=="interface" && find_file_starts_with(p.parent_path(), "ttyUSB")!="")
+      {
+        std::vector<unsigned char> vuc(readFile(p.c_str()));
+        string iface="";
+        if(!vuc.empty())
+        {
+          iface=string(reinterpret_cast<char*>(&vuc[0]));
+          iface.erase(std::remove_if(iface.begin(),iface.end(),InvalidChar()), iface.end());
+        }
+        string ttyUSB = find_file_starts_with(p.parent_path(), "ttyUSB");
+        LOG(LOG_DBG) << "Found: \"" << iface << "\" as " << ttyUSB << " in " << p << "\n";
+        guessedNames.push_back("/dev/"+ttyUSB);
+      }
+    }
+  }
+//  // check for /sys/bus/usb-serial/drivers/cp210x/ttyUSBxxx
+//  const char* driverDir="/sys/bus/usb-serial/drivers/cp210x";
+//  if(!folderExists(driverDir))
+//    LOG(LOG_WARN) << driverDir << " doesn't exist!\n";
+//  else
+//  {
+//    LOG(LOG_DBG) << "Detecting in " << driverDir << " ...\n";
+//    fs::directory_iterator end_iter;
+//    for( fs::directory_iterator dir_iter(driverDir) ; dir_iter != end_iter ; ++dir_iter)
+//    {
+//      fs::path p = *dir_iter;
+//      if(p.leaf().string().find("ttyUSB")==0)
+//      {
+//        LOG(LOG_DBG) << "Will try " << p.leaf() << "\n";
+//        guessedName.push_back(p.leaf().string());
+//      }
+//      //string name = p.string();
+//      //LOG(LOG_DBG) << name << "\n";
+//    }
+//  }
+  return !guessedNames.empty();
+#else
+  return false;
+#endif
+}
+
+
+bool
+SerialTtyPrivate::openDevice(vector<string>& names)
+{
+  for(size_t i = 0; i < names.size(); i++)
+  {
+    m_devName = names[i];
+    LOG(LOG_INF) << "Trying to open " << m_devName << " ...";
+    m_fd = ::open(m_devName.c_str(), O_RDWR | O_NONBLOCK);
+    if(m_fd < 0)
+    {
+      LOG(LOG_RAW) << " failed.\n";
+    }
+    else
+    {
+      LOG(LOG_RAW) << " OK.\n";
+      return true;
+    }
+  }
+  return false;
+}
+
+
 SerialTty::SerialTty()
   : m_p(new SerialTtyPrivate())
 {
   LOG(LOG_INF) << "Using SerialTty...\n";
 
-  m_p->m_devName = "/dev/ttyUSB0";
   m_p->m_fd = -1;
-  //, m_p->m_recvTh = 0;
   m_p->m_recvThKill = 0;
 }
 
 SerialTty::~SerialTty()
 {
-  //m_callback = 0;
   //printf("%s\n", __FUNCTION__);
-  //printf("\n\nboost\n\n");
 }
 
 #define ENSURE_OR_RETURN_FALSE(e)                           \
@@ -95,6 +232,9 @@ SerialTty::~SerialTty()
     }                                                       \
   } while(false)
 
+struct contains : public std::binary_function<vector<string>, string,bool> {
+  inline bool operator() (vector<string> v, string e) {return find(v.begin(), v.end(), e) != v.end();}
+};
 
 bool
 SerialTty::open()
@@ -103,21 +243,36 @@ SerialTty::open()
 
   bool rv = false;
 
-  LOG(LOG_INF) << "opening " << m_p->m_devName << "\n";
-  m_p->m_fd = ::open(m_p->m_devName.c_str(), O_RDWR | O_NONBLOCK);
-  if(m_p->m_fd < 1)
+  vector<string> guessedNames;
+  m_p->guessDeviceName(guessedNames);
+  if(!m_p->openDevice(guessedNames))
   {
-    m_p->m_devName = "/dev/ttyUSB1";
-    LOG(LOG_INF) << "opening " << m_p->m_devName << "\n";
-    m_p->m_fd = ::open(m_p->m_devName.c_str(), O_RDWR | O_NONBLOCK);
+    vector<string> possibleNames;
+    possibleNames.push_back("/dev/ttyUSB0");
+    possibleNames.push_back("/dev/ttyUSB1");
+    possibleNames.push_back("/dev/ttyUSB2");
+    possibleNames.push_back("/dev/ttyUSB3");
+    possibleNames.push_back("/dev/ttyUSB4");
+    possibleNames.push_back("/dev/ttyUSB5");
+    possibleNames.push_back("/dev/ttyUSB6");
+    possibleNames.push_back("/dev/ttyUSB7");
+    possibleNames.push_back("/dev/ttyUSB8");
+    possibleNames.push_back("/dev/ttyUSB9");
+
+    possibleNames.erase(remove_if(possibleNames.begin(),
+                                  possibleNames.end(),
+                                  bind1st(contains(), guessedNames)),
+                        possibleNames.end());
+
+    m_p->openDevice(possibleNames);
   }
 
-  //ENSURE_OR_RETURN_FALSE(m_p->m_fd);
   if(m_p->m_fd<0)
   {
-    LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and either /dev/ttyUSB0 or /dev/ttyUSB1 was created by cp210x!\n";
     char se[256];
     strerror_r(m_p->m_fd, se, sizeof(se));
+    LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and /dev/ttyUSBxxx was created by cp210x!\n"
+                        << "\tAlso make sure that /dev/ttyUSBxxx is R+W accessible by your user (usually enabled through udev.rules)!\n";
     LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << se << "\n";
     return rv;
   }
@@ -163,21 +318,6 @@ SerialTty::close()
   }
   m_p->m_fd = -1;
 }
-
-
-
-//bool
-//AntTtyHandler2::read(char& c)
-//{
-//  boost::unique_lock<boost::mutex> lock(m_queueMtx);
-//
-//  if(m_recvQueue.empty())
-//    return false;
-//
-//  c = m_recvQueue.front();
-//  m_recvQueue.pop();
-//  return true;
-//}
 
 
 bool
@@ -247,16 +387,6 @@ SerialTty::write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
   return true;
 }
 
-
-//void
-//AntTtyHandler2::wait()
-//{
-////    boost::unique_lock<boost::mutex> lock(m_queueMtx);
-////    m_pushEvent.wait(lock);
-
-//////    if(m_callback)
-//////        m_callback->onAntReceived();
-//}
 
 
 // Called inside other thread, wait's on the serial line, and extracts bytes as they arrive.
