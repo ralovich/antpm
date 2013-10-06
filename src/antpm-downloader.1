@@ -1,0 +1,156 @@
+.\" -*- coding: utf-8-unix -*-
+.\" groff -man -Tutf8 antpm-downloader.1
+.\" Copyright © 2013 by Kristóf Ralovich
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\"
+.TH antpm-downloader 1 "2013-10" "antpm-downloader v1.9" "ANT-FS client"
+.SH "NAME"
+antpm-downloader \- console based ANT-FS information retrieval client for Garmin GPS products.
+.SH "SYNOPSIS"
+.BI "antpm-downloader [ " "OPTIONS" " ] "
+.SH DESCRIPTION
+.B "antpm-downloader"
+is a small command-line utility to retrieve information (sports
+tracks, etc.) from Garmin GPS products over the wireless ANT-FS
+protocols. Currently supported devices are the Forerunner 310XT. It is
+expected that the Forerunner 60, Forerunner 610, Forerunner 910XT,
+FR70 and Swim models work, but user feedback is required.
+.SH "OPTIONS"
+.TP
+\fB\-P\fR [ \fB\-\-pairing\fR ]
+Force pairing first
+.TP
+\fB\-\-dir\-only\fR
+Download and list device directory
+.HP
+\fB\-D\fR [ \fB\-\-download\fR ] arg Download a single file (hex id e.g. 0x12FB) from device
+.TP
+\fB\-\-erase\fR arg
+Erase a single file (hex id e.g. 0x12FB) from device
+.TP
+\fB\-\-v\fR arg
+Adjust verbosity level, varies in [1, 6]
+.SS "Help options"
+.TP
+\fB\-h\fR [ \fB\-\-help\fR ]
+produce help message
+.TP
+\fB\-V\fR [ \fB\-\-version\fR ]
+Print version information
+.SH LINUX USER'S GUIDE
+.PP
+Make sure you're using the latest released version of ANT+minus\.
+.PP
+Make sure that the cp210x kernel module is loaded: "sudo modprobe cp210x"\. Verify by looking at non-empty output of "lsmod | grep cp210x"\.
+.PP
+Make sure that the USB2ANT stick is connected to the machine\.
+.PP
+Make sure cp210x driver was assigned to your USB2ANT\. Verify by "dmesg | grep tty" and look for a line similar to: "[ 3274.854726] usb 6-2: cp210x converter now attached to ttyUSB0". Also make sure "ls /dev/ttyUSB*" lists your device node.
+.PP
+Your user must be able to access the /dev/ttyUSB0 device. This can be achieved e.g. by the installing the
+.UR http://antpm.googlecode.com/git/scripts/80-ant-stick.rules
+.BR http://antpm.googlecode.com/git/scripts/80-ant-stick.rules
+udev rule into \fI/etc/udev/rules.d\fP. Restart udev. Verify by "cat /dev/ttyUSB0".
+.PP
+Install the antpm binary package.
+.PP
+Enable "pairing mode" on your watch.
+.PP
+Bring your watch to ~50cm from the USB2ANT stick. Sometimes avoiding the proximity of a WiFi network helps.
+.PP
+Run
+.B "antpm-downloader"
+on your machine. This will attempt connecting to the watch and pair with it first.
+.PP
+During pairing, you have to click "Yes" on the watch to complete pairing.
+.PP
+Afterwards all activity information from the watch is downloaded to your machine. This can take some time.
+.PP
+The downloaded files are stored on your machine to the folder ConfigFolder/*device-id*/*current-date-time* (where ConfigFolder equals $XDG_CONFIG_HOME which usually points to $HOME/.config/antpm/ or $ANTPM_DIR/ if that is set).
+.PP
+The 310XT stores all information in .fit files. These files can describe waypoints/tracks/activities.
+.PP
+To convert the downloaded .fit files to a more commonly used .gpx format, issue the command "antpm-fit2gpx -F ConfigFolder/*device-id*/*current-date-time*" e.g. "antpm-fit2gpx -F ~/.config/antpm/4531082473/2013_03_26_10_58_19". This will populate the given folder with .gpx files.
+.SH HOW TO SUBMIT A BUG-REPORT
+.PP
+Please open a bug report at
+.UR "http://code.google.com/p/antpm"
+.BR "http://code.google.com/p/antpm"
+.PP
+In your report please include:
+.LP
+.RS
+The log of the program in question (usually saved under ~/.config/antpm)?
+.RE
+.LP
+.LP
+.RS
+What steps will reproduce the problem?
+.RE
+.LP
+.LP
+.RS
+What is the expected output? What do you see instead?
+.RE
+.LP
+.LP
+.RS
+What version of ANT+minus are you using? On what operating system? Is it pre-built of from sources?
+.RE
+.LP
+.LP
+.RS
+What GPS are you trying to use? What firmware version?
+.RE
+.LP
+.SH WINDOWS USER'S GUIDE
+.PP
+Make sure that the USB2ANT stick is connected to the machine.
+.PP
+Install the libusb driver by running "3rd_party/libusb-win32-bin-1.2.6.0/driver_installer/inf-wizard.exe"
+.SH "DEVICES"
+Wireless ANT communications happens over a USB2ANT dongle. Under Linux
+the dongle is driven by
+.B cp210x
+kernel module, and presented to user-space as a USB serial port,
+.B /dev/ttyUSBxxx
+where
+.B xxx
+is an integer. The dongle is typically carrying the USB vendor id/product id
+pair of 0fcf/1004 or 0fcf/1008. Recent Linux systems employ
+.B udev
+to handle device nodes and permissions, thus appropriate
+.SH "FILES"
+.TP
+\fB/lib/modules/`uname \-r`/kernel/drivers/usb/serial/cp210x.ko\fR
+Kernel driver module for USB2ANT dongle.
+.TP
+.B /dev/ttyUSBxxx
+Serial device created for dongle.
+.TP
+.B $XDG_CONFIG_HOME/antpm ($HOME/.config/antpm)
+Default config folder (downloaded content is also stored here).
+.TP
+.B ANTPM_DIR
+The
+.B ANTPM_DIR
+environment variable is honored to override the default config folder.
+.SH "AUTHOR"
+.B antpm-downloader
+was written by Kristóf Ralovich. This man page is Copyright ©
+2010-2013 Kristóf Ralovich.
+.SH "SEE ALSO"
+.UR "http://code.google.com/p/antpm"
+.BR "http://code.google.com/p/antpm"

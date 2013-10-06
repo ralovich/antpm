@@ -1,0 +1,48 @@
+.\" -*- coding: utf-8-unix -*-
+.\" groff -man -Tutf8 antpm-downloader.1
+.\" Copyright © 2013 by Kristóf Ralovich
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\"
+.TH ANTPM-FIT2GPX "1" "October 2013" "antpm-fit2gpx v1.9" "User Commands"
+.SH NAME
+antpm-fit2gpx \- console based FIT to GPX converter
+.SH DESCRIPTION
+.SS "Allowed options:"
+.TP
+\fB\-h\fR [ \fB\-\-help\fR ]
+produce help message
+.TP
+\fB\-F\fR [ \fB\-\-fitFolder\fR ] arg
+Folder with FIT files
+.TP
+\fB\-D\fR [ \fB\-\-decode\-fit\-root\fR ] arg
+FIT file, encoding the root directory contents on a device, e.g. \fI/tmp/0000.fit\fP
+.TP
+\fB\-L\fR [ \fB\-\-fix\-last\-write\fR ]
+Correct last\-written time of .fit files on disk.
+No conversion to GPX takes place.
+.TP
+\fB\-\-v\fR arg
+Adjust verbosity level, varies in [1, 6]
+.TP
+\fB\-V\fR [ \fB\-\-version\fR ]
+Print version information
+.SH "AUTHOR"
+.B antpm-downloader
+was written by Kristóf Ralovich. This man page is Copyright ©
+2010-2013 Kristóf Ralovich.
+.SH "SEE ALSO"
+.UR "http://code.google.com/p/antpm"
+.BR "http://code.google.com/p/antpm"
