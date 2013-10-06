@@ -395,7 +395,13 @@ SerialUsb::open()
   // ffff8800b1c470c0 1328873340 C Co:3:002:0 0 0
   m_p->dev = m_p->libUSBGetDevice(0x0fcf, 0x1004);
   if(!m_p->dev)
-    return false;
+  {
+    m_p->dev = m_p->libUSBGetDevice(0x0fcf, 0x1008);
+    if(!m_p->dev)
+    {
+      return false;
+    }
+  }
 
   m_p->modprobe();
 
