@@ -156,6 +156,7 @@ void DeviceSettings::mergeLastUserProfileTime(const std::time_t gmt)
 /// \param t expected to be represented as local time
 void DeviceSettings::mergeLastTransferredTime(const std::time_t gmt)
 {
+  LOG(LOG_DBG) << "LastTransferredTime: " << time2str(LastTransferredTime) << " => " << time2str(gmt) << "\n";
   //std::time_t gmt = t + timezone;
   LastTransferredTime = std::max(LastTransferredTime, gmt);
 }

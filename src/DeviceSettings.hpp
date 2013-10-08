@@ -26,7 +26,9 @@ public:
   const std::string getConfigFileName() const;
   const std::string getFolder() const;
   bool saveToFile(const char* fname);
+  bool saveToFile(const std::string& fname) { return saveToFile(fname.c_str()); }
   bool loadFromFile(const char* fname);
+  bool loadFromFile(const std::string& fname) { return loadFromFile(fname.c_str()); }
   void mergeLastUserProfileTime(const std::time_t gmt);
   void mergeLastTransferredTime(const std::time_t gmt);
 
