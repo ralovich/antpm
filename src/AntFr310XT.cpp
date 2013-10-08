@@ -360,8 +360,8 @@ AntFr310XT2::handleEvents()
     m_ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
     assert(m_ds.get());
     m_ds->loadDefaultValues();
-    m_ds->loadFromFile(m_ds->getConfigFileName().c_str());
-    m_ds->saveToFile(m_ds->getConfigFileName().c_str());
+    m_ds->loadFromFile(m_ds->getConfigFileName());
+    m_ds->saveToFile(m_ds->getConfigFileName());
 
     readUInt64(clientSN, pairedKey);
 
@@ -559,6 +559,7 @@ AntFr310XT2::handleEvents()
 
       fit.parse(data, gpx);
 
+      // FIXME: case of fit date in future, also check the date from the directory file for consistency
       time_t fitDate;
       if(!FIT::getCreationDate(data, fitDate))
         fitDate = t;
