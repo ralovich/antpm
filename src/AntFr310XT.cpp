@@ -572,6 +572,7 @@ AntFr310XT2::handleEvents()
     gpx.writeToFile(gpxFile);
 
     m_ds->mergeLastTransferredTime(time(NULL));
+    m_ds->saveToFile(m_ds->getConfigFileName());
 
     changeStateSafe(ST_ANTFS_LAST);
   }
