@@ -13,7 +13,7 @@
 * Start capturing usb traffic under linux host: cat /sys/kernel/debug/usb/usbmon/6u > ~/ant-usb-log-001.usbmon
 * Start garmin's ant agent in virtual xp. Once the download is done, quit ant agent. Also terminate the above "cat" process. The dump of your usb communication is now saved to ~/ant-usb-log-001.usbmon.
 * decode the ANT traffic from the usb packets: ./antpm-usbmon2ant --op=parse ~/ant-usb-log-001.usbmon
-* At this point, you can either start debugging antpm and try to see where our code sends/awaits different replies/messages, or you may provide the .usbmon file to the maintainers to do the same. Note that the dump file most likely contains your activities from your watch, and could be of personal nature!! It might be better idea to erase the real activities from the watch and while the gps is fixed create dummy activities (to create a single dummy activity e.g.: start the timer, press a few splits, stop the timer, reset it) to be downloaded and captured in the trace.
+* At this point, you can either start debugging antpm and try to see where our code sends/awaits different replies/messages, or you may provide the .usbmon file to the maintainers (send it to ant.dumps@gmail.com) to do the same. Note that the dump file most likely contains your activities from your watch, and could be of personal nature!! It might be better idea to erase the real activities from the watch and while the gps is fixed create dummy activities (to create a single dummy activity e.g.: start the timer, press a few splits, stop the timer, reset it) to be downloaded and captured in the trace.
 
 
 ** RELEASE CHECKLIST
