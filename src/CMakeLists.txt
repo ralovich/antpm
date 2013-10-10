@@ -110,6 +110,7 @@ TARGET_LINK_LIBRARIES(antpm
   ${Boost_THREAD_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
+  stdc++
 )
 
 ADD_EXECUTABLE(antpm-usbmon2ant
