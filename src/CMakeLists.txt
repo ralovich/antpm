@@ -91,6 +91,8 @@ SET(SRCS
 
   Log.hpp
   LazySingleton.hpp
+
+  VERSION
 )
 IF(NOT WIN32)
   SET(SRCS
