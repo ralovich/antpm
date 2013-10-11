@@ -21,7 +21,6 @@
 * update version info in src/VERSION
 * optional: update version minor in scrips/make-changelog
 * run scripts/make-changelog
-* run scripts/make-tarball
 * run scripts/deb
 * commit above changes and tag respective version
 * coninous integration is provided by travis (https://travis-ci.org/ralovich/antpm/builds), through the github mirror (https://github.com/ralovich/antpm)

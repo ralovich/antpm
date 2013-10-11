@@ -1,5 +1,93 @@
+antpm (1.11-1) UNRELEASED; urgency=low
+
+  [ Jordan Miller ]
+  * First Import
+  * Added Wali's Change to gant.c
+  * Syncing to ant0_t3
+  * Added some typecasting in the debug statements to get gant.c and antlib.c to compile
+  * Adding rapiddescent's recommendation to change output filename so it sorts properly
+  * Adding Wali's 20090124 patch.
+  * Adding Wali's changes
+  * Adding Chris Turchin's Python Monitor
+  * Removed generated files
+
+  [ Klaus Ethgen ]
+  * Removed needless files
+  * Cleanup the code
+  * Rewrite the XML part
+  * Handle more events
+  * Cleanup and better debug handling
+  * Complete redesign of garmin protocol
+  * Update version information
+  * Indent the file proper
+  * Implementing better debugging output
+  * Hmpf, one more unneeded file
+
+  [ Ilya Barygin ]
+  * Place needed libraries in a correct variable
+
+  [ Klaus Ethgen ]
+  * Ignore error on clean
+
+  [ Ralf Treinen ]
+  * Imported Upstream version 20110626
+
+  [ RALOVICH, Kristóf ]
+  * write copyright file
+  * ignore misc files
+  * include release version in getVersionString()
+  * gentoo build scripts from root@proscript.ru
+  * docs: update user's guide
+  * fix build due to missing include
+  * make sure we expect this exception
+  * common: add folderExists()
+  * AntFr310XT: not a problem if download folder name is already computed
+  * AntFr310XT: relax the check when creating download folde
+  * fix typo
+  * fix an other typo
+  * fix getVersionString() under MSVC
+  * bugfix: avoid infinite recursion
+  * log: include the version string in the header of the log file
+  * msvc build fixes
+  * fix for undefined 64-bit abs() under msvc
+  * FIT: fix build under gcc 4.4.5
+  * add todo
+  * testing: import travis description
+  * testing: refine build dependencies for travis
+  * docs: note on Travis Continous Integration support
+  * testing: add and run unit tests from cmake
+  * testing: make sure tests are actually run
+  * testing: add more tests
+  * scripts: update udev rules
+  * debian: silence lintian hardening warning
+  * debian: make a copy of the changelog
+  * show that this is a development version
+  * usb: sometimes the device is 0x0fcf, 0x1008
+  * tty: do some device auto-detection under linux
+  * fix build with clang
+  * write man pages for all executables
+  * DeviceSettings: allow passing in std::string too
+  * bugfix: save config.ini after downloads are done
+  * misc: add note
+  * update notes
+  * cmake: fix linking with clang version 3.4 (trunk 181662)
+  * cmake: let antpm depend on the VERSION too
+  * update notes
+  * cmake: include gant in the build process
+  * travis: build the gant-integration branch too
+  * gant: write man page
+  * gant: fix a build warning
+  * gant: fix a bunch of build warnings
+  * gant: more build warning fixes
+  * various fixes for packaging problems
+  * update packaging information
+  * travis: libxml2-dev is also needed
+
+ -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 12 Oct 2013 01:32:08 +0200
+
 antpm (1.9-1) UNRELEASED; urgency=low
 
+  [ RALOVICH, Kristóf ]
   * docs: update todo list
   * cleanup
   * antpm-fit2gpx: sort file names
