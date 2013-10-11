@@ -265,7 +265,7 @@ void dump_data(FILE * out, void *data, size_t offset, size_t size)
    {
       memset(buf, 0, sizeof buf);
       memcpy(buf, data + offset + i, (size-i >= 16)? 16 : (size-i));
-      fprintf(out, "0x%04x:", offset + i);
+      fprintf(out, "0x%04lx:", (unsigned long)(offset + i));
 
       for (j=0; j < 16; j++)
       {
