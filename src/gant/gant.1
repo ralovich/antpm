@@ -1,0 +1,166 @@
+.\" -*- coding: utf-8-unix -*-
+.\" groff -man -Tutf8 gant.1
+.\" Copyright © 2013 by Kristóf Ralovich
+.\"
+.\" Permission is granted to make and distribute verbatim copies of this
+.\" manual provided the copyright notice and this permission notice are
+.\" preserved on all copies.
+.\"
+.\" Permission is granted to copy and distribute modified versions of this
+.\" manual under the conditions for verbatim copying, provided that the
+.\" entire resulting derived work is distributed under the terms of a
+.\" permission notice identical to this one
+.\"
+.\" Formatted or processed versions of this manual, if unaccompanied by
+.\" the source, must acknowledge the copyright and authors of this work.
+.\" License.
+.\"
+.TH gant 1 "2013-10" "gant" "ANT+ client"
+.SH "NAME"
+gant \- console based ANT+ information retrieval client for Garmin GPS products
+.SH "SYNOPSIS"
+.BI "gant [ " "OPTIONS" " ] "
+.SH DESCRIPTION
+.B "gant"
+is a small command-line utility to retrieve information (sports
+tracks, etc.) from Garmin GPS products over the wireless ANT/ANT+
+protocols. Currently supported devices are the Forerunner 405.
+.SH "OPTIONS"
+.TP
+.BI "\-a " "authfile"
+Provide authfile (default ~/.gant).
+.TP
+.BI "\-f " "name"
+Assign a name to the ANT device. (default garmin)
+.TP
+.BI "\-d " "devno"
+ttyUSB
+.I "devno"
+Device no. (default 0)
+.TP
+.BI "\-i " "id"
+ID for pairing (default random)
+.TP
+.BI "\-m " "mydev"
+(default 0)
+.TP
+.BI "\-p"
+Passive
+.TP
+.BI "\-v"
+Verbose
+.TP
+.BI "\-D " "level"
+Debug
+.TP
+.BI "\-r"
+Reset the device
+.TP
+.BI "\-n"
+Do not write auth file
+.TP
+.BI "\-z"
+Do not pair
+.SS "Help options"
+.TP
+.BI "\-h"
+Show command line options.
+.SH "EXAMPLE 1"
+Put 405 in pairing mode
+gant -f paul -a auth405
+
+This gives your garmin a name of "paul" and an auth file of "auth405"
+The 405 will ask you if you wish to pair with "paul". Obviously
+you might want to use a different name :)
+
+Download with:
+gant -nza auth405 > output
+
+or -Dnza if you want lots of debug output
+
+It doesn't seem to be very reliable at starting the download and
+I haven't investigated why yet. So, if it doesn't start downloading
+press ctrl-c and try again. I find it helps to take the watch out
+of power save mode.
+
+If you've already downloaded the data, then you'll need to set
+"force send" to yes on the watch.
+
+Compare output with .TCX file produce by windows ANT Agent.
+.SH "EXAMPLE 2"
+	HOWTO USE gant
+
+1. plugin your ANT+ stick
+2. the system will load the kernel module "cp210x"
+3. to find out what ttyUSB device is used run
+.LP
+.RS
+# dmesg|grep "cp210x converter"
+.RE
+.RS
+[...] cp210x 3-1:1.0: cp210x converter detected
+.RE
+.RS
+[...] usb 3-1: cp210x converter now attached to ttyUSB3
+.RE
+.LP
+In this case you have to use the optione "-d 3". If it is
+ttyUSB0 then you don't need the -d option because 0 is the
+default
+4. put the watch into paring mode (menu -> configuration -> ANT+ ->
+   computer -> pairing on)
+5. pair the computer with the watch ("mywatch" as name for the watch and
+   the file "auth405" as an authorization file which will be created)
+.LP
+.RS
+# gant -d 3 -f mywatch -a auth405
+.RE
+.LP
+6. download saved tracks from the watch
+.LP
+.RS
+# gant -d 3 -f mywatch -nza auth405
+.RE
+.LP
+You get the possible options with
+.LP
+.RS
+# gant -h
+.RE
+.LP
+To convert the downloaded TCX file (e.g. 2011-07-22-123456.tcx) you can use gpsbabel:
+.LP
+.RS
+# gpsbabel -t -i gtrnctr -f 2011-07-22-123456.tcx -o gpx -F 2011-07-22-123456.gpx
+.RE
+.LP
+\-\- 2011-07-22 Noèl Köthe <noel@debian.org>
+.SH "DEVICES"
+Wireless ANT communications happens over a USB2ANT dongle. Under Linux
+the dongle is driven by
+.B cp210x
+kernel module, and presented to user-space as a USB serial port,
+.B /dev/ttyUSBxxx
+where
+.B xxx
+is an integer. The dongle is typically carrying the USB vendor id/product id
+pair of 0fcf/1004 or 0fcf/1008. Recent Linux systems employ
+.B udev
+to handle device nodes and permissions, thus appropriate
+.SH "FILES"
+.TP
+\fB/lib/modules/`uname \-r`/kernel/drivers/usb/serial/cp210x.ko\fR
+Kernel driver module for USB2ANT dongle.
+.TP
+.B /dev/ttyUSBxxx
+Serial device created for dongle.
+.TP
+.B $HOME/.gant
+Default authentication file.
+.SH "AUTHOR"
+.B gant
+was written by paul@ant.sbrk.co.uk, Wali and Klaus@Ethgen.de. This man
+page is Copyright © 2013 Kristóf Ralovich.
+.SH "SEE ALSO"
+.UR "http://code.google.com/p/antpm"
+.BR "http://code.google.com/p/antpm"

@@ -1,3 +1,4 @@
 debian/antpm-downloader.1
 debian/antpm-fit2gpx.1
 debian/antpm-usbmon2ant.1
+debian/gant.1

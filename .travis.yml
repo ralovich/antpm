@@ -14,6 +14,6 @@ branches:
     - master
     - gant-integration
 before_install: sudo apt-get update && uname -a
-install: sudo apt-get install libboost-dev libboost-date-time-dev libboost-thread-dev libboost-system-dev libboost-filesystem-dev	libboost-program-options-dev libboost-test-dev libusb-dev valgrind
+install: sudo apt-get install libboost-dev libboost-date-time-dev libboost-thread-dev libboost-system-dev libboost-filesystem-dev	libboost-program-options-dev libboost-test-dev libusb-dev libxml2-dev valgrind
 before_script: mkdir cmake-build
 script: cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make && make test

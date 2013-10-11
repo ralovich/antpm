@@ -33,6 +33,7 @@ ENDIF()
 IF(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
   set(CMAKE_CXX_FLAGS_DEBUG          "-g3 -ggdb3")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Wextra -Wall")
   set(CMAKE_C_FLAGS_DEBUG            "-g3 -ggdb3")
 
   IF(USE_COVERAGE)
@@ -146,6 +147,7 @@ INSTALL(TARGETS antpm-fit2gpx RUNTIME DESTINATION bin)
 
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
+ADD_SUBDIRECTORY(gant)
 
 set(CPACK_PACKAGE_VERSION_MAJOR "1")
 set(CPACK_PACKAGE_VERSION_MINOR "0")
