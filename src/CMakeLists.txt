@@ -33,6 +33,7 @@ ENDIF()
 IF(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
   set(CMAKE_CXX_FLAGS_DEBUG          "-g3 -ggdb3")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Wextra -Wall")
   set(CMAKE_C_FLAGS_DEBUG            "-g3 -ggdb3")
 
   IF(USE_COVERAGE)

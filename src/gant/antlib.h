@@ -5,8 +5,8 @@
 uchar ANT_ResetSystem(void);
 uchar ANT_Cmd55(uchar chan);
 uchar ANT_OpenRxScanMode(uchar chan);
-uchar ANT_Initf(char *devname, ushort baud);
-uchar ANT_Init(uchar devno, ushort baud);
+uchar ANT_Initf(char *devname);
+uchar ANT_Init(uchar devno);
 uchar ANT_RequestMessage(uchar chan, uchar mesg);
 uchar ANT_SetNetworkKeya(uchar net, uchar *key);
 uchar ANT_SetNetworkKey(uchar net, uchar *key);

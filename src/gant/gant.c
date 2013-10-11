@@ -818,7 +818,7 @@ uchar chevent(uchar chan, uchar event)
 {
    uchar status;
    uchar phase;
-   uint newdata;
+   /*uint newdata;*/
    struct ack_msg ack;
    struct auth_msg auth;
    struct pair_msg pair;
@@ -830,7 +830,7 @@ uchar chevent(uchar chan, uchar event)
    if (event == EVENT_RX_BROADCAST)
    {
       status = cbuf[1] & 0xd7;
-      newdata = cbuf[1] & 0x20;
+      /*newdata = cbuf[1] & 0x20;*/
       phase = cbuf[2];
    }
    cid = cbuf[4] + cbuf[5] * 256 + cbuf[6] * 256 * 256 + cbuf[7] * 256 * 256 * 256;
@@ -894,7 +894,7 @@ uchar chevent(uchar chan, uchar event)
 	    ack.c1 = 0x00;
 	    ack.c2 = 0x00;
 	    ack.id = 0;
-	    ANT_SendAcknowledgedData(chan, (void *)&ack);	// tell garmin we're finished
+	    ANT_SendAcknowledgedData(chan, (uchar *)&ack);	// tell garmin we're finished
 	    sleep(1);
 	    exit(1);
 	 }
@@ -1318,7 +1318,7 @@ int main(int ac, char *av[])
    int waveform = 0x0053;	// aids search somehow
    int c;
    extern char *optarg;
-   extern int optind, opterr, optopt;
+   extern int optind;
 
    // default auth file //
    if (getenv("HOME"))
@@ -1379,9 +1379,9 @@ int main(int ac, char *av[])
    if ((!passive && !authfile) || ac)
       usage();
 
-   if (!ANT_Init(devnum, 0))	// should be 115200 but doesn't fit into a short
+   if (!ANT_Init(devnum))	// should be 115200 but doesn't fit into a short
    {
-      ERROR_OUT("Open dev %d failed", devnum);
+      ERROR_OUT("Open /dev/ttyUSB%d failed", devnum);
       exit(1);
    }
    ANT_ResetSystem();

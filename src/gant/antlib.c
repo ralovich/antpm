@@ -18,7 +18,7 @@
 //#include "antmessage.h"
 //#include "anttypes.h"
 
-#define S(e) if (-1 == (e)) {perror(#e);exit(1);} else
+#define S(e) do { if (-1 == (e)) {perror(#e); return 0;} } while(0)
 
 #define MAXMSG 30 // SYNC,LEN,MSG,data[9+],CHKSUM
 #define MAXCHAN 32
@@ -230,7 +230,7 @@ void get_data(int fd)
 							if (seq != 0)
 								fprintf(stderr, "out of sequence ch# %d %d\n", chan, seq);
 							else {
-								burstbuf[chan] = malloc(BSIZE);
+                burstbuf[chan] = (unsigned char*)malloc(BSIZE);
 								bzero(burstbuf[chan], BSIZE);
 								memcpy(burstbuf[chan], buf+i+4, 8);
 								bused[chan] = 8;
@@ -244,7 +244,7 @@ void get_data(int fd)
 								free(burstbuf[chan]);
 								burstbuf[chan] = 0;
 								if (seq == 0) {
-									burstbuf[chan] = malloc(BSIZE);
+									burstbuf[chan] = (unsigned char*)malloc(BSIZE);
 									bzero(burstbuf[chan], BSIZE);
 									memcpy(burstbuf[chan], buf+i+4, 8);
 									bused[chan] = 8;
@@ -253,7 +253,7 @@ void get_data(int fd)
 								}
 							} else {
 								if ((bused[chan] % BSIZE) == 0) {
-									burstbuf[chan] = realloc(burstbuf[chan], bused[chan]+BSIZE);
+									burstbuf[chan] = (unsigned char*)realloc(burstbuf[chan], bused[chan]+BSIZE);
 									bzero(burstbuf[chan]+bused[chan], BSIZE);
 								}
 								memcpy(burstbuf[chan]+bused[chan], buf+i+4, 8);
@@ -368,6 +368,7 @@ void *commfn(void* arg)
 	fd_set readfds, writefds, exceptfds;
 	int ready;
 	struct timeval to;
+  (void)arg;
 
 	for(;;) {
 		FD_ZERO(&readfds);
@@ -403,7 +404,7 @@ ANT_OpenRxScanMode(uchar chan)
 }
 
 uchar
-ANT_Initf(char *devname, ushort baud)
+ANT_Initf(char *devname)
 {
 	struct termios tp;
 
@@ -427,17 +428,17 @@ ANT_Initf(char *devname, ushort baud)
 	tp.c_cc[VTIME] = 0;
 	S(tcsetattr(fd, TCSANOW, &tp));
 
-	if (pthread_create(&commthread, 0, commfn, 0));
+	S(pthread_create(&commthread, 0, commfn, 0));
 	return 1;
 }
 
 uchar
-ANT_Init(uchar devno, ushort baud)
+ANT_Init(uchar devno)
 {
 	char dev[40];
 
 	sprintf(dev, "/dev/ttyUSB%d", devno);
-	return ANT_Initf(dev, devno);
+	return ANT_Initf(dev);
 }
 
 uchar
@@ -617,6 +618,7 @@ ANT_AssignResponseFunction(RESPONSE_FUNC rf, uchar* rbuf)
 void
 ANT_AssignChannelEventFunction(uchar chan, CHANNEL_EVENT_FUNC rf, uchar* rbuf)
 {
+	(void)chan;
 	cfn = rf;
 	cbufp = rbuf;
 }
