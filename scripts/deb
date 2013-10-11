@@ -15,6 +15,7 @@ mv antpm_*.orig.tar.xz $ROOT/
     mkdir build;
     cd build
     tar --xz -xf ../antpm*.tar.xz
+    mv scripts/debian .
     echo -e "\nStarting to build...\n"
     debuild -us -uc && echo -e "\nBuild OK\ndeb package in '${ROOT}' \n";
 )
