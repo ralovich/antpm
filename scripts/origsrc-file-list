@@ -56,3 +56,9 @@ src/common.hpp
 src/AntMessenger.cpp
 src/DeviceSettings.hpp
 src/DeviceSettings.cpp
+src/gant/antdefs.h
+src/gant/antlib.c
+src/gant/antlib.h
+src/gant/gant.1
+src/gant/gant.c
+src/gant/CMakeLists.txt
