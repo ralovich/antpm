@@ -30,7 +30,7 @@
 
 static int fd = -1;
 static int dbg = 0;
-static pthread_t commthread;;
+static pthread_t commthread;
 
 static RESPONSE_FUNC rfn = 0;
 static uchar *rbufp;
@@ -404,7 +404,7 @@ ANT_OpenRxScanMode(uchar chan)
 }
 
 uchar
-ANT_Initf(char *devname)
+ANT_Initf(const char *devname)
 {
 	struct termios tp;
 
@@ -448,7 +448,7 @@ ANT_RequestMessage(uchar chan, uchar mesg)
 }
 
 uchar
-ANT_SetNetworkKeya(uchar net, uchar *key)
+ANT_SetNetworkKeya(uchar net, const uchar *key)
 {
 	uchar buf[9];
 	int i;
@@ -464,7 +464,7 @@ ANT_SetNetworkKeya(uchar net, uchar *key)
 }
 
 uchar
-ANT_SetNetworkKey(uchar net, uchar *key)
+ANT_SetNetworkKey(uchar net, const uchar *key)
 {
 	uchar buf[9];
 
