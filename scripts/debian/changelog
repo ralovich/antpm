@@ -1,3 +1,16 @@
+antpm (1.12-1) UNRELEASED; urgency=low
+
+  [ RALOVICH, Kristof ]
+  * travis: build the gant-integration branch too
+  * travis: libxml2-dev is also needed
+  * new version 1.11
+  * open for new development
+  * chmod -x on a few files
+  * relicense my work under GPLv3 from GPLv2
+  * scripts: update the list of files need to be included in the orig tarball
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Mon, 14 Oct 2013 18:46:40 +0200
+
 antpm (1.11-1) UNRELEASED; urgency=low
 
   [ Jordan Miller ]
