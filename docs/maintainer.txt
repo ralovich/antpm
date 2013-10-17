@@ -1,23 +1,6 @@
 // -*- mode: outline ; coding: utf-8-unix -*-
 
 
-** HOW TO HELP IF YOUR WATCH'S PROTOCOL IS NOT PROPERLY HANDLED BY ANT+minus
-* In this case your device talks a different dialect of ANT/ANT+/ANT-FS that we've seen so far.
-* To solve this, we'll need a dump of the USB communication between your watch (USB2ANT stick) and garmin's ant agent. This may be facilitated in a VirtualBox environment.
-* Install e.g. VirtualBox on linux, including proprietary oracle usb extensions
-* Install win xp in vbox, set up usb filter to pass through all devices
-* Install garmin's ant agent in virtual xp, but do not start it!
-* Plug in your USB2ANT stick to the host, make sure the cp201x driver didn't grab it, by unloading cp201x kernel module.
-* Make sure usbmon kernel driver is loaded on the host: "modprobe usbmon"
-* Under linux host, figure out usb bus address of your USB2ANT stick: "lsusb" (e.g.: "Bus 005 Device 001: ID 1d6b:0001 USB2ANT ..." means our bus number is 5)
-* We need to increase usbmon lower threshold for message truncation to say 100 characters. For this build the usbmon tool. In the antpm sources "cd 3rd_party/usbmon-6 && make"
-* Start capturing usb traffic under linux host: "./usbmon -i <USB bus> -fu -s 100 /sys/kernel/debug/usb/usbmon/6u > ~/ant-usb-log-001.usbmon"
-* Start garmin's ant agent in virtual xp. Once the download is done, quit ant agent. Also terminate the above "cat" process. The dump of your usb communication is now saved to ~/ant-usb-log-001.usbmon.
-* At this point, you can provide the .usbmon file to the maintainers (send it compressed to ant.dumps@gmail.com). Note that the dump file most likely contains your activities from your watch, and could be of personal nature!! It might be better idea to download, backup and erase the real activities from the watch. Then while the gps is fixed create dummy activities (to create a single dummy activity e.g.: start the timer, press a few splits, stop the timer, reset it) to be downloaded and captured in the trace.
-
-
-
-
 ** RELEASE CHECKLIST
 * make sure all files are listed in scripts/origsrc-file-list
 * update version info in src/VERSION
