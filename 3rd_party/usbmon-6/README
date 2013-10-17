@@ -1,0 +1,9 @@
+	usbmon
+	Version 6
+
+The usbmon(8) utility is a user interface to its namesake "usbmon", a facility
+in Linux kernel. The usbmon facility may also be accessed with tcpdump(1),
+Wireshark, or cat(1). Isn't the choice wonderful?
+
+This software program is licensed for use under terms of GNU General Public
+License, version 2.  See file "COPYING" for the complete terms.

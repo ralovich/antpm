@@ -1,0 +1,234 @@
+.TH usbmon 8 "10 April 2007"
+.IX usbmon
+.SH NAME
+usbmon \- monitor USB traffic
+.SH SYNOPSIS
+.B usbmon
+[
+.B -i
+.I bus_num
+]
+[
+.B -s
+.I length
+]
+[
+.B -f0
+|
+.B -fu
+|
+.B -fh
+]
+[
+.B -a0
+|
+.B -a1
+]
+.SH DESCRIPTION
+.B usbmon
+allows to capture USB traffic for analysis in the manner similar to
+.BR tcpdump
+(8).
+
+To make use of this program, you need to have a Linux kernel
+which supports the binary "usbmon" interface
+(e.g., Linux kernel 2.6.20 or newer).
+
+.SH OPTIONS
+.TP
+.B \-i
+Listen on \fIbus_num\fP. If unspecified,
+.I usbmon
+attempts to listen on the pseudo-bus number zero,
+which is supposed to capture all packets on all buses.
+The default is a convenient mode because the user does not have to figure out
+the bus number where a specific device is attached.
+Also, listening on pseudo-bus zero allows to capture events
+which happen when a bus is initialized.
+
+However, it may be necessary to specify a specific bus number to tap.
+Kernels before 2.6.22 do not implement the pseudo-bus zero at all.
+Performance of USB stack and the usbmon is greater when a specific
+bus is monitored.
+In such case,
+the desired bus number may be determined by examining the output of lsusb(8).
+
+.TP
+.B \-s
+Set the maximum length of USB data to print. The default is to
+print 32 bytes just like the kernel's text interface would.
+The capture size is automatically adjusted to match unless set explicitly.
+
+.TP
+.B \-f
+Select the output format as one of: '0' for legacy format, 'u' for so-called
+"1u" format, 'h' for "human-readable" format. The human-readable format
+is the default. Also, it changes over time, so programs should parse
+the "1u" format.
+
+Selecting the 1u format forces
+.I usbmon
+to use the API which may not be available in the kernel before version 2.6.22.
+
+The human-readable format is not intended for a programmatic parsing,
+and so changes from release to release.
+
+.TP
+.B \-a
+Force the binary API version to use: '0' for the legacy API in kernel
+2.6.20 and up, '1' for the newer API in kernels after 2.6.22.
+Selection of output format may force the API to the minimum required
+to support the format. In general, this option is only used when
+testing the kernel component of usbmon.
+
+.SH OUTPUT FORMAT
+.LP
+The output of
+.I usbmon
+contains one text line per an event. The event corresponds to I/O operations
+on the boundary of Host Controller Driver (HCD).
+This includes events of the following types:
+Submission,
+Callback,
+Error.
+Every line consists
+of whitespace separated words. The number or position of words may depend
+on the event type, but there is a set of words, common for all types.
+.LP
+Most commonly used format is the human-readable format. Its words,
+from left to right, are:
+.PP
+- URB Tag.
+A single URB generates several monitoring events during its life cycle.
+The tag allows to corellate events with the URB.
+Tag is usually derived from a kernel mode address.
+Human-readable format shortens the tag to make the output more readable,
+so it's not the complete address.
+.PP
+- Timestamp. It consistes of the number of seconds, period, and the fraction
+in microseconds.
+.PP
+- Event Type. This type refers to the format of the event, not URB type.
+Available types are: S - submission, C - callback, E - submission error.
+.PP
+- "Pipe word" (the name is historical and has nothing to do with pipes).
+This is a composite word. It consists of four fields, separated
+by colons: URB type and direction, Bus number, Device address, Endpoint number.
+Type and direction are encoded with two bytes in the following manner:
+.PP
+    Ci Co   Control input and output
+    Zi Zo   Isochronous input and output
+    Ii Io   Interrupt input and output
+    Bi Bo   Bulk input and output
+.PP
+The address information fields may contain leading zeros. If the bus is
+specified with -i, the Bus number field is redundant, but is kept for
+the ease of parsing.
+.PP
+- Status word. This word may have several fields, depending on the transfer
+type. Most transfers only have the status field. Interrupt and Isochronous
+transfers add an interval. For Isochronous, start frame and error count
+may be present. For callback and error events,
+the status field contains an integer number,
+which represents a "status" field of the URB.
+For a submission event, status makes no sense,
+so the field contains a single dash.
+.PP
+Control submissions are an exception, because they may have a setup
+packet. In such case, the event contains a letter in place of the status word.
+The letter is called "setup tag".
+.PP
+- Setup packet, if present, consists of 5 words: one of each for bmRequestType,
+bRequest, wValue, wIndex, wLength, as specified by the USB Specification 2.0.
+These words are safe to decode if Setup Tag was 's'. Otherwise, the setup
+packet was present, but not captured, and the fields contain filler.
+.PP
+- The number of isochronous frame descriptors (optional).
+.PP
+- Isochronous descriptors (optional). Like the "pipe word", each descriptor
+contains fields separated by colons: status, offset, and length.
+.PP
+- Data Tag
+.PP
+- Data (if Data Tag is '=')
+.PP
+Data stream and its ASCII representation follow on separate lines.
+Each line starts with a space for the ease of identification.
+
+.LP
+The following is the list of words for the legacy format, from left to right:
+.PP
+- URB Tag. This is normally a kernel mode address of the URB structure.
+.PP
+- Timestamp in microseconds, a decimal number. The timestamp's resolution
+depends on available clock, and so it can be much worse than a microsecond
+(if the implementation uses jiffies, for example).
+The number of microseconds is usually truncated, so it can wrap
+if usbmon runs long enough.
+.PP
+- Event Type. This type refers to the format of the event, not URB type.
+Available types are: S - submission, C - callback, E - submission error.
+.PP
+- "Pipe". The pipe concept is deprecated. This is a composite word, used to
+be derived from information in pipes. It consists of three fields, separated
+by colons: URB type and direction, Device address, Endpoint number.
+Type and direction are encoded with two bytes in the following manner:
+.PP
+    Ci Co   Control input and output
+    Zi Zo   Isochronous input and output
+    Ii Io   Interrupt input and output
+    Bi Bo   Bulk input and output
+.PP
+Device address and Endpoint number are 3-digit and 2-digit (respectively)
+decimal numbers, with leading zeroes.
+.PP
+- URB Status. In most cases, this field contains a number, sometimes negative,
+which represents a "status" field of the URB. This field makes no sense for
+submissions, but is present anyway to help scripts with parsing. When an
+error occurs, the field contains the error code. In case of a submission of
+a Control packet, this field contains a Setup Tag instead of an error code.
+It is easy to tell whether the Setup Tag is present because it is never a
+number. Thus if scripts find a number in this field, they proceed to read
+Data Length. If they find something else, like a letter, they read the setup
+packet before reading the Data Length.
+.PP
+- Setup packet, if present, consists of 5 words: one of each for bmRequestType,
+bRequest, wValue, wIndex, wLength, as specified by the USB Specification 2.0.
+These words are safe to decode if Setup Tag was 's'. Otherwise, the setup
+packet was present, but not captured, and the fields contain filler.
+.PP
+- Data Length. For submissions, this is the requested length. For callbacks,
+this is the actual length.
+.PP
+- Data tag. The usbmon may not always capture data, even if length is nonzero.
+The data words are present only if this tag is '='.
+.PP
+- Data words follow, in big endian hexadecimal format. Notice that they are
+not machine words, but really just a byte stream split into words to make
+it easier to read. Thus, the last word may contain from one to four bytes.
+The length of collected data is limited (see the
+.I \-s
+parameter) and can be less than the data length
+report in the Data Length word.
+
+.SH FILES
+.TP
+.B /proc/devices
+This file is read to determine the major of /dev/usbmonN if such node does
+not exist in the system.
+.TP
+.B /dev/usbmonN
+The
+.I usbmon
+attempts to open
+.I /dev/usbmon{N},
+where N is the bus number.
+If the node does not exist,
+.I usbmon
+creates it.
+
+.SH SEE ALSO
+.BR lsusb (8)
+
+.SH AUTHOR
+Pete Zaitcev, <zaitcev@redhat.com>.
