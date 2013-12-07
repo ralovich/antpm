@@ -107,7 +107,7 @@ BOOL CtrlHandler( DWORD fdwCtrlType )
 #elif defined(__linux)
 void my_handler(int s)
 {
-  printf("Caught signal %d\n",s);
+  printf("Caught signal %d\nantpm teardown initiated\n\n",s);
   stopIt();
 }
 #endif
