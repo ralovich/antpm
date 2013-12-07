@@ -263,6 +263,17 @@ AntFr310XT2::handleEvents()
     }                                                                   \
   } while(0)
 
+#define checkForExit() do                                               \
+  {                                                                     \
+    boost::unique_lock<boost::mutex> lock(this->stateMtx);              \
+    if(this->state == ST_ANTFS_LAST)                                    \
+    {                                                                   \
+      lock.unlock();                                                    \
+      this->stop();                                                     \
+      return true;                                                      \
+    }                                                                   \
+  } while(0)
+
   while(!m_evQue.empty())
   {
     AntMessage m;
@@ -473,6 +484,7 @@ AntFr310XT2::handleEvents()
     uint fileCnt=0;
     for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
+      checkForExit();
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.waypointsFiles.size());
       ushort fileIdx = zfc.waypointsFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
@@ -507,6 +519,7 @@ AntFr310XT2::handleEvents()
 
     for (size_t i=0; i<zfc.activityFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
+      checkForExit();
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.activityFiles.size());
       ushort fileIdx = zfc.activityFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
@@ -548,6 +561,7 @@ AntFr310XT2::handleEvents()
 
     for (size_t i=0; i<zfc.courseFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
+      checkForExit();
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.courseFiles.size());
       ushort fileIdx = zfc.courseFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
