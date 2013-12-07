@@ -4,21 +4,24 @@
 * In this case your device talks a different dialect of ANT/ANT+/ANT-FS that we've seen so far.
 * To solve this, we'll need a dump of the USB communication between your watch (USB2ANT stick) and any software tool, that your watch is able to talk to: e.g. garmin's ant agent. This may be facilitated in a e.g. VirtualBox environment.
 
-1) Install VirtualBox on linux, including proprietary oracle usb extensions
+1) Install VirtualBox on linux, including proprietary oracle usb extensions from www.virtualbox.org. The Open Source edition in the distribution does not support USB.
 
-2) Install win xp in vbox, set up usb filter to pass through all devices
+2) Install win xp with service pack 3 in vbox, set up usb filter to pass through all devices
 
 3) Install garmin's ant agent in virtual xp, but do not start it!
 
-4) Plug in your USB2ANT stick to the host, make sure the cp201x driver didn't grab it, by unloading cp201x kernel module.
+4) Plug in your USB2ANT stick to the host, make sure the cp210x driver didn't grab it, by unloading cp210x kernel module: "rmmod cp210x".
 
 5) Make sure usbmon kernel driver is loaded on the host: "modprobe usbmon"
 
 6) Under linux host, figure out usb bus address of your USB2ANT stick: "lsusb" (e.g.: "Bus 005 Device 001: ID 1d6b:0001 USB2ANT ..." means our bus number is 5)
 
-7) We need to increase usbmon lower threshold for message truncation to say 100 characters. For this build the usbmon tool. In the antpm sources "cd 3rd_party/usbmon-6 && make"
+7) We need to increase usbmon lower threshold for message truncation to say 100 characters. For this build the usbmon tool:
+ # git clone https://code.google.com/p/antpm/
+ # cd antpm/3rd_party/usbmon-6/
+ # make
 
-8) Start capturing usb traffic under linux host: "./usbmon -i <USB bus> -fu -s 100 /sys/kernel/debug/usb/usbmon/6u > ~/ant-usb-log-001.usbmon"
+8) Start capturing usb traffic under linux host: "./usbmon -i <USB bus> -fu -s 100 > ~/ant-usb-log-001.usbmon"
 
 9) Start garmin's ant agent in virtual xp. Once the download is done, quit ant agent. Also terminate the above "cat" process. The dump of your usb communication is now saved to ~/ant-usb-log-001.usbmon.
 
