@@ -282,21 +282,7 @@ AntMessage::str2() const
   }
   else if(getMsgId()==MESG_CHANNEL_ID_ID)
   {
-    struct M_ANT_Channel_Id 
-    {
-      uchar chan;
-      ushort devNum;
-      uchar devTypeId;
-      uchar manId;
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr
-          << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", devNum=0x" << antpm::toString<int>(devNum,4,'0')
-          << ", typ=0x" << antpm::toString<int>(devTypeId,2,'0') << ", man=0x" << antpm::toString<int>(manId,2,'0');
-        return sstr.str();
-      }
-    };
+    assert(getLenPayload()==5);
     const M_ANT_Channel_Id* mesg(reinterpret_cast<const M_ANT_Channel_Id*>(getPayloadRef()));
     sstr << mesg->toString();
   }

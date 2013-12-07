@@ -29,6 +29,21 @@ std::string antFSResponse2Str(uchar resp);
 bool        isAntFSCommandOrResponse(const uchar command, bool& isCommand);
 
 #pragma pack(push,1)
+struct M_ANT_Channel_Id
+{
+  uchar  chan;
+  ushort devNum;
+  uchar  devId;
+  uchar  transType;
+  const std::string toString() const
+  {
+    std::stringstream sstr;
+    sstr
+      << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", devNum=0x" << antpm::toString<int>(devNum,4,'0')
+      << ", devId=0x" << antpm::toString<int>(devId,2,'0') << ", transType=0x" << antpm::toString<int>(transType,2,'0');
+    return sstr.str();
+  }
+};
 struct M_ANTFS_Beacon
 {
   uchar beaconId;//0x43
