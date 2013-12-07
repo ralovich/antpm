@@ -84,6 +84,7 @@ private:
   int changeState(const int newState, bool force = false);
   StateANTFS changeFSState(const StateANTFS newState);
   bool createDownloadFolder();
+  static bool guessDeviceType(const ushort devNum, const uchar devId, const uchar transType, GarminProducts *prod);
 };
 
 }
