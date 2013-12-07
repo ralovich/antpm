@@ -118,11 +118,11 @@ public:
   bool ANT_SetChannelSearchTimeout(uchar chan, uchar searchTimeout);
   bool ANT_SetChannelRadioFreq(uchar chan, uchar freq);
   bool ANT_SetSearchWaveform(uchar chan, ushort wave);
-  bool ANT_SetChannelId(uchar chan, ushort devNum, uchar devId, uchar transType);
+  bool ANT_SetChannelId(const uchar chan, const ushort devNum, const uchar devId, const uchar transType);
   bool ANT_OpenChannel(uchar chan);
   bool ANT_CloseChannel(uchar chan, const size_t timeout_ms = 1000);
   bool ANT_RequestMessage(uchar chan, uchar reqMsgId);
-  bool ANT_GetChannelId(uchar chan, ushort* devNum, uchar* devId, uchar* transType, size_t timeout_ms = 0);
+  bool ANT_GetChannelId(const uchar chan, ushort* devNum, uchar* devId, uchar* transType, const size_t timeout_ms = 0);
   bool ANT_SendAcknowledgedData(const uchar chan, const uchar data[8], const size_t timeout_ms = 0);
   bool ANT_SendBurstData(const uchar seqchan, const uchar data[8]);
   bool ANT_SendBurstData2(const uchar chan, const uchar* data, const size_t len);

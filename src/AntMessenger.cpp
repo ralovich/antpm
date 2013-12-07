@@ -139,7 +139,7 @@ bool AntMessenger::ANT_SetSearchWaveform(uchar chan, ushort wave)
   return sendCommand(m, 2000);
 }
 
-bool AntMessenger::ANT_SetChannelId(uchar chan, ushort devNum, uchar devId, uchar transType)
+bool AntMessenger::ANT_SetChannelId(const uchar chan, const ushort devNum, const uchar devId, const uchar transType)
 {
   uchar buf[5];
 
@@ -189,19 +189,22 @@ AntMessenger::ANT_RequestMessage(uchar chan, uchar reqMsgId)
   return sendRequest(reqMsgId, chan, &response, 2000);
 }
 
-bool AntMessenger::ANT_GetChannelId(uchar chan, ushort *devNum, uchar *devId, uchar *transType, size_t timeout_ms)
+bool AntMessenger::ANT_GetChannelId(const uchar chan, ushort *devNum, uchar *devId, uchar *transType, const size_t timeout_ms)
 {
   AntMessage response;
   if(!sendRequest(MESG_CHANNEL_ID_ID, chan, &response, timeout_ms))
     return false;
   if(response.getLenRaw()<1 || response.getLenPayload()!=5)
     return false;
+  const M_ANT_Channel_Id* mesg(reinterpret_cast<const M_ANT_Channel_Id*>(response.getPayloadRef()));
+  if(chan != mesg->chan)
+    return false;
   if(devNum)
-    *devNum = (ushort)response.getPayload()[1] | (ushort)response.getPayload()[2]*256;
+    *devNum = mesg->devNum;
   if(devId)
-    *devId = response.getPayload()[3];
+    *devId = mesg->devId;
   if(transType)
-    *transType = response.getPayload()[4];
+    *transType = mesg->transType;
   return true;
 }
 
