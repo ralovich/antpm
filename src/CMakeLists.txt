@@ -9,6 +9,7 @@ PROJECT(antpm C CXX)
 
 OPTION(USE_COVERAGE "use gcov" FALSE)
 OPTION(USE_BOOST_TEST "use boost::test" FALSE)
+OPTION(USE_BOOST_STATIC_LINK "link statically against boost" TRUE)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
@@ -48,12 +49,16 @@ IF(NOT LIBUSB_FOUND)
   MESSAGE(FATAL_ERROR "Could not find LIBUSB")
 ENDIF()
 
-set(Boost_USE_STATIC_LIBS        ON)
+IF(USE_BOOST_STATIC_LINK)
+  set(Boost_USE_STATIC_LIBS        ON)
+ELSE()
+  set(Boost_USE_STATIC_LIBS        OFF)
+ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
 FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time REQUIRED)
 IF(NOT Boost_FOUND)
-  MESSAGE(FATAL_ERROR "Boost not found, please set BOOST_ROOT!")
+  MESSAGE(FATAL_ERROR "Boost not found!")
 ENDIF()
 
 
@@ -81,6 +86,7 @@ SET(SRCS
   AntMessenger.hpp AntMessenger.cpp
   SerialUsb.hpp SerialUsb.cpp
   AntFr310XT.hpp AntFr310XT.cpp
+  AntFr405.hpp AntFr405.cpp
   lqueue.hpp
   Serial.hpp
 

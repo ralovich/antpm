@@ -18,6 +18,7 @@
 
 #include "AntMessage.hpp"
 #include "AntFr310XT.hpp"
+#include "AntFr405.hpp"
 #include "common.hpp"
 #include "Log.hpp"
 
@@ -202,19 +203,40 @@ main(int argc, char** argv)
   LOG_VAR4(pairing, dirOnly, int(dlFileIdx), int(eraseFileIdx));
 
 
-  AntFr310XT2 watch2(false);
-  stopFunc = boost::bind(&AntFr310XT2::stopAsync, &watch2);
+  char* ANTPM_405 = getenv("ANTPM_405");
+  if(ANTPM_405!=NULL && strncmp("1",ANTPM_405,1)==0)
   {
-    watch2.setModeDownloadAll();
-    if(pairing) watch2.setModeForcePairing();
-    if(dirOnly) watch2.setModeDirectoryListing();
-    else if(dlFileIdx!=0x0000) watch2.setModeDownloadSingleFile(dlFileIdx);
-    else if(eraseFileIdx!=0x000) watch2.setModeEraseSingleFile(eraseFileIdx);
-    
-    watch2.start();
+    AntFr405 watch2(false);
+    stopFunc = boost::bind(&AntFr405::stopAsync, &watch2);
+    {
+      watch2.setModeDownloadAll();
+      if(pairing) watch2.setModeForcePairing();
+      if(dirOnly) watch2.setModeDirectoryListing();
+      else if(dlFileIdx!=0x0000) watch2.setModeDownloadSingleFile(dlFileIdx);
+      else if(eraseFileIdx!=0x000) watch2.setModeEraseSingleFile(eraseFileIdx);
+
+      watch2.start();
 
 
-    watch2.stop();
+      watch2.stop();
+    }
+  }
+  else
+  {
+    AntFr310XT watch2(false);
+    stopFunc = boost::bind(&AntFr310XT::stopAsync, &watch2);
+    {
+      watch2.setModeDownloadAll();
+      if(pairing) watch2.setModeForcePairing();
+      if(dirOnly) watch2.setModeDirectoryListing();
+      else if(dlFileIdx!=0x0000) watch2.setModeDownloadSingleFile(dlFileIdx);
+      else if(eraseFileIdx!=0x000) watch2.setModeEraseSingleFile(eraseFileIdx);
+
+      watch2.start();
+
+
+      watch2.stop();
+    }
   }
 
 

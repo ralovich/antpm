@@ -22,13 +22,13 @@
 namespace antpm{
 
 class DeviceSettings;
-struct AntFr310XT_EventLoop;
-// State-machine for ANT+ communication with Forerunner 310XT.
-class AntFr310XT: public AntCallback
+struct AntFr405_EventLoop;
+// State-machine for ANT+ communication with Forerunner 405.
+class AntFr405: public AntCallback
 {
 public:
-  AntFr310XT(bool eventLoopInBgTh = true);
-  virtual ~AntFr310XT();
+  AntFr405(bool eventLoopInBgTh = true);
+  virtual ~AntFr405();
 
   void setModeForcePairing() { doPairing=true; }
   void setModeDownloadAll();
@@ -78,7 +78,7 @@ protected:
   int         mode;
   uint16_t    singleFileIdx;
 private:
-  friend struct AntFr310XT_EventLoop;
+  friend struct AntFr405_EventLoop;
   void* th_eventLoop();
   bool handleEvents();
   int changeState(const int newState, bool force = false);
