@@ -771,6 +771,210 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   return true;
 }
 
+
+bool
+AntMessenger::ANTFS_Direct1(const uchar chan)
+{
+  // when authentication succeeds, State=Transport beacon arrives
+  //R  96.026 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
+  //R 124.999 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
+  //S 114.743 MESG_REQUEST_ID chan=0x00 reqMsgId=MESG_CHANNEL_STATUS_ID
+  //R   3.247 MESG_CHANNEL_STATUS_ID chan=00 chanSt=Tracking
+  //S  12.451 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_CmdDirect fd=0xffff, offset=0x0000, data=0x0000
+  //R   1.546 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
+  //S   2.477 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes fe00000000000000 ........
+
+//  R 115.556 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
+//  R  20.969 MESG_RESPONSE_EVENT_ID chan=0x00 mId=MESG_EVENT_ID mCode=EVENT_TRANSFER_TX_COMPLETED
+//  R 104.031 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Busy, Auth=PasskeyAndPairingOnly
+//  R 125.005 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Busy, Auth=PasskeyAndPairingOnly
+//  R  28.971 MESG_BURST_DATA_ID chan=0x00, seq=1, last=no  ANTFS_RESP(0x44) ANTFS_RespDirect fd=0xffff, offset=0x0000, data=0x0006
+//  R  16.021 MESG_BURST_DATA_ID chan=0x00, seq=2, last=no  ff002900cd02f000 ..).....
+//  R  16.021 MESG_BURST_DATA_ID chan=0x00, seq=3, last=no  466f726572756e6e Forerunn
+//  R  16.021 MESG_BURST_DATA_ID chan=0x00, seq=1, last=no  6572203430352053 er 405 S
+//  R  16.021 MESG_BURST_DATA_ID chan=0x00, seq=2, last=no  6f66747761726520 oftware
+//  R  16.021 MESG_BURST_DATA_ID chan=0x00, seq=3, last=no  56657273696f6e20 Version
+//  R  16.021 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes 322e343000000000 2.40....
+
+  M_ANTFS_Command_Direct cmd;
+  cmd.commandId = ANTFS_CommandResponseId;
+  cmd.command   = ANTFS_CmdDirect;
+  cmd.detail.direct.fd = 0xffff;
+  cmd.detail.direct.offset = 0x0000;
+  cmd.detail.direct.data = 0x0000;
+  cmd.code = SwapDWord(0xfe00000000000000);
+
+  bool sentDirect = false;
+  for(int i = 0; i < ANTPM_RETRIES; i++)
+  {
+    sentDirect = false;
+
+    LOG_VAR(waitForBroadcast(chan));
+
+    //CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
+    sentDirect = ANT_SendBurstData2(chan, reinterpret_cast<uchar*>(&cmd), sizeof(cmd));
+
+    // TODO: read bcast here?
+    //AntMessage reply0;
+    //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
+
+    AntChannel& pc(chs[chan]);
+    AntEvListener el(pc);
+    //pc.addEvListener(&el);
+
+    uint8_t responseVal;
+    sentDirect = sentDirect && el.waitForEvent(responseVal, 800);
+    //pc.rmEvListener(&el);
+    sentDirect = sentDirect && (responseVal==EVENT_TRANSFER_TX_COMPLETED);
+
+    if(sentDirect)
+      break;
+    else
+      sleepms(ANTPM_RETRY_MS);
+  }
+  CHECK_RETURN_FALSE_LOG_OK(sentDirect);
+
+
+
+  // ANTFS_RespDirect
+  std::vector<uchar> burstData;
+  CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 10*1000));
+
+//  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==2*8);
+//  const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
+//  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
+//  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
+//  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
+
+  logger() << "got back = \"" << burstData.size() << "\" bytes\n";
+
+  CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+
+  return true;
+}
+
+
+bool
+AntMessenger::ANTFS_Direct2(const uchar chan)
+{
+  M_ANTFS_Command_Direct cmd;
+  cmd.commandId = ANTFS_CommandResponseId;
+  cmd.command   = ANTFS_CmdDirect;
+  cmd.detail.direct.fd = 0xffff;
+  cmd.detail.direct.offset = 0x0000;
+  cmd.detail.direct.data = 0x0000;
+  cmd.code = SwapDWord(0x06000200ff000000);
+
+  bool sentDirect = false;
+  for(int i = 0; i < ANTPM_RETRIES; i++)
+  {
+    sentDirect = false;
+
+    LOG_VAR(waitForBroadcast(chan));
+
+    //CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
+    sentDirect = ANT_SendBurstData2(chan, reinterpret_cast<uchar*>(&cmd), sizeof(cmd));
+
+    // TODO: read bcast here?
+    //AntMessage reply0;
+    //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
+
+    AntChannel& pc(chs[chan]);
+    AntEvListener el(pc);
+    //pc.addEvListener(&el);
+
+    uint8_t responseVal;
+    sentDirect = sentDirect && el.waitForEvent(responseVal, 800);
+    //pc.rmEvListener(&el);
+    sentDirect = sentDirect && (responseVal==EVENT_TRANSFER_TX_COMPLETED);
+
+    if(sentDirect)
+      break;
+    else
+      sleepms(ANTPM_RETRY_MS);
+  }
+  CHECK_RETURN_FALSE_LOG_OK(sentDirect);
+
+
+
+  // ANTFS_RespDirect
+  std::vector<uchar> burstData;
+  CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 10*1000));
+
+//  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==2*8);
+//  const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
+//  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
+//  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
+//  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
+
+  logger() << "got back = \"" << burstData.size() << "\" bytes\n";
+
+  CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+
+  return true;
+}
+
+bool
+AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
+{
+  M_ANTFS_Command_Direct cmd;
+  cmd.commandId = ANTFS_CommandResponseId;
+  cmd.command   = ANTFS_CmdDirect;
+  cmd.detail.direct.fd = 0xffff;
+  cmd.detail.direct.offset = 0x0000;
+  cmd.detail.direct.data = 0x0000;
+  cmd.code = code;
+
+  bool sentDirect = false;
+  for(int i = 0; i < ANTPM_RETRIES; i++)
+  {
+    sentDirect = false;
+
+    LOG_VAR(waitForBroadcast(chan));
+
+    //CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
+    sentDirect = ANT_SendBurstData2(chan, reinterpret_cast<uchar*>(&cmd), sizeof(cmd));
+
+    // TODO: read bcast here?
+    //AntMessage reply0;
+    //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
+
+    AntChannel& pc(chs[chan]);
+    AntEvListener el(pc);
+    //pc.addEvListener(&el);
+
+    uint8_t responseVal;
+    sentDirect = sentDirect && el.waitForEvent(responseVal, 800);
+    //pc.rmEvListener(&el);
+    sentDirect = sentDirect && (responseVal==EVENT_TRANSFER_TX_COMPLETED);
+
+    if(sentDirect)
+      break;
+    else
+      sleepms(ANTPM_RETRY_MS);
+  }
+  CHECK_RETURN_FALSE_LOG_OK(sentDirect);
+
+
+
+  // ANTFS_RespDirect
+  std::vector<uchar> burstData;
+  CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 10*1000));
+
+//  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==2*8);
+//  const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
+//  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
+//  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
+//  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
+
+  logger() << "got back = \"" << burstData.size() << "\" bytes\n";
+
+  CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+
+  return true;
+}
+
+
 void AntMessenger::eventLoop()
 {
   m_rpackQueue2.eventLoop();

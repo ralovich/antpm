@@ -137,6 +137,10 @@ public:
   bool ANTFS_Erase(const uchar chan, const ushort file);
   bool ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint hostSN, uint& sn, std::string& devName);
 
+  bool ANTFS_Direct1(const uchar chan);
+  bool ANTFS_Direct2(const uchar chan);
+  bool ANTFS_Direct(const uchar chan, const uint64_t code);
+
   void eventLoop();
   void kill();
 private:

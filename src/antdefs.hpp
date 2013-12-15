@@ -114,6 +114,7 @@ static const unsigned char ANTP_NETKEY[8] = {0xA8,0xA4,0x23,0xB9,0xF5,0x5E,0x63,
 #define ANTFS_ReqUpload 0x0A
 #define ANTFS_ReqErase 0x0B
 #define ANTFS_UploadData 0x0C
+#define ANTFS_CmdDirect 0x0D
 
 
 #define ANTFS_RespAuthenticate 0x84
@@ -121,6 +122,7 @@ static const unsigned char ANTP_NETKEY[8] = {0xA8,0xA4,0x23,0xB9,0xF5,0x5E,0x63,
 #define ANTFS_RespUpload 0x8A
 #define ANTFS_RespErase 0x8B
 #define ANTFS_RespUploadData 0x8C
+#define ANTFS_RespDirect 0x8D
 
 
 

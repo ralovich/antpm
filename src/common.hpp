@@ -66,6 +66,9 @@ readUInt64(const unsigned int clientSN, uint64_t& pairedKey);
 void
 writeUInt64(const unsigned int clientSN, const uint64_t& ui);
 
+uint64_t
+SwapDWord(uint64_t a);
+
 std::vector<unsigned char>
 readFile(const char* fileName);
 

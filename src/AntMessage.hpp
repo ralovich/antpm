@@ -290,6 +290,21 @@ struct M_ANTFS_Command
         return sstr.str();
       }
     } uploadData;
+
+    struct DirectResponse
+    {
+      ushort fd;
+      ushort offset;
+      ushort data;
+      const std::string toString() const
+      {
+        std::stringstream sstr;
+        sstr << "fd=0x" << antpm::toString(fd, 4, '0')
+             << ", offset=0x" << antpm::toString(offset, 4, '0')
+             << ", data=0x" << antpm::toString(data, 4, '0') ;
+        return sstr.str();
+      }
+    } direct;
   } detail;
   const std::string toString() const
   {
@@ -304,6 +319,7 @@ struct M_ANTFS_Command
     else if(command==ANTFS_ReqUpload)  sstr << " " << detail.uploadRequest.toString();
     else if(command==ANTFS_ReqErase)   sstr << " " << detail.eraseRequest.toString();
     else if(command==ANTFS_UploadData) sstr << " " << detail.uploadData.toString();
+    else if(command==ANTFS_CmdDirect)  sstr << " " << detail.direct.toString();
     return sstr.str();
   }
 };
@@ -323,11 +339,16 @@ struct M_ANTFS_Command_Pairing : public M_ANTFS_Command
 {
   uchar name[8]; // seems like 310XT can display properly up to 8 chars during the pairing screen
 };
+struct M_ANTFS_Command_Direct : public M_ANTFS_Command
+{
+  uint64_t code;
+};
 #pragma pack(pop)
 BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command)==8);
 BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Authenticate)==24);
 BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Download)==16);
 BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Pairing)==16);
+BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Direct)==16);
 
 #pragma pack(push,1)
 struct M_ANTFS_Response
@@ -464,6 +485,20 @@ struct M_ANTFS_Response
         return sstr.str();
       }
     } uploadDataResponse;
+    struct DirectResponse
+    {
+      ushort fd;
+      ushort offset;
+      ushort data;
+      const std::string toString() const
+      {
+        std::stringstream sstr;
+        sstr << "fd=0x" << antpm::toString(fd, 4, '0')
+             << ", offset=0x" << antpm::toString(offset, 4, '0')
+             << ", data=0x" << antpm::toString(data, 4, '0') ;
+        return sstr.str();
+      }
+    } directResponse;
   } detail;
   const std::string toString() const
   {
@@ -476,6 +511,7 @@ struct M_ANTFS_Response
     else if(response==ANTFS_RespUpload) sstr << " " << detail.uploadRequestResponse.toString();
     else if(response==ANTFS_RespErase)      sstr << " " << detail.eraseRequestResponse.toString();
     else if(response==ANTFS_RespUploadData) sstr << " " << detail.uploadDataResponse.toString();
+    else if(response==ANTFS_RespDirect)     sstr << " " << detail.directResponse.toString();
     return sstr.str();
   }
 };

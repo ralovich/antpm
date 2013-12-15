@@ -78,7 +78,9 @@ isAntFSCommandOrResponse(const uchar command, bool& isCommand)
     || command==ANTFS_ReqDownload
     || command==ANTFS_ReqUpload
     || command==ANTFS_ReqErase
-    || command==ANTFS_UploadData      )
+    || command==ANTFS_UploadData
+    || command==ANTFS_CmdDirect
+     )
   {
     isCommand=true;
     return true;
@@ -88,6 +90,7 @@ isAntFSCommandOrResponse(const uchar command, bool& isCommand)
     || command==ANTFS_RespUpload
     || command==ANTFS_RespErase
     || command==ANTFS_RespUploadData
+    || command==ANTFS_RespDirect
     )
   {
     isCommand=false;
@@ -312,6 +315,7 @@ AntMessage::str2() const
 }
 
 
+// whether packet was sent or received, and time as string
 const string AntMessage::strDt(const double &dt) const
 {
   if(bytes.empty())
@@ -514,6 +518,7 @@ bool AntMessage::fromStringOfBytes(const char *s)
 }
 
 
+/// Convert string of hexadecimal digits into binary byte array
 template <class Container>
 bool
 AntMessage::stringToBytes(const char *s, Container& bytes)

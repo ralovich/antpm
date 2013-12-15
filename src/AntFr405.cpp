@@ -155,6 +155,7 @@ AntFr405::onAntReceived(const AntMessage m)
 void
 AntFr405::onAntSent(const AntMessage m)
 {
+  LOG(antpm::LOG_DBG) << m.strDt(0.0) << "\n";
 }
 
 
@@ -441,37 +442,24 @@ AntFr405::handleEvents()
   }
   else if(state == ST_ANTFS_DL_DIRECTORY)
   {
-    CHECK_RETURN_FALSE(createDownloadFolder());
+    // when authentication succeeds, State=Transport beacon arrives
+    //R  96.026 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
+    //R 124.999 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
+    //S 114.743 MESG_REQUEST_ID chan=0x00 reqMsgId=MESG_CHANNEL_STATUS_ID
+    //R   3.247 MESG_CHANNEL_STATUS_ID chan=00 chanSt=Tracking
+    //S  12.451 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_CmdDirect fd=0xffff, offset=0x0000, data=0x0000
+    //R   1.546 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
+    //S   2.477 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes fe00000000000000 ........
 
-    //ANTFS_Upload(); //command pipe
-    //ANTFS_UploadData();
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(0xfe00000000000000)));
 
-    std::vector<uchar> dir;
-    if(!m_antMessenger->ANTFS_Download(chan, 0x0000, dir))
-    {
-      changeStateSafe(ST_ANTFS_RESTART);
-      return true;
-    }
-    LOG(LOG_RAW) << "\n\nDownloaded directory file idx=0x0000\n\n\n";
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(0x06000200ff000000)));
 
-    AntFsFile file0;
-    file0.bytes=dir;
-    LOG_VAR(file0.checkCrc());
-    file0.saveToFile((folder+"0000.fit").c_str());
+    // 06000200f8000000
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(0x06000200f8000000)));
 
-    CHECK_RETURN_FALSE(fit.parseZeroFile(dir, zfc));
-    LOG_VAR(zfc.activityFiles.size());
-    LOG_VAR(zfc.courseFiles.size());
-    LOG_VAR(zfc.waypointsFiles.size());
-
-    // TODO: read bcast here?
-
-    // channel status <>
-    //CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
-    if(mode==MD_DIRECTORY_LISTING)
-      changeStateSafe(ST_ANTFS_LAST);
-    else
-      changeStateSafe(ST_ANTFS_DL_FILES);
+    // just exit
+    changeStateSafe(ST_ANTFS_LAST);
   }
   else if(state==ST_ANTFS_DL_FILES)
   {

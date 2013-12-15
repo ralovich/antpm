@@ -206,6 +206,7 @@ main(int argc, char** argv)
   char* ANTPM_405 = getenv("ANTPM_405");
   if(ANTPM_405!=NULL && strncmp("1",ANTPM_405,1)==0)
   {
+    logger() << "\n\nApplying ANTPM_405 override mode!\n\n\n";
     AntFr405 watch2(false);
     stopFunc = boost::bind(&AntFr405::stopAsync, &watch2);
     {
