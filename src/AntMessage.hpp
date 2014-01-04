@@ -625,6 +625,7 @@ public:
 };
 
 
+// encapsualtes the byte stream of a file retrieved through ant-fs
 struct AntFsFile
 {
   std::vector<uchar> bytes;

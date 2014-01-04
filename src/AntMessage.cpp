@@ -194,6 +194,8 @@ const std::string AntMessage::str() const
 }
 
 
+// decoded message as string
+// e.g. "MESG_BURST_DATA_ID chan=0x00, seq=1, last=no  ANTFS_RESP(0x44) ANTFS_RespDirect fd=0xffff, offset=0x0000, data=0x0017"
 const std::string
 AntMessage::str2() const
 {
@@ -315,7 +317,10 @@ AntMessage::str2() const
 }
 
 
+// return as a string:
 // whether packet was sent or received, and time as string
+// decoded message
+// e.g. "R  23.003 MESG_BURST_DATA_ID chan=0x00, seq=1, last=no  ANTFS_RESP(0x44) ANTFS_RespDirect fd=0xffff, offset=0x0000, data=0x0017"
 const string AntMessage::strDt(const double &dt) const
 {
   if(bytes.empty())
