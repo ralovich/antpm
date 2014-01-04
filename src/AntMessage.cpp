@@ -103,7 +103,6 @@ isAntFSCommandOrResponse(const uchar command, bool& isCommand)
 }
 
 
-bool AntMessage::lookupInVector = false;
 
 bool AntMessage::vrfChkSum() const
 {

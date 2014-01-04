@@ -192,7 +192,6 @@ main(int argc, char** argv)
       continue;
     }
 
-    AntMessage::lookupInVector = true;
     for (std::vector<AntMessage>::iterator i=messages2.begin(); i!=messages2.end(); i++)
     {
       i->idx = lineno;
@@ -213,7 +212,6 @@ main(int argc, char** argv)
         cout << m.strDt(dt) << "\n";
       }
     }
-    AntMessage::lookupInVector = false;
   }
 
   if(op=="usbmon")

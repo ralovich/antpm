@@ -571,7 +571,6 @@ struct AntMessage{
   size_t                     idx;   //
   std::vector<unsigned char> bytes; // the raw message bytes
 
-  static bool lookupInVector;
 
 public:
   AntMessage() {}
