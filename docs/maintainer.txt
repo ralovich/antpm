@@ -59,7 +59,6 @@ But there’s a nice guy at Red Hat who makes a proper usbmon command-line utili
     ./usbmon -i <USB bus> -fu -s 100
 
 
-
 ** LINKS
 http://gitorious.org/~tade
 http://www.andreas-diesner.de/garminplugin/doku.php
@@ -107,3 +106,18 @@ http://sourceforge.net/projects/sportwatcher/?source=recommended
 http://sourceforge.net/projects/sportstracker/?source=recommended
 
 http://goldencheetah.org/
+
+
+
+
+** git-pbuilder as root
+git-pbuilder create
+
+
+** pbuilder as root
+pbuilder create --debootstrapopts --variant=buildd
+# add ... deb-src http://archive.ubuntu.com/ubuntu <ubuntu_version> main restricted universe multiverse
+apt-get update
+apt-get source bc
+pbuilder build *.dsc
+
