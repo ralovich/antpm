@@ -1,7 +1,7 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
 ////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                      //
 //                                                                //
 // This program is free software; you can redistribute it and/or  //
 // modify it under the terms of the GNU General Public License    //
@@ -19,7 +19,7 @@
 #include <cassert>
 #include <sstream>
 #include <boost/static_assert.hpp>
-#include <boost/thread/thread_time.hpp>
+#include <boost/thread/thread_time.hpp> // AntMessage.timestamp
 
 
 namespace antpm{
@@ -28,8 +28,11 @@ std::string antFSCommand2Str(uchar cmd);
 std::string antFSResponse2Str(uchar resp);
 bool        isAntFSCommandOrResponse(const uchar command, bool& isCommand);
 
+struct AntMessageContentBase
+{};
+
 #pragma pack(push,1)
-struct M_ANT_Channel_Id
+struct M_ANT_Channel_Id : public AntMessageContentBase
 {
   uchar  chan;
   ushort devNum;
@@ -44,9 +47,9 @@ struct M_ANT_Channel_Id
     return sstr.str();
   }
 };
-struct M_ANTFS_Beacon
+struct M_ANTFS_Beacon : public AntMessageContentBase
 {
-  uchar beaconId;//0x43
+  uchar beaconId;//0x43 ANTFS_BeaconId
   union
   {
     struct
@@ -141,7 +144,7 @@ struct M_ANTFS_Beacon
   }
   const std::string toString() const
   {
-    assert(beaconId==0x43);
+    assert(beaconId==ANTFS_BeaconId);
     std::stringstream sstr;
     sstr << " ANTFS_BEACON(0x" << antpm::toString(unsigned(beaconId), 2, '0') << ") "
       << this->szBeaconChannelPeriod()
@@ -158,9 +161,9 @@ BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Beacon)==8);
 
 
 #pragma pack(push,1)
-struct M_ANTFS_Command
+struct M_ANTFS_Command : public AntMessageContentBase
 {
-  uchar commandId;//0x44
+  uchar commandId;//0x44 ANTFS_CommandResponseId
   uchar command;
   enum
   {
@@ -291,7 +294,7 @@ struct M_ANTFS_Command
       }
     } uploadData;
 
-    struct DirectResponse
+    struct DirectCmd
     {
       ushort fd;
       ushort offset;
@@ -308,7 +311,7 @@ struct M_ANTFS_Command
   } detail;
   const std::string toString() const
   {
-    assert(commandId==0x44);
+    assert(commandId==ANTFS_CommandResponseId);
     std::stringstream sstr;
     sstr << " ANTFS_CMD(0x" << antpm::toString(unsigned(commandId),2,'0') << ") "
       << antFSCommand2Str(command);
@@ -351,9 +354,9 @@ BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Pairing)==16);
 BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Direct)==16);
 
 #pragma pack(push,1)
-struct M_ANTFS_Response
+struct M_ANTFS_Response : public AntMessageContentBase
 {
-  uchar responseId;//0x44
+  uchar responseId;//0x44 ANTFS_CommandResponseId
   uchar response;
   enum {
     DownloadRequestOK=0,
@@ -502,7 +505,7 @@ struct M_ANTFS_Response
   } detail;
   const std::string toString() const
   {
-    assert(responseId==0x44);
+    assert(responseId==ANTFS_CommandResponseId);
     std::stringstream sstr;
     sstr << " ANTFS_RESP(0x" << antpm::toString(unsigned(responseId),2,'0') << ") "
       << antFSResponse2Str(response);
@@ -536,7 +539,7 @@ BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Response_Download_Footer)==8);
 BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Response_Pairing)==16);
 
 #pragma pack(push,1)
-struct M_ANT_Burst
+struct M_ANT_Burst : public AntMessageContentBase
 {
   union {
     struct {
