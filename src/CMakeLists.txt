@@ -93,6 +93,7 @@ SET(SRCS
   FIT.hpp FIT.cpp
   GPX.hpp GPX.cpp
   GarminConvert.hpp GarminConvert.cpp
+  GarminPacketIntf.hpp GarminPacketIntf.cpp
 
   DeviceSettings.hpp DeviceSettings.cpp
 
