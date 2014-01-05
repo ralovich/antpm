@@ -819,13 +819,18 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
   std::vector<uchar> burstData;
   CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 10*1000));
 
-//  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==2*8);
-//  const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
-//  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
-//  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
+  CHECK_RETURN_FALSE_LOG_OK(burstData.size()>=2*8);
+  const M_ANTFS_Beacon* beac(reinterpret_cast<const M_ANTFS_Beacon*>(&burstData[0]));
+  const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
+  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
+  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespDirect);
 //  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
 
+  logger() << "expecting " << resp->detail.directResponse.data << "x8 bytes of direct data, plus 16 bytes\n";
+
   logger() << "got back = \"" << burstData.size() << "\" bytes\n";
+
+  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==size_t((2+resp->detail.directResponse.data)*8));
 
   CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
