@@ -30,15 +30,36 @@ GarminPacketIntf::interpret(std::vector<uint8_t> data)
   std::stringstream sstr;
 
   sstr << "\n\n_______________\n";
-  sstr << "0x" << toString<int>((int)gp->mPacketType, 2, '0') << endl;
-  sstr << (int)gp->mPacketId << endl;
-  sstr << (int)gp->mDataSize << endl;
-
-  switch(gp->mPacketType)
+  if(data.size()==8)
   {
-
+    // check for known commands
+    switch(*reinterpret_cast<uint64_t*>(&data[0]))
+    {
+    case BSWAP_64(0xfe00000000000000):
+      //break;
+    case BSWAP_64(0x06000200ff000000):
+      //break;
+    case BSWAP_64(0x06000200f8000000):
+      sstr << "Known direct command, OK\n";
+      break;
+    default:
+      sstr << "unknown cmd 0x" << toString(SwapDWord(*reinterpret_cast<uint64_t*>(&data[0])), 16, '0') << "\n";
+      break;
+    }
   }
+  else
+  {
+    // probably response
+    sstr << "packet_type=0x" << toString<int>((int)gp->mPacketType, 2, '0') << "=" << (int)gp->mPacketType << endl;
+    sstr << "pid=" << (int)gp->mPacketId << endl;
+    sstr << "data_size=" << (int)gp->mDataSize << endl;
+    sstr << "max  size=" << data.size()-off-12 << endl;
 
+    switch(gp->mPacketType)
+    {
+
+    }
+  }
   sstr << "---------------\n\n\n";
 
   cout << sstr.str();

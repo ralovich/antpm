@@ -13,6 +13,7 @@
 
 #include "antdefs.hpp"
 #include <vector>
+#include <boost/static_assert.hpp>
 
 namespace antpm {
 
@@ -24,6 +25,7 @@ namespace antpm {
 // - interpter usbmon logs
 // - download runs
 
+#pragma pack(push,1)
 struct GarminPacket
 {
   uint8_t  mPacketType;
@@ -33,6 +35,8 @@ struct GarminPacket
   uint32_t mDataSize;
   uint8_t  mData[1];
 };
+#pragma pack(pop)
+BOOST_STATIC_ASSERT(sizeof(GarminPacket)==13);
 
 struct GarminPacketIntf
 {
