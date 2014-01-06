@@ -19,7 +19,7 @@ TMP_LIST=`mktemp`
 #find . -type f -name \* -print | grep -v .git > scripts/dist-file-list
 
 rm -fv ${OUTNAME}.gz ${OUTNAME}.xz
-#tar -czvf ${OUTNAME}.gz -T scripts/origsrc-file-list
-tar --xz -cf ${OUTNAME}.xz -T scripts/origsrc-file-list
+tar -czvf ${OUTNAME}.gz -T scripts/origsrc-file-list
+#tar --xz -cf ${OUTNAME}.xz -T scripts/origsrc-file-list
 
 echo 'OK: ' ${OUTNAME}

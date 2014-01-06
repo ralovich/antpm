@@ -52,6 +52,8 @@ src/antdefs.hpp
 src/SerialUsb.hpp
 src/SerialUsb.cpp
 src/GarminConvert.cpp
+src/GarminPacketIntf.hpp
+src/GarminPacketIntf.cpp
 src/GPX.cpp
 src/stdintfwd.hpp
 src/w_inttypes.h
