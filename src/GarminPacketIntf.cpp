@@ -119,14 +119,15 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
       {
         uint8_t  tag;
         uint16_t data;
-      } Protocol_Data_Type;
+      } ProtocolDataType;
 #pragma pack(pop)
-      BOOST_STATIC_ASSERT(sizeof(Protocol_Data_Type)==3);
+      BOOST_STATIC_ASSERT(sizeof(ProtocolDataType)==3);
+      sstr << "Found following protocol capabilities:\n";
       for(size_t i = 4; i+2 < data.size(); i+=3)
       {
-        Protocol_Data_Type* prota = reinterpret_cast<Protocol_Data_Type*>(&data[i]);
+        ProtocolDataType* prota = reinterpret_cast<ProtocolDataType*>(&data[i]);
         if(prota->tag==Tag_Phys_Prot_Id || prota->tag==Tag_Link_Prot_Id || prota->tag==Tag_Appl_Prot_Id || prota->tag==Tag_Data_Type_Id)
-          sstr << "tag=0x" << toString((int)prota->tag) << "=" << prota->tag << ", data=0x" << toString(prota->data,4,'0') << endl;
+          sstr << "tag=0x" << toString((int)prota->tag) << "=" << prota->tag << ", data=0x" << toString(prota->data,4,'0') << "=" << prota->data << endl;
         else
           continue;
       }
@@ -185,7 +186,7 @@ GarminPacketIntf::parseStrings(const std::vector<uint8_t>& data, const size_t sk
       end = i;
       if(start<end)
       {
-        string s(&data[start], end-start);
+        string s(reinterpret_cast<const char*>(&data[start]), end-start);
         out.push_back(s);
       }
       start = i+1;
