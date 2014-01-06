@@ -1,4 +1,4 @@
-antpm (1.12-1) UNRELEASED; urgency=low
+antpm (1.12-1) experimental; urgency=low
 
   [ RALOVICH, Kristof ]
   * travis: build the gant-integration branch too
@@ -11,7 +11,7 @@ antpm (1.12-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristof <tade60@freemail.hu>  Mon, 14 Oct 2013 18:46:40 +0200
 
-antpm (1.11-1) UNRELEASED; urgency=low
+antpm (1.11-1) experimental; urgency=low
 
   [ Jordan Miller ]
   * First Import
@@ -98,7 +98,7 @@ antpm (1.11-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 12 Oct 2013 01:32:08 +0200
 
-antpm (1.9-1) UNRELEASED; urgency=low
+antpm (1.9-1) experimental; urgency=low
 
   [ RALOVICH, Kristóf ]
   * docs: update todo list
@@ -140,14 +140,14 @@ antpm (1.9-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Tue, 09 Jul 2013 19:05:03 +0200
 
-antpm (1.8-1) UNRELEASED; urgency=low
+antpm (1.8-1) experimental; urgency=low
 
   * GarminConvert: add a method that offsets the timestamps
   * AntMessage: bugfix: correctly convert file creation time
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 06 Jul 2013 00:46:18 +0200
 
-antpm (1.7-1) UNRELEASED; urgency=low
+antpm (1.7-1) experimental; urgency=low
 
   * antpm-*: recongize -h option for --help too
   * fit: this is a run-time warning
@@ -164,7 +164,7 @@ antpm (1.7-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 06 Jul 2013 00:11:34 +0200
 
-antpm (1.6-3) UNRELEASED; urgency=low
+antpm (1.6-3) experimental; urgency=low
 
   [ RALOVICH, Kristóf ]
   * docs: more notes
@@ -176,7 +176,7 @@ antpm (1.6-3) UNRELEASED; urgency=low
 
  -- Ralovich Kristof <tade@cg.iit.bme.hu>  Wed, 26 Jun 2013 11:43:35 +0200
 
-antpm (1.6-2) UNRELEASED; urgency=low
+antpm (1.6-2) experimental; urgency=low
 
   [ Kristof Ralovich ]
   * script to generate changelog from git
@@ -185,7 +185,7 @@ antpm (1.6-2) UNRELEASED; urgency=low
 
  -- Ralovich Kristof <tade@cg.iit.bme.hu>  Tue, 25 Jun 2013 17:10:28 +0200
 
-antpm (1.6-0) UNRELEASED; urgency=low
+antpm (1.6-0) experimental; urgency=low
 
   [ RALOVICH, Kristóf ]
   * include Release builds in a .deb. package
@@ -266,7 +266,7 @@ antpm (1.6-0) UNRELEASED; urgency=low
 
  -- Ralovich Kristof <tade@cg.iit.bme.hu>  Tue, 25 Jun 2013 17:02:17 +0200
 
-antpm (1.0-1) UNRELEASED; urgency=low
+antpm (1.0-1) experimental; urgency=low
 
   * Initial release.
 
