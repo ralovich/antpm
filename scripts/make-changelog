@@ -12,7 +12,7 @@ echo 'DEB_VER_MINOR='$DEB_VER_MINOR
 cp debian/changelog.2 debian/changelog.3
 cp debian/changelog.1 debian/changelog.2
 cp debian/changelog debian/changelog.1
-git-dch --git-author -vaN $VER-$DEB_VER_MINOR
+git-dch --git-author -vaN $VER-$DEB_VER_MINOR --distribution=experimental --debian-tag=experimental/%\(version\)s
 
     cp debian/changelog* scripts/debian
     rm -rv ./debian
