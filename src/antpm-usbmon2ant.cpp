@@ -1,7 +1,7 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
 ////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                      //
 //                                                                //
 // This program is free software; you can redistribute it and/or  //
 // modify it under the terms of the GNU General Public License    //
@@ -19,6 +19,8 @@
 #include "AntMessage.hpp"
 #include "common.hpp"
 #include "Log.hpp"
+#include "GarminPacketIntf.hpp"
+#include "garmintools/garmin.h"
 
 #include <boost/program_options.hpp>
 
@@ -34,6 +36,117 @@ Log*
 ClassInstantiator<Log>::instantiate()
 {
   return new Log(NULL);
+}
+
+
+// Interpret a sequence of burst messages while replaying a trace file.
+class BurstDecodeVisitor
+{
+public:
+  void onMessage(const AntMessage& m);
+  void onLastBurst(const uchar chan);
+  bool tryDecodeDirect(const uchar chan, std::vector<uint8_t> &burstData);
+protected:
+  map<uchar, list<AntMessage> > chanBursts; // <channel, aggregated burst> pairs
+  map<uchar, int> chanLastCmd;              // <channel, pid> pairs
+};
+
+
+void
+BurstDecodeVisitor::onMessage(const AntMessage &m)
+{
+  if(m.bytes.size()<3 || m.getMsgId()!=MESG_BURST_DATA_ID || m.getLenPayload()!=9)
+    return;
+  const M_ANT_Burst* burst(reinterpret_cast<const M_ANT_Burst*>(m.getPayloadRef()));
+
+  uchar chan = burst->chan;
+
+
+  chanBursts[chan].push_back(m);
+
+  if(burst->isLast())
+    onLastBurst(chan);
+}
+
+void
+BurstDecodeVisitor::onLastBurst(const uchar chan)
+{
+  list<AntMessage>& msgs = chanBursts[chan];
+  std::vector<uint8_t> burstData;
+  uchar expectedSeq=0;
+  //bool found=false;
+  bool lastFound=false;
+
+  for(std::list<AntMessage>::iterator i = msgs.begin(); i != msgs.end(); i++)
+  {
+    AntMessage& repl(*i);
+    assert(repl.getLenPayload()==9);
+    const M_ANT_Burst* burst(reinterpret_cast<const M_ANT_Burst*>(repl.getPayloadRef()));
+    //CHECK_RETURN_FALSE(burst->seq == expectedSeq);
+    ++expectedSeq;
+    if(expectedSeq == 4)
+      expectedSeq = 1;
+    //found = true;
+    std::vector<uchar> crtBurst(repl.getPayload());
+    burstData.insert(burstData.end(), crtBurst.begin()+1,crtBurst.end());
+    assert(burstData.size()%8==0);
+    lastFound = burst->isLast();
+    if(lastFound) break;
+  }
+  msgs.clear();
+
+  tryDecodeDirect(chan, burstData);
+}
+
+
+bool
+BurstDecodeVisitor::tryDecodeDirect(const uchar chan, std::vector<uint8_t>& burstData)
+{
+  CHECK_RETURN_FALSE(burstData.size()>=8);
+  const M_ANTFS_Beacon* beac(reinterpret_cast<const M_ANTFS_Beacon*>(&burstData[0]));
+  const M_ANTFS_Command* cmd(reinterpret_cast<const M_ANTFS_Command*>(&burstData[0]));
+  std::vector<uint8_t> data;
+  GarminPacketIntf gpi;
+
+  if(beac->beaconId==ANTFS_BeaconId)
+  {
+    // beacon+response
+    CHECK_RETURN_FALSE(burstData.size()>=2*8);
+    const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
+    CHECK_RETURN_FALSE(resp->responseId==ANTFS_CommandResponseId);
+    //CHECK_RETURN_FALSE(resp->response==ANTFS_RespDirect);
+    if(resp->response!=ANTFS_RespDirect) return false;
+
+    logger() << "expecting " << resp->detail.directResponse.data << "x8 bytes of direct data, plus 16 bytes\n";
+    logger() << "got back = \"" << burstData.size() << "\" bytes\n";
+    CHECK_RETURN_FALSE(burstData.size()==size_t((2+resp->detail.directResponse.data)*8));
+
+    data = vector<uint8_t>(burstData.begin()+16, burstData.end());
+
+    bool rv = gpi.interpret(this->chanLastCmd[chan], data);
+    this->chanLastCmd[chan] = -1;
+    return rv;
+  }
+  else if(cmd->commandId==ANTFS_CommandResponseId)
+  {
+    // command
+    //CHECK_RETURN_FALSE(cmd->command==ANTFS_CmdDirect);
+    if(cmd->command!=ANTFS_CmdDirect) return false;
+
+    logger() << "got = \"" << burstData.size() << "\" bytes\n";
+    CHECK_RETURN_FALSE(burstData.size()==size_t((1+1)*8));
+
+    data = vector<uint8_t>(burstData.begin()+8, burstData.end());
+
+    this->chanLastCmd[chan] = gpi.interpretPid(data);
+
+    return gpi.interpret(-1, data);
+  }
+  else
+  {
+    LOG(LOG_WARN) << "Couldn't decode burst data starting with 0x" << toString<int>((int)burstData[0], 2, '0') << " !\n";
+    return false;
+  }
 }
 
 }
@@ -124,6 +237,7 @@ main(int argc, char** argv)
   //}
 
   std::list<AntMessage> messages;
+  BurstDecodeVisitor burstDecoder;
 
   size_t lineno=0;
   std::string line;
@@ -210,6 +324,7 @@ main(int argc, char** argv)
       {
         //cout << dt << "\t" << m.str() << "\n";
         cout << m.strDt(dt) << "\n";
+        burstDecoder.onMessage(m);
       }
     }
   }
