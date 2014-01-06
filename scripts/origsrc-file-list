@@ -47,6 +47,9 @@ src/SerialTty.cpp
 src/AntChannel.cpp
 src/AntMessenger.hpp
 src/AntFr310XT.hpp
+src/AntFr310XT.cpp
+src/AntFr405.hpp
+src/AntFr405.cpp
 src/common.cpp
 src/antdefs.hpp
 src/SerialUsb.hpp
@@ -58,7 +61,6 @@ src/GPX.cpp
 src/stdintfwd.hpp
 src/w_inttypes.h
 src/FIT.hpp
-src/AntFr310XT.cpp
 src/AntMessage.cpp
 src/FIT.cpp
 src/GPX.hpp
