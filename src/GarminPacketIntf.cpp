@@ -14,6 +14,7 @@
 #include "common.hpp"
 //#include <iostream>
 #include "garmintools/garmin.h"
+#include <cstring>
 
 using namespace std;
 
@@ -58,15 +59,58 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
     }
     default:
       sstr << "unknown cmd 0x" << toString(SwapDWord(*reinterpret_cast<uint64_t*>(&data[0])), 16, '0') << "\n";
+      GarminPacket* gp(reinterpret_cast<GarminPacket*>(&data[off]));
+      sstr << gp->toString8() << "\n";
       break;
     }
   }
   else
   {
     // probably response
+    CHECK_RETURN_FALSE(data.size()>=8);
 
     switch(lastPid)
     {
+    case L000_Pid_Product_Rqst:
+    {
+      vector<string> strings;
+      if(parseStrings(data, 8, strings))
+      {
+        sstr << "Found " << strings.size() << " strings\n";
+        for(size_t i = 0; i < strings.size(); i++)
+          sstr << "\t\"" << strings[i] << "\"\n";
+      }
+      break;
+    }
+    case L000_Pid_Product_Data:
+    {
+#pragma pack(push,1)
+      typedef struct
+      {
+        uint16_t productId;
+        int16_t  swVersion;
+      } ProductDataType;
+#pragma pack(pop)
+      BOOST_STATIC_ASSERT(sizeof(ProductDataType)==4);
+      typedef struct
+      {
+        uint16_t productId;
+        int16_t  swVersion;
+        vector<string> strings;
+      } ProductDataType2;
+      ProductDataType* pdt = reinterpret_cast<ProductDataType*>(&data[0]);
+      ProductDataType2 pdt2;
+      pdt2.productId = pdt->productId;
+      pdt2.swVersion = pdt->swVersion;
+      if(parseStrings(data, 4, pdt2.strings))
+      {
+        sstr << "productId=0x" << toString((int)pdt2.productId, 4, '0') << ", swVer=0x" << toString((int)pdt2.swVersion, 4, '0') << "\n";
+        sstr << "Found " << pdt2.strings.size() << " strings\n";
+        for(size_t i = 0; i < pdt2.strings.size(); i++)
+          sstr << "\t\"" << pdt2.strings[i] << "\"\n";
+      }
+      break;
+    }
     case L000_Pid_Ext_Product_Data:
     {
       // parse A001
@@ -111,7 +155,7 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
 }
 
 int
-GarminPacketIntf::interpretPid(std::vector<uint8_t> data)
+GarminPacketIntf::interpretPid(std::vector<uint8_t>& data)
 {
   if(data.size()<8) return -1;
   // check for known commands
@@ -126,6 +170,28 @@ GarminPacketIntf::interpretPid(std::vector<uint8_t> data)
   default:
     return -1;
   }
+}
+
+
+bool
+GarminPacketIntf::parseStrings(const std::vector<uint8_t>& data, const size_t skip, std::vector<std::string>& out)
+{
+  size_t start=skip;
+  size_t end = skip;
+  for(size_t i = skip; i < data.size(); i++)
+  {
+    if(data[i]==0)
+    {
+      end = i;
+      if(start<end)
+      {
+        string s(&data[start], end-start);
+        out.push_back(s);
+      }
+      start = i+1;
+    }
+  }
+  return true;
 }
 
 
