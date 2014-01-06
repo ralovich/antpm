@@ -821,6 +821,7 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
 
   CHECK_RETURN_FALSE_LOG_OK(burstData.size()>=2*8);
   const M_ANTFS_Beacon* beac(reinterpret_cast<const M_ANTFS_Beacon*>(&burstData[0]));
+  CHECK_RETURN_FALSE_LOG_OK(beac->beaconId==ANTFS_BeaconId);
   const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
   CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
   CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespDirect);

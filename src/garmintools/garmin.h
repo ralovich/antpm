@@ -1600,7 +1600,7 @@ typedef enum {
   A011_Cmnd_Transfer_Prx                  = 0x0011,
   A011_Cmnd_Transfer_Time                 = 0x0014,
   A011_Cmnd_Transfer_Wpt                  = 0x0015,
-  A011_Cmnd_Turn_Off_Pwr                  = 0x001a,  
+  A011_Cmnd_Turn_Off_Pwr                  = 0x001a
 } A011_command_id;
 
 

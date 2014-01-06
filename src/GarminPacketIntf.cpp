@@ -78,7 +78,7 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
       } Protocol_Data_Type;
 #pragma pack(pop)
       BOOST_STATIC_ASSERT(sizeof(Protocol_Data_Type)==3);
-      for(int i = 4; i+2 < data.size(); i+=3)
+      for(size_t i = 4; i+2 < data.size(); i+=3)
       {
         Protocol_Data_Type* prota = reinterpret_cast<Protocol_Data_Type*>(&data[i]);
         if(prota->tag==Tag_Phys_Prot_Id || prota->tag==Tag_Link_Prot_Id || prota->tag==Tag_Appl_Prot_Id || prota->tag==Tag_Data_Type_Id)
