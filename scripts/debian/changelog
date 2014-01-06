@@ -1,3 +1,32 @@
+antpm (1.14-1) experimental; urgency=low
+
+  * housekeeping
+  * Blind implementation of messages seen in 405 traces.
+  * udev: add rule for 0fcf:1009
+  * improve src documentation
+  * remove unused AntMessage::lookupInVector
+  * remove unused code
+  * docs: note on pbuilder
+  * working on decoding garmin direct packets
+  * add BSWAP_64 macro
+  * working on decoding garmin direct packets 2.
+  * ant: base class for message contents
+  * antfs: more thorough decoding of direct responses
+  * Finish relicensing to GPLv3
+  * open for new development
+  * implement Serial::setWriteDelay() interface
+  * DeviceSettings: I/O for SerialWriteDelayMs from .ini
+  * It helps to delay the host from writing to device too fast.
+  * make orig tarball as .gz
+  * scripts: deb from .gz
+  * fix test case
+  * changelog: change distribution
+  * changelog: missing v1.13 notes
+  * changelog: remove duplicate entries
+  * add sources to orig tarball
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Tue, 07 Jan 2014 00:35:05 +0100
+
 antpm (1.13-1) experimental; urgency=low
 
   [ RALOVICH, Kristof ]
