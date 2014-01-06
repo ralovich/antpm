@@ -391,6 +391,7 @@ AntFr310XT::handleEvents()
     m_ds->loadDefaultValues();
     m_ds->loadFromFile(m_ds->getConfigFileName());
     m_ds->saveToFile(m_ds->getConfigFileName());
+    m_serial->setWriteDelay(m_ds->SerialWriteDelayMs);
 
     readUInt64(clientSN, pairedKey);
 
