@@ -108,10 +108,11 @@ static const unsigned char ANTP_NETKEY_HR[8] = {0xB9,0xA5,0x21,0xFB,0xBD,0x72,0x
 static const unsigned char ANTP_NETKEY[8] = {0xA8,0xA4,0x23,0xB9,0xF5,0x5E,0x63,0xC1}; // ANT+Sport key
 
 
-
+// first byte of ANTFS packet
 #define ANTFS_BeaconId          0x43
 #define ANTFS_CommandResponseId 0x44
 
+// second byte of ANTFS packet
 #define ANTFS_CmdLink 0x02
 #define ANTFS_CmdDisconnect 0x03
 #define ANTFS_CmdAuthenticate 0x04
@@ -121,7 +122,6 @@ static const unsigned char ANTP_NETKEY[8] = {0xA8,0xA4,0x23,0xB9,0xF5,0x5E,0x63,
 #define ANTFS_ReqErase 0x0B
 #define ANTFS_UploadData 0x0C
 #define ANTFS_CmdDirect 0x0D
-
 
 #define ANTFS_RespAuthenticate 0x84
 #define ANTFS_RespDownload 0x89
