@@ -46,10 +46,9 @@ public:
   void* receiveHandler(); // PUBLIC on purpose
 
   virtual const size_t getQueueLength() const;
-
-  virtual const char* getImplName() { return "AntUsbHandler"; }
-
-  virtual bool isOpen() const;
+  virtual const char*  getImplName() { return "AntUsbHandler"; }
+  virtual bool         isOpen() const;
+  virtual bool         setWriteDelay(const size_t ms);
 
 private:
   std::auto_ptr<SerialUsbPrivate> m_p;

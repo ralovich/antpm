@@ -52,10 +52,9 @@ private:
 
 public:
   virtual const size_t getQueueLength() const;
-
-  virtual const char* getImplName() { return "AntTtyHandler2"; }
-
-  virtual bool isOpen() const;
+  virtual const char*  getImplName() { return "AntTtyHandler2"; }
+  virtual bool         isOpen() const;
+  virtual bool         setWriteDelay(const size_t ms);
 
 private:
   void queueData();

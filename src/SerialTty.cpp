@@ -39,6 +39,8 @@
 
 #include "Log.hpp"
 #include "common.hpp"
+#include "DeviceSettings.hpp"
+
 
 namespace fs = boost::filesystem;
 using namespace std;
@@ -54,6 +56,7 @@ struct SerialTtyPrivate
   boost::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
   volatile int m_recvThKill;
+  size_t       m_writeDelay;
 
   bool guessDeviceName(vector<string>& guessedNames);
   bool openDevice(vector<string>& names);
@@ -219,6 +222,7 @@ SerialTty::SerialTty()
 
   m_p->m_fd = -1;
   m_p->m_recvThKill = 0;
+  m_p->m_writeDelay = 0;
 }
 
 SerialTty::~SerialTty()
@@ -323,6 +327,7 @@ SerialTty::close()
     ::close(m_p->m_fd);
   }
   m_p->m_fd = -1;
+  m_p->m_writeDelay = 0;
 }
 
 
@@ -390,6 +395,9 @@ SerialTty::write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
   ENSURE_OR_RETURN_FALSE(written);
   bytesWritten = written;
 
+  if(m_p->m_writeDelay>0 && m_p->m_writeDelay<=10)
+    sleepms(m_p->m_writeDelay);
+
   return true;
 }
 
@@ -439,6 +447,14 @@ SerialTty::isOpen() const
   // TODO: is thread running too??
   // TODO: return fcntl(fd, F_GETFL) != -1 || errno != EBADF;
   return !(m_p->m_fd<1) && 1;
+}
+
+
+bool
+SerialTty::setWriteDelay(const size_t ms)
+{
+  m_p->m_writeDelay = ms;
+  return true;
 }
 
 
