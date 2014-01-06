@@ -1,3 +1,33 @@
+antpm (1.13-1) experimental; urgency=low
+
+  [ RALOVICH, Kristof ]
+  * travis: build the gant-integration branch too
+  * travis: libxml2-dev is also needed
+  * new version 1.11
+  * open for new development
+  * chmod -x on a few files
+  * relicense my work under GPLv3 from GPLv2
+  * scripts: update the list of files need to be included in the orig tarball
+  * new version 1.12
+  * 3rd_party: import usbmon tool
+  * docs: clarify capture notes
+  * docs: further clarify capture notes
+  * should build on any architecture
+
+  [ Noël Köthe ]
+  * Additional a small patch for PROTOCOL_HELP.txt which would have helped me and might make it easier for other.;)
+
+  [ RALOVICH, Kristof ]
+  * upon Ctrl+C give a hint that we gonna stop
+  * let's have M_ANT_Channel_Id in the header
+  * fix decoding in ANT_GetChannelId()
+  * initial work on guessing the client device type
+  * checkForExit() after downloading each file
+  * scripts: sinitize what goes into orig.tar.gz
+  * new version 1.13
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Mon, 06 Jan 2014 23:35:12 +0100
+
 antpm (1.12-1) experimental; urgency=low
 
   [ RALOVICH, Kristof ]
