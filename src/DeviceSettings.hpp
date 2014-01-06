@@ -43,6 +43,7 @@ public:
   unsigned int MaxFileDownloads;
   std::time_t  LastUserProfileTime; // date of the latest activity successfully downloaded fromt the device, represented as GMT/UTC
   std::time_t  LastTransferredTime; // last timepoint, communication happened with the device, represented as GMT/UTC
+  size_t       SerialWriteDelayMs;
 private:
   std::string mDevId;
 };
