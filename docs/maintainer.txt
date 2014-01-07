@@ -121,3 +121,8 @@ apt-get update
 apt-get source bc
 pbuilder build *.dsc
 
+** building the actual package
+git reset --hard HEAD
+pristine-tar checkout antpm_1.14.orig.tar.gz
+mv antpm_1.14.orig.tar.gz ..
+git-pbuilder -us -uc
