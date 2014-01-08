@@ -119,7 +119,7 @@ BOOST_AUTO_TEST_CASE(load_save)
   BOOST_CHECK(DeviceSettings::time2str(m_ds->LastTransferredTime)=="2012-06-20T19:02:30Z");
   BOOST_CHECK(m_ds->LastUserProfileTime == 1304868688);
   BOOST_CHECK(m_ds->LastTransferredTime == 1340218950);
-  BOOST_CHECK(m_ds->SerialWriteDelayMs  == 3)
+  BOOST_CHECK(m_ds->SerialWriteDelayMs  == 3);
 
 
   BOOST_CHECK(m_ds->loadFromFile(fname_tmp));
