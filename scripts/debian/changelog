@@ -1,3 +1,15 @@
+antpm (1.15-1) experimental; urgency=low
+
+  * open for new development
+  * docs: document release testing
+  * extend build time dependencies
+  * make sure this file is treated as utf-8
+  * SerialUsb.cpp is GPLv2 hard
+  * tests: tests are under regular GPLv3
+  * tests: fix typo
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Wed, 08 Jan 2014 16:21:51 +0100
+
 antpm (1.14-1) experimental; urgency=low
 
   * housekeeping
