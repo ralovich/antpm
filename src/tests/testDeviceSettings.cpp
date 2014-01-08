@@ -1,14 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-//                                                                //
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 #include "AntMessenger.hpp"
@@ -114,6 +119,7 @@ BOOST_AUTO_TEST_CASE(load_save)
   BOOST_CHECK(DeviceSettings::time2str(m_ds->LastTransferredTime)=="2012-06-20T19:02:30Z");
   BOOST_CHECK(m_ds->LastUserProfileTime == 1304868688);
   BOOST_CHECK(m_ds->LastTransferredTime == 1340218950);
+  BOOST_CHECK(m_ds->SerialWriteDelayMs  == 3)
 
 
   BOOST_CHECK(m_ds->loadFromFile(fname_tmp));
@@ -126,6 +132,7 @@ BOOST_AUTO_TEST_CASE(load_save)
   BOOST_CHECK(DeviceSettings::time2str(m_ds->LastTransferredTime)=="2000-01-01T00:00:00Z");
   BOOST_CHECK(m_ds->LastUserProfileTime == 946684800);
   BOOST_CHECK(m_ds->LastTransferredTime == 946684800);
+  BOOST_CHECK(m_ds->SerialWriteDelayMs  == 3);
 
 
 }
