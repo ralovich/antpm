@@ -288,7 +288,7 @@ struct SerialUsbPrivate
   {}
 
   usb_dev_handle*
-  libUSBGetDevice (unsigned short vid, unsigned short pid)
+  libUSBGetDevice (const unsigned short vid, const unsigned short pid)
   {
     struct usb_bus *UsbBus = NULL;
     struct usb_device *UsbDevice = NULL;
@@ -298,18 +298,18 @@ struct SerialUsbPrivate
     dBuses = usb_find_busses ();
     dDevices = usb_find_devices ();
 
-    LOG_VAR2(dBuses, dDevices);
-    lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
+    //LOG_VAR2(dBuses, dDevices);
+    //lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
 
     for (UsbBus = usb_get_busses(); UsbBus; UsbBus = UsbBus->next)
     {
       bool found = false;
       for (UsbDevice = UsbBus->devices; UsbDevice; UsbDevice = UsbDevice->next)
       {
-        lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", UsbBus->dirname, UsbDevice->filename, UsbDevice->descriptor.idVendor, UsbDevice->descriptor.idProduct);
+        //lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", UsbBus->dirname, UsbDevice->filename, UsbDevice->descriptor.idVendor, UsbDevice->descriptor.idProduct);
         if (UsbDevice->descriptor.idVendor == vid && UsbDevice->descriptor.idProduct== pid)
         {
-          lprintf(LOG_INF, "found!\n");
+          //lprintf(LOG_INF, "found!\n");
           found = true;
           break;
         }
@@ -389,18 +389,37 @@ SerialUsb::open()
 {
   close();
 
+  enum {NUM_DEVS=5};
+  uint16_t known[NUM_DEVS][2] =
+  {
+    {0x0fcf, 0x1003},
+    {0x0fcf, 0x1004},
+    {0x0fcf, 0x1006},
+    {0x0fcf, 0x1008},
+    {0x0fcf, 0x1009},
+  };
+
   //bool rv = false;
 
   // ffff8800b1c470c0 1328871577 S Co:3:002:0 s 00 09 0001 0000 0000 0
   // ffff8800b1c470c0 1328873340 C Co:3:002:0 0 0
-  m_p->dev = m_p->libUSBGetDevice(0x0fcf, 0x1004);
+  for(size_t i = 0; i < NUM_DEVS; i++)
+  {
+    uint16_t vid = known[i][0];
+    uint16_t pid = known[i][1];
+    LOG(LOG_INF) << "Trying to open vid=0x" << toString(vid,4,'0') << ", pid=0x" << toString(pid,4,'0') << " ...";
+    m_p->dev = m_p->libUSBGetDevice(vid, pid);
+    if(m_p->dev)
+    {
+      LOG(LOG_RAW) << " OK.\n";
+      break;
+    }
+    LOG(LOG_RAW) << " failed.\n";
+  }
   if(!m_p->dev)
   {
-    m_p->dev = m_p->libUSBGetDevice(0x0fcf, 0x1008);
-    if(!m_p->dev)
-    {
-      return false;
-    }
+    LOG(antpm::LOG_ERR) << "Opening any known usb VID/PID failed!\n";
+    return false;
   }
 
   m_p->modprobe();
