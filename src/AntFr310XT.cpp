@@ -77,8 +77,12 @@ struct AntFr310XT_EventLoop
 };
 
 AntFr310XT::AntFr310XT(bool eventLoopInBgTh)
-  : m_serial(new ANTPM_SERIAL_IMPL())
+  //: m_serial(new ANTPM_SERIAL_IMPL())
+  : m_serial(Serial::instantiate())
   , m_antMessenger(new AntMessenger(eventLoopInBgTh))
+  , state(ST_ANTFS_0)
+  , m_eventThKill(0)
+  , m_restartCount(0)
   , aplc(getConfigFolder()+std::string("antparse_")+getDateString()+".txt")
   , clientSN(0)
   , pairedKey(0)
@@ -86,10 +90,9 @@ AntFr310XT::AntFr310XT(bool eventLoopInBgTh)
   , doPairing(false)
   , mode(MD_DOWNLOAD_ALL)
 {
+  if(!m_serial) return;
   m_antMessenger->setHandler(m_serial.get());
   m_antMessenger->setCallback(this);
-  state = ST_ANTFS_0;
-  m_eventThKill=0;
 
   AntFr310XT_EventLoop eventTh;
   eventTh.rv=0;
@@ -168,7 +171,8 @@ AntFr310XT::onAntSent(const AntMessage m)
 void
 AntFr310XT::start()
 {
-  CHECK_RETURN(m_serial->open());
+  CHECK_RETURN(m_serial);
+  CHECK_RETURN(m_serial->isOpen());
 
   //createDownloadFolder();
 
@@ -187,14 +191,14 @@ void AntFr310XT::stop()
   m_eventThKill = 1;
   //m_eventTh.join();
   m_antMessenger->kill();
-  if(m_serial->isOpen())
+  if(m_serial && m_serial->isOpen())
   {
     if(state>ST_ANTFS_LINKING)
       m_antMessenger->ANTFS_Disconnect(chan);
     m_antMessenger->ANT_CloseChannel(chan);
     m_antMessenger->ANT_ResetSystem();
   }
-  m_serial->close();
+  if(m_serial) m_serial->close();
   changeState(ST_ANTFS_START0, true);
 }
 
@@ -302,11 +306,16 @@ AntFr310XT::handleEvents()
   // new state machine
   if(state==ST_ANTFS_RESTART)
   {
-    m_evQue.clear();
-    //m_antMessenger->clearRxQueue();
-    m_antMessenger->ANT_ResetSystem();
-    m_antMessenger->ANT_ResetSystem();
-    changeStateSafe(ST_ANTFS_START0);
+    if(++m_restartCount==80)
+      stop();
+    else
+    {
+      m_evQue.clear();
+      //m_antMessenger->clearRxQueue();
+      m_antMessenger->ANT_ResetSystem();
+      m_antMessenger->ANT_ResetSystem();
+      changeStateSafe(ST_ANTFS_START0);
+    }
   }
   if(state==ST_ANTFS_START0)
   {
@@ -416,11 +425,6 @@ AntFr310XT::handleEvents()
 
     //changeStateSafe(ST_ANTFS_LAST);
     changeStateSafe(ST_ANTFS_AUTH1_PASS);
-  }
-  else if(state == ST_ANTFS_AUTH1_PAIR)
-  {
-    //FIXME:
-    //m_antMessenger->ANTFS_Pairing(chan, hostSN, );
   }
   else if(state == ST_ANTFS_AUTH1_PASS)
   {

@@ -64,6 +64,7 @@ protected:
   int state;
   boost::mutex stateMtx;
   volatile int m_eventThKill;
+  int m_restartCount;
   boost::thread m_eventTh;
   lqueue4<AntMessage> m_evQue;
   AntParsedLoggerCallback aplc;
