@@ -300,7 +300,11 @@ getVersionString()
       + " built " __DATE__ "" //+#ANTPM_SERIAL_IMPL
       + " under "
 #ifdef __linux__
-  "linux"
+# ifdef __LP64__
+  "linux64"
+# else
+  "linux32"
+# endif
 #elif defined(_WIN64)
   "win64"
 #elif defined(_WIN32)
