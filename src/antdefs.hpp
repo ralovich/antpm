@@ -75,7 +75,7 @@ typedef uint32_t uint;
 
 #define MESG_GET_SERIAL_NUM_ID    0x61
 
-
+#define MESG_STARTUP_MSG_ID 0x6f
 
 
 #define MESG_DATA_SIZE      30

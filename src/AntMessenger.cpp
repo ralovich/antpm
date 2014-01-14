@@ -1069,6 +1069,14 @@ bool AntMessenger::onMessage(std::vector<AntMessage> v)
       AntChannel& pc=chs[chan];
       pc.onMsg(m);
     }
+    else if(m.getMsgId()==MESG_STARTUP_MSG_ID)
+    {
+      if(m.getLenPayload()>=1)
+      {
+        uint8_t startup=m.getPayloadRef()[0];
+        lprintf(antpm::LOG_DBG2, "startup 0x%02x\n", startup);
+      }
+    }
     else
     {
       lprintf(antpm::LOG_WARN, "unhandled 0x%0x\n", (int)m.getMsgId());
