@@ -55,6 +55,7 @@
 #include "lusb0_usb.h"
 #else
 #include "usb.h"
+#include "SerialTty.hpp"
 #endif
 
 
@@ -637,6 +638,29 @@ SerialUsb::setWriteDelay(const size_t ms)
   return true;
 }
 
+
+Serial*
+Serial::instantiate(void*)
+{
+  Serial* s = new SerialUsb();
+  if(!s)
+    return NULL;
+#ifndef _WIN32
+  if(!s->open())
+  {
+    delete s;
+    s = new SerialTty();
+    if(!s)
+      return NULL;
+    if(!s->open())
+    {
+      delete s;
+      return NULL;
+    }
+  }
+#endif
+  return s;
+}
 
 
 }
