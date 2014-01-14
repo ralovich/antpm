@@ -22,8 +22,8 @@ git-dch --git-author -vaSN $VER --distribution=experimental --debian-tag=experim
 
 
 CHGLOG_VER=`head -1 scripts/debian/changelog | awk -F "[()]" '{ for (i=2; i<NF; i+=2) print $i }'`
-#OUTNAME=antpm_${CHGLOG_VER}.orig.tar
-OUTNAME=antpm_${VER}.orig.tar
+OUTNAME=antpm_${CHGLOG_VER}.orig.tar
+#OUTNAME=antpm_${VER}.orig.tar
 
 
 rm -fv ${OUTNAME}.gz
