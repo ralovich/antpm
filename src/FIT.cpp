@@ -1206,7 +1206,7 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
       return false;
     }
 
-    logger() << uppercase;
+    //logger() << uppercase;
 
     logger() << "_idx" << "|d" << "ata" << "type|" << "recordType|" << "_rt_" << "++ID++" << "__fileSize|" << "+++++++++++++++++++|" << "flags" << "\n";
     uint8_t *ptr = &data.front();

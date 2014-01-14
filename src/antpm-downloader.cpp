@@ -208,6 +208,7 @@ main(int argc, char** argv)
   }
   LOG_VAR4(pairing, dirOnly, int(dlFileIdx), int(eraseFileIdx));
 
+  LOG(antpm::LOG_DBG) << argv[0] << antpm::getVersionString() << "\n";
 
   char* ANTPM_405 = getenv("ANTPM_405");
   if(ANTPM_405!=NULL && strncmp("1",ANTPM_405,1)==0)
