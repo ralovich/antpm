@@ -185,7 +185,7 @@ readUInt64(const uint clientSN, uint64_t& pairedKey)
   std::stringstream ss;
   ss << getConfigFolder() << "libantpmauth_" << clientSN;
   FILE* f=fopen(ss.str().c_str(), "r");
-  LOG_VAR2(ss.str(), f);
+  LOG_VAR3(ss.str(), f, pairedKey);
   if(f)
   {
     if(1 != fread(&pairedKey, sizeof(pairedKey), 1, f))
@@ -200,7 +200,7 @@ writeUInt64(const uint clientSN, const uint64_t& pairedKey)
   std::stringstream ss;
   ss << getConfigFolder() << "libantpmauth_" << clientSN;
   FILE* f=fopen(ss.str().c_str(), "w+");
-  LOG_VAR2(ss.str(), f);
+  LOG_VAR3(ss.str(), f, pairedKey);
   if(f)
   {
     fwrite(&pairedKey, sizeof(pairedKey), 1, f);
