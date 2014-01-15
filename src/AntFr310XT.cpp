@@ -398,6 +398,7 @@ AntFr310XT::handleEvents()
     m_ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
     assert(m_ds.get());
     m_ds->loadDefaultValues();
+    LOG_VAR(m_ds->getConfigFileName());
     m_ds->loadFromFile(m_ds->getConfigFileName());
     m_ds->saveToFile(m_ds->getConfigFileName());
     m_serial->setWriteDelay(m_ds->SerialWriteDelayMs);
@@ -499,14 +500,17 @@ AntFr310XT::handleEvents()
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.waypointsFiles.size());
       ushort fileIdx = zfc.waypointsFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
-      if(t < m_ds->LastUserProfileTime)
+      LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
+      if(t < m_ds->LastTransferredTime)
       {
         logger() << "Skipping waypoints file 0x" << toString<ushort>(fileIdx,4,'0')
                  << "@" << DeviceSettings::time2str(t) << " older than "
-                 << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
+                 << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
         continue;
       }
-      logger() << "Transfer waypoints file 0x" << hex << fileIdx << "\n";
+      logger() << "Transfer waypoints file 0x" << toString<ushort>(fileIdx,4,'0')
+               << "@" << DeviceSettings::time2str(t) << " newer than "
+               << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
 
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
@@ -534,14 +538,17 @@ AntFr310XT::handleEvents()
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.activityFiles.size());
       ushort fileIdx = zfc.activityFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
-      if(t < m_ds->LastUserProfileTime)
+      LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
+      if(t < m_ds->LastTransferredTime)
       {
         logger() << "Skipping activity file 0x" << toString<ushort>(fileIdx,4,'0')
                  << "@" << DeviceSettings::time2str(t) << " older than "
-                 << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
+                 << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
         continue;
       }
-      logger() << "# Transfer activity file 0x" << hex << fileIdx << "\n";
+      logger() << "# Transfer activity file 0x" << toString<ushort>(fileIdx,4,'0')
+               << "@" << DeviceSettings::time2str(t) << " newer than "
+               << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
 
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
@@ -576,14 +583,17 @@ AntFr310XT::handleEvents()
       LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.courseFiles.size());
       ushort fileIdx = zfc.courseFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
-      if(t < m_ds->LastUserProfileTime)
+      LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
+      if(t < m_ds->LastTransferredTime)
       {
         logger() << "Skipping course file 0x" << toString<ushort>(fileIdx,4,'0')
                  << "@" << DeviceSettings::time2str(t) << " older than "
-                 << DeviceSettings::time2str(m_ds->LastUserProfileTime) <<  "\n";
+                 << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
         continue;
       }
-      logger() << "Transfer course file 0x" << hex << fileIdx << "\n";
+      logger() << "Transfer course file 0x" << toString<ushort>(fileIdx,4,'0')
+               << "@" << DeviceSettings::time2str(t) << " older than "
+               << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
 
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
