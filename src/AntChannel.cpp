@@ -110,7 +110,8 @@ AntEvListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_RESPONSE_EVENT_ID
       && owner.chan == other.getPayloadRef()[0]
-      && other.getPayloadRef()[1]==MESG_EVENT_ID;
+      && other.getPayloadRef()[1]==MESG_EVENT_ID
+      && other.getPayloadRef()[2]!=EVENT_TRANSFER_TX_START; // let us not consider EVENT_TRANSFER_TX_START events
 }
 // whether there was a response before timeout
 bool
