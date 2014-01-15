@@ -164,6 +164,7 @@ AntFr310XT::onAntReceived(const AntMessage m)
 void
 AntFr310XT::onAntSent(const AntMessage m)
 {
+  lprintf(antpm::LOG_DBG3, "%s\n", m.str().c_str());
 }
 
 
