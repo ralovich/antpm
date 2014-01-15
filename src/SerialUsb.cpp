@@ -325,16 +325,16 @@ struct SerialUsbPrivate
 
     //int cfg = usb_get_configuration(UsbDevice);
     int rv=usb_set_configuration (ret, USB_ANT_CONFIGURATION);
-    LOG_VAR(rv);
     if (rv < 0) {
+      LOG_VAR(rv);
       usb_close (ret);
       return NULL;
     }
 
 
     rv=usb_claim_interface (ret, USB_ANT_INTERFACE);
-    LOG_VAR(rv);
     if (rv < 0) {
+      LOG_VAR(rv);
       usb_close (ret);
       return NULL;
     }
