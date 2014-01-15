@@ -578,10 +578,8 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     AntChannel& pc(chs[chan]);
     AntBurstListener bl(pc);
-    //pc.addMsgListener(&bl); // FIXME: remove this on return paths, IN DTOR!!!
 
     AntEvListener el(pc);
-    //pc.addEvListener(&el); // FIXME: remove this on return paths, IN DTOR!!!
 
     bool sentReqDl = false;
     sentReqDl = false;
