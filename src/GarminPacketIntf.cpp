@@ -15,6 +15,7 @@
 //#include <iostream>
 #include "garmintools/garmin.h"
 #include <cstring>
+#include <set>
 
 using namespace std;
 
@@ -123,13 +124,23 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
 #pragma pack(pop)
       BOOST_STATIC_ASSERT(sizeof(ProtocolDataType)==3);
       sstr << "Found following protocol capabilities:\n";
+      set<string> caps;
       for(size_t i = 4; i+2 < data.size(); i+=3)
       {
         ProtocolDataType* prota = reinterpret_cast<ProtocolDataType*>(&data[i]);
         if(prota->tag==Tag_Phys_Prot_Id || prota->tag==Tag_Link_Prot_Id || prota->tag==Tag_Appl_Prot_Id || prota->tag==Tag_Data_Type_Id)
-          sstr << "tag=0x" << toString((int)prota->tag) << "=" << prota->tag << ", data=0x" << toString(prota->data,4,'0') << "=" << prota->data << endl;
+        {
+          //sstr << "tag=0x" << toString((int)prota->tag) << "=" << prota->tag << ", data=0x" << toString(prota->data,4,'0') << "=" << prota->data << endl;
+          std::stringstream sstr2;
+          sstr2 << prota->tag << prota->data;
+          caps.insert(sstr2.str());
+        }
         else
           continue;
+      }
+      for(set<string>::iterator i = caps.begin(); i!= caps.end(); i++)
+      {
+        sstr << *i << endl;
       }
       break;
     }
