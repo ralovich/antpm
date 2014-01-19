@@ -82,9 +82,9 @@ bool
 AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
 {
   boost::unique_lock<boost::mutex> lock(m_mtxResp);
-  if(m_msgResp)
+  if(m_msgResp) // it had already arrived
   {
-    if(m) *m = *m_msgResp; // it had already arrived
+    if(m) *m = *m_msgResp;
     m_msgResp.reset();
     return true;
   }
