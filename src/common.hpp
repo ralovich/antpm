@@ -28,10 +28,12 @@ namespace antpm {
 
 #define CHECK_RETURN_FALSE(x)         do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
 #define CHECK_RETURN_FALSE_LOG_OK(x)  do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } else { printf("ok: %s\n", #x); } } while(0)
+#define CHECK_RETURN_FALSE_LOG_OK_DBG2(x)  do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } else { lprintf(antpm::LOG_DBG2, "ok: %s\n", #x); } } while(0)
 #define CHECK_RETURN_RV(x, rv)        do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return rv; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
 #define CHECK_RETURN_RV_LOG_OK(x, rv) do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return rv; } else { printf("ok: %s\n", #x); } } while(0)
 #define CHECK_RETURN(x)               do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return; } else { printf("ok: %s\n", #x); } fflush(stdout); } while(0)
 #define LOG_VAR(x) do { LOG(antpm::LOG_INF) << #x << "= " << x << std::endl; } while(0)
+#define LOG_VAR_DBG2(x) do { LOG(antpm::LOG_DBG2) << #x << "= " << x << std::endl; } while(0)
 #define LOG_VAR2(x,y) do { LOG(antpm::LOG_INF) << #x << "= " << x << ", " #y << "= " << y << std::endl; } while(0)
 #define LOG_VAR3(x,y, z) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << std::endl; } while(0)
 #define LOG_VAR4(x,y, z, w) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << std::endl; } while(0)
