@@ -190,6 +190,9 @@ AntFr310XT::start()
 void AntFr310XT::stop()
 {
   m_eventThKill = 1;
+  // stop() might be called from the event thread
+  // terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::thread_resource_error> >'
+  //   what():  boost thread: trying joining itself: Resource deadlock avoided
   //m_eventTh.join();
   m_antMessenger->kill();
   if(m_serial && m_serial->isOpen())
