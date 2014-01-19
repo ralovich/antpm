@@ -112,7 +112,7 @@ AntFr310XT::~AntFr310XT()
 
   m_antMessenger.reset();
   m_serial.reset();
-  lprintf(LOG_DBG, "%s\n", __FUNCTION__);
+  lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
 
