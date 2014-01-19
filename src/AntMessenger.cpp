@@ -323,7 +323,7 @@ AntMessenger::ANTFS_Disconnect(const uchar chan)
   cmd.command   = ANTFS_CmdDisconnect;
   cmd.detail.disconnect.cmdType = M_ANTFS_Command::ReturnToLinkLayer;
 
-  /*CHECK_RETURN_FALSE_LOG_OK(*/ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 400)/*)*/;
+  /*CHECK_RETURN_FALSE_LOG_OK(*/ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 0)/*)*/;
 
   return true;
 }
