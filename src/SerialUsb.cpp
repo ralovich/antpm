@@ -54,7 +54,8 @@
 #define NOMINMAX 1
 #include "lusb0_usb.h"
 #else
-#include "usb.h"
+#include <errno.h>
+#include <usb.h>
 #include "SerialTty.hpp"
 #endif
 
@@ -68,6 +69,8 @@ const uchar USB_ANT_EP_OUT = 0x01;
 
 
 
+#define LOG_USB_WARN(func, rv) \
+  do { LOG(LOG_WARN) << func << ": " << rv << ": \"" << usb_strerror() << "\"\n"; } while(0)
 
 
 
@@ -326,7 +329,7 @@ struct SerialUsbPrivate
     //int cfg = usb_get_configuration(UsbDevice);
     int rv=usb_set_configuration (ret, USB_ANT_CONFIGURATION);
     if (rv < 0) {
-      LOG_VAR(rv);
+      LOG_USB_WARN("USB_ANT_CONFIGURATION", rv);
       usb_close (ret);
       return NULL;
     }
@@ -334,7 +337,7 @@ struct SerialUsbPrivate
 
     rv=usb_claim_interface (ret, USB_ANT_INTERFACE);
     if (rv < 0) {
-      LOG_VAR(rv);
+      LOG_USB_WARN("USB_ANT_INTERFACE", rv);
       usb_close (ret);
       return NULL;
     }
@@ -408,14 +411,14 @@ SerialUsb::open()
   {
     uint16_t vid = known[i][0];
     uint16_t pid = known[i][1];
-    LOG(LOG_INF) << "Trying to open vid=0x" << toString(vid,4,'0') << ", pid=0x" << toString(pid,4,'0') << " ...";
+    LOG(LOG_INF) << "Trying to open vid=0x" << toString(vid,4,'0') << ", pid=0x" << toString(pid,4,'0') << " ...\n";
     m_p->dev = m_p->libUSBGetDevice(vid, pid);
     if(m_p->dev)
     {
       LOG(LOG_RAW) << " OK.\n";
       break;
     }
-    LOG(LOG_RAW) << " failed.\n";
+    //LOG(LOG_RAW) << " failed.\n";
   }
   if(!m_p->dev)
   {
@@ -556,8 +559,7 @@ SerialUsb::write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
   int written = usb_bulk_write(m_p->dev, USB_ANT_EP_OUT, const_cast<char*>(src), size, 3000);
   if(written < 0)
   {
-    char* usberr=usb_strerror();
-    LOG_VAR(usberr);
+    LOG_USB_WARN("SerialUsb::write", written);
     return false;
   }
 
@@ -593,12 +595,16 @@ SerialUsb::receiveHandler()
     }
     else if(rv==0)
     {}
+#ifdef _WIN32
     else if(rv==-116) // timeout
     {}
+#else
+    else if(rv==-ETIMEDOUT)
+    {}
+#endif
     else
     {
-      char* usberr=usb_strerror();
-      LOG_VAR2(rv, usberr);
+      LOG_USB_WARN("SerialUsb::receiveHandler", rv);
     }
   }
 
