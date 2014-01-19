@@ -327,6 +327,40 @@ AntMessage::str2() const
     } } CHST;
     sstr << " " << CHST.szChanSt(chanSt);
   }
+  else if(getMsgId()==MESG_STARTUP_MSG_ID)
+  {
+    enum {
+      PowerOnReset = 0,
+      HwResetLine = 1,
+      UnkReset1 = 2,
+      UnkReset2 = 4,
+      UnkReset3 = 8,
+      UnkReset4 = 16,
+      CommandReset = 32,
+      SyncReset = 64,
+      SuspendReset = 128
+    };
+    if(getLenPayload()>=1)
+    {
+      uint8_t startup=getPayloadRef()[0];
+      //lprintf(antpm::LOG_DBG2, "startup 0x%02x\n", startup);
+      sstr << " startup=";
+      if(startup==0) sstr << "PowerOnReset,";
+      if(startup & HwResetLine) sstr << "HwResetLine,";
+      if(startup & UnkReset1) sstr << "UnkReset1,";
+      if(startup & UnkReset2) sstr << "UnkReset2,";
+      if(startup & UnkReset3) sstr << "UnkReset3,";
+      if(startup & UnkReset4) sstr << "UnkReset4,";
+      if(startup & CommandReset) sstr << "CommandReset,";
+      if(startup & SyncReset) sstr << "SyncReset,";
+      if(startup & SuspendReset) sstr << "SuspendReset,";
+    }
+    if(getLenPayload()>1)
+    {
+      // print extra bytes if any?
+    }
+
+  }
 
   return sstr.str();
 }
