@@ -44,14 +44,7 @@ struct M_ANT_Channel_Id : public AntMessageContentBase
   ushort devNum;
   uchar  devId;
   uchar  transType;
-  const std::string toString() const
-  {
-    std::stringstream sstr;
-    sstr
-      << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", devNum=0x" << antpm::toString<int>(devNum,4,'0')
-      << ", devId=0x" << antpm::toString<int>(devId,2,'0') << ", transType=0x" << antpm::toString<int>(transType,2,'0');
-    return sstr.str();
-  }
+  const std::string toString() const;
 };
 struct M_ANTFS_Beacon : public AntMessageContentBase
 {

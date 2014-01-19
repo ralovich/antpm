@@ -38,6 +38,7 @@ using namespace std;
 
 namespace antpm{
 
+
 std::string
 antFSCommand2Str(uchar cmd)
 {
@@ -108,6 +109,15 @@ isAntFSCommandOrResponse(const uchar command, bool& isCommand)
   }
 }
 
+
+const string M_ANT_Channel_Id::toString() const
+{
+  std::stringstream sstr;
+  sstr
+      << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", devNum=0x" << antpm::toString<int>(devNum,4,'0')
+      << ", devId=0x" << antpm::toString<int>(devId,2,'0') << ", transType=0x" << antpm::toString<int>(transType,2,'0');
+  return sstr.str();
+}
 
 
 bool AntMessage::vrfChkSum() const
@@ -779,5 +789,6 @@ template bool AntMessage::saveAsAntParse<std::vector<AntMessage> >(const char* f
 template bool AntMessage::saveAsAntParse<std::list<AntMessage> >(std::ostream& os, const std::list<AntMessage>& messages);
 //template bool AntMessage::saveAsAntParse<std::queue<AntMessage> >(std::ostream& os, const std::queue<AntMessage>& messages);
 template bool AntMessage::saveAsAntParse<std::vector<AntMessage> >(std::ostream& os, const std::vector<AntMessage>& messages);
+
 
 }
