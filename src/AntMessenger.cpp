@@ -180,7 +180,9 @@ AntMessenger::ANT_CloseChannel(uchar chan, const size_t timeout_ms)
 
   uint8_t msgCode;
   rv = rv && el.waitForEvent(msgCode, timeout_ms/2);
-  rv = rv && (msgCode==EVENT_CHANNEL_CLOSED);
+  rv = rv && (msgCode==EVENT_CHANNEL_CLOSED
+              || msgCode==CHANNEL_IN_WRONG_STATE
+              || msgCode==CHANNEL_NOT_OPENED);
 
   //pc.rmEvListener(&el);
 
