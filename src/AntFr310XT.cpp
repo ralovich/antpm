@@ -377,7 +377,6 @@ AntFr310XT::handleEvents()
     m_antMessenger->ANT_CloseChannel(chan);
     sleepms(800);
     changeStateSafe(ST_ANTFS_RESTART);
-    return true;
   }
   else if(state == ST_ANTFS_AUTH0_SN)
   {
