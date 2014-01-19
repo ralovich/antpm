@@ -85,6 +85,8 @@ struct SerialUsbPrivate
   volatile int m_recvThKill;
   //AntCallback* m_callback;
   usb_dev_handle* dev;
+  unsigned short dev_vid;
+  unsigned short dev_pid;
   size_t m_writeDelay;
 
 #define REQTYPE_HOST_TO_INTERFACE	0x41
@@ -202,7 +204,7 @@ struct SerialUsbPrivate
       irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0],
                             index, NULL, 0, USB_CTRL_SET_TIMEOUT);
     }
-    LOG_VAR(irv);
+    if(irv<0) { LOG_VAR(irv); }
 
     return irv;
   }
@@ -247,6 +249,9 @@ struct SerialUsbPrivate
   void
   modprobe()
   {
+    if(dev_vid=0x0fcf && (dev_pid==0x1008 || dev_pid==0x1009))
+      return;
+
 //    ffff8800364a8300 962108826 S Co:3:001:0 s 23 03 0004 0001 0000 0
 //    ffff8800364a8300 962108840 C Co:3:001:0 0 0
 //    ffff8800b225b780 962162649 S Ci:3:001:0 s a3 00 0000 0001 0004 4 <
@@ -289,14 +294,17 @@ struct SerialUsbPrivate
 
   void
   open_tty()
-  {}
+  {
+    if(dev_vid=0x0fcf && (dev_pid==0x1008 || dev_pid==0x1009))
+      return;
+  }
 
   usb_dev_handle*
   libUSBGetDevice (const unsigned short vid, const unsigned short pid)
   {
     struct usb_bus *UsbBus = NULL;
     struct usb_device *UsbDevice = NULL;
-    usb_dev_handle *ret;
+    usb_dev_handle *udev;
 
     int dBuses, dDevices;
     dBuses = usb_find_busses ();
@@ -315,6 +323,8 @@ struct SerialUsbPrivate
         {
           //lprintf(LOG_INF, "found!\n");
           found = true;
+          dev_vid = vid;
+          dev_pid = pid;
           break;
         }
       }
@@ -323,26 +333,47 @@ struct SerialUsbPrivate
     }
 
     if (!UsbDevice) return NULL;
-    ret = usb_open (UsbDevice);
+    udev = usb_open (UsbDevice);
+    if(!udev)
+    {
+      LOG_USB_WARN("usb_open", (void*)udev);
+      return NULL;
+    }
 
+    int rv = 0;
+    char string[256];
+    if(0 < usb_get_string_simple(udev, UsbDevice->descriptor.iProduct, string, sizeof(string)))
+    {
+      LOG(LOG_INF) << string << "\n";
+    }
+    if(0 < usb_get_string_simple(udev, UsbDevice->descriptor.iManufacturer, string, sizeof(string)))
+    {
+      LOG(LOG_INF) << string << "\n";
+    }
+    if(0 < usb_get_string_simple(udev, UsbDevice->descriptor.iSerialNumber, string, sizeof(string)))
+    {
+      LOG(LOG_INF) << string << "\n";
+    }
 
     //int cfg = usb_get_configuration(UsbDevice);
-    int rv=usb_set_configuration (ret, USB_ANT_CONFIGURATION);
-    if (rv < 0) {
+    rv=usb_set_configuration (udev, USB_ANT_CONFIGURATION);
+    if(rv < 0)
+    {
       LOG_USB_WARN("USB_ANT_CONFIGURATION", rv);
-      usb_close (ret);
+      usb_close (udev);
       return NULL;
     }
 
 
-    rv=usb_claim_interface (ret, USB_ANT_INTERFACE);
-    if (rv < 0) {
+    rv=usb_claim_interface (udev, USB_ANT_INTERFACE);
+    if(rv < 0)
+    {
       LOG_USB_WARN("USB_ANT_INTERFACE", rv);
-      usb_close (ret);
+      usb_close (udev);
       return NULL;
     }
 
-    return ret;
+    return udev;
   }
 };
 
@@ -355,6 +386,8 @@ SerialUsb::SerialUsb()
   m_p.reset(new SerialUsbPrivate());
   m_p->m_recvThKill = 0;
   m_p->dev = 0;
+  m_p->dev_vid = 0;
+  m_p->dev_pid = 0;
   m_p->m_writeDelay = 0;
 
   usb_init();
@@ -364,7 +397,6 @@ SerialUsb::SerialUsb()
 SerialUsb::~SerialUsb()
 {
   close();
-  m_p.reset();
   lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
@@ -392,7 +424,9 @@ struct AntUsbHandler2_Recevier
 bool
 SerialUsb::open()
 {
-  close();
+  assert(!isOpen());
+  if(isOpen())
+    return false;
 
   enum {NUM_DEVS=5};
   uint16_t known[NUM_DEVS][2] =
@@ -416,7 +450,7 @@ SerialUsb::open()
     m_p->dev = m_p->libUSBGetDevice(vid, pid);
     if(m_p->dev)
     {
-      LOG(LOG_RAW) << " OK.\n";
+      LOG(LOG_INF) << "Opened vid=0x" << toString(vid,4,'0') << ", pid=0x" << toString(pid,4,'0') << " OK.\n";
       break;
     }
     //LOG(LOG_RAW) << " failed.\n";
@@ -426,6 +460,9 @@ SerialUsb::open()
     LOG(antpm::LOG_ERR) << "Opening any known usb VID/PID failed!\n";
     return false;
   }
+
+  assert(m_p->dev_vid!=0);
+  assert(m_p->dev_pid!=0);
 
   m_p->modprobe();
 
@@ -462,11 +499,15 @@ SerialUsb::open()
 void
 SerialUsb::close()
 {
-  m_p->m_recvThKill = 1;
-  m_p->m_recvTh.join();
-
   if(m_p.get())
   {
+    m_p->m_recvThKill = 1;
+    {
+      boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+      m_p->m_condQueue.notify_one(); // make sure an other thread calling readBlocking() moves on too
+    }
+    m_p->m_recvTh.join();
+
     if(m_p->dev)
     {
       //usb_reset(m_p->dev);
@@ -474,8 +515,9 @@ SerialUsb::close()
       usb_close(m_p->dev);
     }
     m_p->dev = 0;
+    m_p->m_writeDelay = 0;
+    m_p.reset();
   }
-  m_p->m_writeDelay = 0;
 }
 
 
