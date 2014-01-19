@@ -26,6 +26,14 @@ override_dh_auto_configure:
 override_dh_auto_build:
 	cd cmake-build && $(MAKE) -j$(NUMCPUS)
 
+override_dh_strip:
+	#dh_strip -pantpm-downloader --dbg-package=antpm-dbg
+	#dh_strip -pantpm-fit2gpx --dbg-package=antpm-dbg
+	#dh_strip -pantpm-usbmon2ant --dbg-package=antpm-dbg
+	#dh_strip -pgant --dbg-package=antpm-dbg
+	dh_strip --dbg-package=antpm-dbg
+	dh_strip -s --remaining-packages
+
 DESTDIR=../debian/antpm/
 override_dh_install:
 	cd cmake-build && $(MAKE) install DESTDIR=$(DESTDIR)

@@ -10,10 +10,22 @@ Vcs-Browser: https://code.google.com/p/antpm/source/browse/
 
 Package: antpm
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libstdc++6 (>=4.4.0)
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libstdc++6 (>=4.4.0),
 Description: ANT+minus implements the ANT/ANT+/ANT-FS protocols and provides tools.
  Userspace implementation of a wire protocol similar to the ANT/ANT+/ANT-FS protocols. The
  goal is to be able to communicate with the Forerunner 310XT watch in order to retrieve
  sports tracks. The c++ implementation is currently available under both linux and win.
  Communication with watches other than the 310XT might work, but are untested. Please report
  your experience to help improving the software.
+
+Package: antpm-dbg
+Section: Debug
+Priority: extra
+Architecture: any
+Depends:
+ antpm (= ${binary:Version}),
+ ${misc:Depends},
+Description: This package provides debugging symbols for the antpm package.
