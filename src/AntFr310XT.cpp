@@ -359,13 +359,13 @@ AntFr310XT::handleEvents()
     uchar  transType=0;
     CHECK_RETURN_FALSE(m_antMessenger->ANT_GetChannelId(chan, &devNum, &devId, &transType, 1000));
     LOG(LOG_RAW) << "\n\nFound device devNum=0x" << toString<ushort>(devNum) << " devId=0x" << toString<uint>(devId,2,'0') << " transType=0x" << toString<uint>(transType,2,'0') << "\n\n\n";
-    GarminProducts prod;
-    if(guessDeviceType(devNum, devId, transType, &prod))
-    {
-      if(prod==GarminFR310XT) { LOG(LOG_INF) << "guessed: GarminFR310XT\n\n\n"; }
-      if(prod==GarminFR405) { LOG(LOG_INF) << "guessed: GarminFR405\n\n\n"; }
-    }
-    else { LOG(LOG_WARN) << "guessing failed!\n"; }
+    //GarminProducts prod;
+    //if(guessDeviceType(devNum, devId, transType, &prod))
+    //{
+    //  if(prod==GarminFR310XT) { LOG(LOG_INF) << "guessed: GarminFR310XT\n\n\n"; }
+    //  if(prod==GarminFR405) { LOG(LOG_INF) << "guessed: GarminFR405\n\n\n"; }
+    //}
+    //else { LOG(LOG_WARN) << "guessing failed!\n"; }
 
     CHECK_RETURN_FALSE(m_antMessenger->ANTFS_Link(chan, fsFreq, beaconPer, hostSN));
 
