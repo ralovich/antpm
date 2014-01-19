@@ -352,7 +352,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
   {
     sentPairing = false;
 
-    LOG_VAR(waitForBroadcast(chan));
+    LOG_VAR_DBG2(waitForBroadcast(chan));
 
     //CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
     sentPairing = ANT_SendBurstData2(chan, reinterpret_cast<uchar*>(&cmd), sizeof(cmd));
@@ -375,7 +375,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
     else
       sleepms(ANTPM_RETRY_MS);
   }
-  CHECK_RETURN_FALSE_LOG_OK(sentPairing);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(sentPairing);
 
   // FIXME: look for, and handle event:EVENT_RX_FAIL; event:EVENT_TRANSFER_RX_FAILED
 
@@ -384,13 +384,13 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
   /*bool rv =*/ bl.collectBurst(burstData, 30*1000); // 30s to allow user confirmation
   //pc.rmMsgListener(&bl);
 
-  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==3*8);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==3*8);
   const M_ANTFS_Response_Pairing* resp(reinterpret_cast<const M_ANTFS_Response_Pairing*>(&burstData[8]));
-  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
-  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
-  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
-  LOG_VAR((int)resp->detail.authenticateResponse.authStrLen);
-  CHECK_RETURN_FALSE(resp->detail.authenticateResponse.authStrLen==8);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->responseId==ANTFS_CommandResponseId);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->response==ANTFS_RespAuthenticate);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->detail.authenticateResponse.respType==1); // accept
+  LOG_VAR_DBG2((int)resp->detail.authenticateResponse.authStrLen);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->detail.authenticateResponse.authStrLen==8);
 
   unitId = resp->detail.authenticateResponse.sn;
   key    = resp->pairedKey;
@@ -435,7 +435,7 @@ AntMessenger::ANTFS_Authenticate(const uchar chan, const uint hostSN, const uint
   {
     sentReqAuth = false;
 
-    LOG_VAR(waitForBroadcast(chan));
+    LOG_VAR_DBG2(waitForBroadcast(chan));
 
     //CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
     sentReqAuth = ANT_SendBurstData2(chan, reinterpret_cast<uchar*>(&cmd), sizeof(cmd));
@@ -458,18 +458,18 @@ AntMessenger::ANTFS_Authenticate(const uchar chan, const uint hostSN, const uint
     else
       sleepms(ANTPM_RETRY_MS);
   }
-  CHECK_RETURN_FALSE_LOG_OK(sentReqAuth);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(sentReqAuth);
 
 
 
   // ANTFS_RespAuthenticate
   std::vector<uchar> burstData;
-  CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 10*1000));
-  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==2*8);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(waitForBurst(chan, burstData, 10*1000));
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==2*8);
   const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
-  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
-  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
-  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->responseId==ANTFS_CommandResponseId);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->response==ANTFS_RespAuthenticate);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->detail.authenticateResponse.respType==1); // accept
 
   // TODO: read bcast here?
 
@@ -484,6 +484,9 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
   //S   1.221 50 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_ReqDownload file=0x0000, dataOffset=0x00000000
   //R 118.782 4e MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=8Hz, pairing=enabled, upload=disabled, dataAvail=yes, State=Transport, Auth=PasskeyAndPairingOnly
   //S   1.258 50 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes 0001000000000000 ........
+
+  // 310XT 4.50 sends EVENT_TRANSFER_TX_START here too
+
   //R  10.728 40 MESG_RESPONSE_EVENT_ID chan=0x00 mId=MESG_EVENT_ID mCode=EVENT_TRANSFER_TX_COMPLETED
   //R 112.995 4e MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=8Hz, pairing=enabled, upload=disabled, dataAvail=yes, State=Busy, Auth=PasskeyAndPairingOnly
   //R 125.019 50 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_BEACON(0x43) Beacon=8Hz, pairing=enabled, upload=disabled, dataAvail=yes, State=Busy, Auth=PasskeyAndPairingOnly
@@ -671,7 +674,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
     ushort crcCalculated=crcData.crc16Calc(crc);
     //LOG_VAR(toString(crcCalculated,4,'0'));
     bool crcCheckOk=(footer->crc==crcCalculated);
-    CHECK_RETURN_FALSE_LOG_OK(crcCheckOk);
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(crcCheckOk);
     crc = footer->crc;     //TODO: crc check
 
     CHECK_RETURN_FALSE(waitForBroadcast(chan, NULL, 1000));
@@ -749,7 +752,7 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   //pc.addMsgListener(&bl);
 
 
-  CHECK_RETURN_FALSE_LOG_OK(ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 2000));
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 2000));
 
   std::vector<uchar> burstData;
   /*bool rv =*/ bl.collectBurst(burstData, 5000);
@@ -761,19 +764,19 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   //CHECK_RETURN_FALSE_LOG_OK(waitForBroadcast(chan));
   //
   //CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 30000));
-  LOG_VAR(burstData.size());
-  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==4*8);
+  LOG_VAR_DBG2(burstData.size());
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==4*8);
 
   const M_ANTFS_Response* cmdResp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
   sn = cmdResp->detail.authenticateResponse.sn;
   uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen;
-  CHECK_RETURN_FALSE_LOG_OK(lenDevName==16);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName==16);
 
   devName = std::string(reinterpret_cast<const char*>(&burstData[16]), lenDevName);
 
   logger() << "devName = \"" << devName << "\"\n";
 
-  CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
   return true;
 }
