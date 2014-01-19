@@ -38,7 +38,7 @@ IF(MSVC)
 ENDIF()
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall -D_XOPEN_SOURCE=600")
+  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
   SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g")
   SET(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -O2")
   set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -ggdb3")
