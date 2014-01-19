@@ -133,19 +133,19 @@ main(int argc, char** argv)
   signal(SIGINT, my_handler);
 #endif
 
-#ifndef NDEBUG
-  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG);
-#else
-  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_INF);
-#endif
   antpm::Log::instance()->addSink(std::cout);
+#ifdef NDEBUG
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_INF);
+#else
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG);
+#endif
 
   // Declare the supported options.
-  bool pairing         =false;
-  bool dirOnly         =false;
-  uint16_t dlFileIdx   =0x0000;
-  uint16_t eraseFileIdx=0x0000;
-  int         verbosityLevel = antpm::Log::instance()->getLogReportingLevel();
+  bool     pairing        = false;
+  bool     dirOnly        = false;
+  uint16_t dlFileIdx      = 0x0000;
+  uint16_t eraseFileIdx   = 0x0000;
+  int      verbosityLevel = antpm::Log::instance()->getLogReportingLevel();
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help,h",                                                                    "produce help message")
@@ -206,9 +206,13 @@ main(int argc, char** argv)
     logger() << desc << "\n";
     return EXIT_SUCCESS;
   }
-  LOG_VAR4(pairing, dirOnly, int(dlFileIdx), int(eraseFileIdx));
+  LOG_VAR5(pairing, dirOnly, dlFileIdx, eraseFileIdx, verbosityLevel);
 
-  LOG(antpm::LOG_DBG) << argv[0] << antpm::getVersionString() << "\n";
+  LOG(antpm::LOG_DBG) << argv[0] << " " << antpm::getVersionString() << "\n";
+  for(int i = 0; i < argc; i++)
+  {
+    LOG(antpm::LOG_DBG2) << "\targv[" << i << "]\t\"" << argv[i] << "\"" << endl;
+  }
 
   char* ANTPM_405 = getenv("ANTPM_405");
   if(ANTPM_405!=NULL && strncmp("1",ANTPM_405,1)==0)
