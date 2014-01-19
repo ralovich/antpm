@@ -90,12 +90,18 @@ AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
   }
   if(!m_cndResp.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms)))
   {
+    // false means, timeout was reached
     return false;
   }
-  assert(m_msgResp);
-  if(m) *m=*m_msgResp;//copy
-  m_msgResp.reset();
-  return true;
+  // true means, either nitification OR spurious wakeup!!
+  //assert(m_msgResp); // this maught fail for spurious wakeups!!
+  if(m_msgResp)
+  {
+    if(m) *m=*m_msgResp;//copy
+    m_msgResp.reset();
+    return true;
+  }
+  return false;
 }
 
 

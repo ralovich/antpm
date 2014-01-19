@@ -143,7 +143,8 @@ public:
         continue;
       }
 
-      assert(!Super::m_q.empty());
+      if(Super::m_q.empty())
+        continue; // spurious wakeup
       size_t s = Super::m_q.size();
       std::vector<DataType> v(s);
       for(size_t i = 0; i < s; i++)
