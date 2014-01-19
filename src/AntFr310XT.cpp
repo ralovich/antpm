@@ -326,7 +326,14 @@ AntFr310XT::handleEvents()
   if(state==ST_ANTFS_RESTART)
   {
     if(++m_restartCount==10)
+    {
+      LOG(LOG_RAW) << "\n\nTried " << m_restartCount << " times, and couldn't communicate with ANT device!\n"
+                   << "Please try again running the downloader.\n"
+                   << "Sometimes re-plugging the USB ANT stick, and rarely power cycling (turn-off, turn-on)\n"
+                   << "the ANT device (watch/GPS) might help.\n\n\n";
       stop();
+      return true;
+    }
     else
     {
       m_evQue.clear();
@@ -361,7 +368,12 @@ AntFr310XT::handleEvents()
   {
     AntMessage m;
     //CHECK_RETURN_FALSE(m_antMessenger->waitForBroadcastDataAvail(chan, &m, 20000));//link beacon
-    CHECK_RETURN_FALSE(m_antMessenger->waitForBroadcast(chan, &m, 20000));//link beacon
+    if(!m_antMessenger->waitForBroadcast(chan, &m, 20000))  //link beacon
+    {
+      LOG(LOG_RAW) << "\n\nNo device available for linking!\n\n\n";
+      return false;
+    }
+
     M_ANTFS_Beacon* beacon(reinterpret_cast<M_ANTFS_Beacon*>(&m.getPayloadRef()[1]));
     // TODO:handle case of no available data
     if(!beacon->dataAvail)
