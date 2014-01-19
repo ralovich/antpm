@@ -210,7 +210,7 @@ void AntFr310XT::stop()
 void
 AntFr310XT::stopAsync()
 {
-  LOG(LOG_WARN) << "\nstopAsync called!\n\n";
+  LOG(LOG_WARN) << "stopAsync called!\n\n";
   // FIXME: setting ST_ANTFS_LAST might not be enough for stopping immediately,
   //        as other thread might be
   //        sleeping in a listener, and we stop only when that returns.
@@ -406,7 +406,7 @@ AntFr310XT::handleEvents()
 
     //CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->waitForBroadcast(chan));
 
-    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_RequestClientDeviceSerialNumber(chan, hostSN, clientSN, clientDevName));
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANTFS_RequestClientDeviceSerialNumber(chan, hostSN, clientSN, clientDevName));
 
     LOG(LOG_RAW) << "\n\nFound client \"" << clientDevName << "\" SN=0x" << toString<uint>(clientSN,8,'0') << " SN=" << clientSN << "\n\n\n";
 
@@ -437,14 +437,14 @@ AntFr310XT::handleEvents()
     }
     writeUInt64(clientSN, pairedKey);
 
-    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
     //changeStateSafe(ST_ANTFS_LAST);
     changeStateSafe(ST_ANTFS_AUTH1_PASS);
   }
   else if(state == ST_ANTFS_AUTH1_PASS)
   {
-    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
     if(!m_antMessenger->ANTFS_Authenticate(chan, hostSN, pairedKey))
     {
@@ -455,7 +455,7 @@ AntFr310XT::handleEvents()
     LOG(LOG_RAW) << "\n\nClient authenticated successfully!\n\n\n";
 
     // channel status <>
-    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
     if(mode==MD_DOWNLOAD_ALL || mode==MD_DIRECTORY_LISTING)
       changeStateSafe(ST_ANTFS_DL_DIRECTORY);
@@ -512,10 +512,10 @@ AntFr310XT::handleEvents()
     for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
       checkForExit();
-      LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.waypointsFiles.size());
+      //LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.waypointsFiles.size());
       ushort fileIdx = zfc.waypointsFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
-      LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
+      //LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
       if(t < m_ds->LastTransferredTime)
       {
         logger() << "Skipping waypoints file 0x" << toString<ushort>(fileIdx,4,'0')
@@ -535,7 +535,7 @@ AntFr310XT::handleEvents()
       }
       LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
-      LOG_VAR(file0.checkCrc());
+      //LOG_VAR(file0.checkCrc());
 
       fit.parse(data, gpx);
 
@@ -550,10 +550,10 @@ AntFr310XT::handleEvents()
     for (size_t i=0; i<zfc.activityFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
       checkForExit();
-      LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.activityFiles.size());
+      //LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.activityFiles.size());
       ushort fileIdx = zfc.activityFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
-      LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
+      //LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
       if(t < m_ds->LastTransferredTime)
       {
         logger() << "Skipping activity file 0x" << toString<ushort>(fileIdx,4,'0')
@@ -579,13 +579,13 @@ AntFr310XT::handleEvents()
       time_t fitDate=0;
       if(!FIT::getCreationDate(data, fitDate))
       {
-        LOG_VAR3(fitDate, t, m_ds->LastUserProfileTime);
+        //LOG_VAR3(fitDate, t, m_ds->LastUserProfileTime);
         fitDate = t;
       }
       else
       {
         fitDate = GarminConvert::gOffsetTime(fitDate);
-        LOG_VAR3(DeviceSettings::time2str(fitDate), DeviceSettings::time2str(t), DeviceSettings::time2str(m_ds->LastUserProfileTime));
+        //LOG_VAR3(DeviceSettings::time2str(fitDate), DeviceSettings::time2str(t), DeviceSettings::time2str(m_ds->LastUserProfileTime));
       }
       //m_ds->mergeLastUserProfileTime(fitDate); // can't update it in the middle of the loop
 
@@ -595,10 +595,10 @@ AntFr310XT::handleEvents()
     for (size_t i=0; i<zfc.courseFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
     {
       checkForExit();
-      LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.courseFiles.size());
+      //LOG_VAR3(fileCnt, m_ds->MaxFileDownloads, zfc.courseFiles.size());
       ushort fileIdx = zfc.courseFiles[i];
       time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
-      LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
+      //LOG_VAR2(DeviceSettings::time2str(t), DeviceSettings::time2str(zfc.getFitFileTime(fileIdx)));
       if(t < m_ds->LastTransferredTime)
       {
         logger() << "Skipping course file 0x" << toString<ushort>(fileIdx,4,'0')
