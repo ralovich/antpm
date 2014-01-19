@@ -318,7 +318,10 @@ SerialTty::close()
 {
   m_p->m_recvThKill = 1;
 
-  m_p->m_condQueue.notify_all();
+  {
+    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    m_p->m_condQueue.notify_all();
+  }
 
   m_p->m_recvTh.join();
 

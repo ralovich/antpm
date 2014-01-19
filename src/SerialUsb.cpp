@@ -506,7 +506,7 @@ SerialUsb::close()
     m_p->m_recvThKill = 1;
     {
       boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
-      m_p->m_condQueue.notify_one(); // make sure an other thread calling readBlocking() moves on too
+      m_p->m_condQueue.notify_all(); // make sure an other thread calling readBlocking() moves on too
     }
     m_p->m_recvTh.join();
 
