@@ -231,14 +231,14 @@ struct SerialUsbPrivate
 	  }
 	  if (clear & TIOCM_RTS) {
 		  control &= ~CONTROL_RTS;
-		  control |= CONTROL_WRITE_RTS;
+      control |= CONTROL_WRITE_RTS;
 	  }
 	  if (clear & TIOCM_DTR) {
-		  control &= ~CONTROL_DTR;
+      control &= ~CONTROL_DTR;
 		  control |= CONTROL_WRITE_DTR;
 	  }
 
-    lprintf(LOG_INF, "%s - control = 0x%.4x\n", __FUNCTION__, control);
+    //lprintf(LOG_INF, "%s - control = 0x%.4x\n", __FUNCTION__, control);
 
 	  return set_config(CP210X_SET_MHS, reinterpret_cast<char*>(&control), 2);
   }
