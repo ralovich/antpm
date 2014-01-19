@@ -16,29 +16,36 @@
 //////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
-#pragma once
-#include "stdintfwd.hpp"
 
-namespace antpm{
+#include "Serial.hpp"
+#include "SerialUsb.hpp"
+#include "SerialTty.hpp"
 
-// Abstract interface for serial-like communication.
-class Serial
+namespace antpm {
+
+Serial*
+Serial::instantiate(void*)
 {
-public:
-  virtual              ~Serial() {}
-  virtual bool         open() = 0;
-  virtual void         close() = 0;
-  virtual bool         read(char* dst, const size_t sizeBytes, size_t& bytesRead) = 0;
-  virtual bool         readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) = 0;
-  // synchronous data writing, blocks until sent
-  virtual bool         write(const char* src, const size_t sizeBytes, size_t& bytesWritten) = 0;
-  //virtual void wait() = 0;
-  /// number of raw bytes in the receive queue
-  virtual const size_t getQueueLength() const = 0;
-  virtual const char*  getImplName() = 0;
-  virtual bool         isOpen() const = 0;
-  virtual bool         setWriteDelay(const size_t ms) = 0;
-  static Serial*       instantiate(void* p = NULL);
-};
+  Serial* s = new SerialUsb();
+  if(!s)
+    return NULL;
+#ifndef _WIN32
+  if(!s->open())
+  {
+    delete s;
+    s = new SerialTty();
+    if(!s)
+      return NULL;
+    if(!s->open())
+    {
+      delete s;
+      return NULL;
+    }
+  }
+#endif
+  return s;
+}
+
 
 }
+

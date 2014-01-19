@@ -50,8 +50,8 @@ src/AntFr310XT.hpp
 src/AntFr310XT.cpp
 src/AntFr405.hpp
 src/AntFr405.cpp
-src/common.cpp
 src/antdefs.hpp
+src/antdefs.cpp
 src/SerialUsb.hpp
 src/SerialUsb.cpp
 src/GarminConvert.cpp
@@ -66,7 +66,9 @@ src/FIT.cpp
 src/GPX.hpp
 src/SmartPtrFwd.hpp
 src/Serial.hpp
+src/Serial.cpp
 src/common.hpp
+src/common.cpp
 src/AntMessenger.cpp
 src/DeviceSettings.hpp
 src/DeviceSettings.cpp

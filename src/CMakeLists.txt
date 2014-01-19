@@ -89,7 +89,7 @@ MESSAGE(STATUS "ANTPM_VERSION=\\\"${ANTPM_VERSION}\\\"")
 ADD_DEFINITIONS(-DANTPM_VERSION=${ANTPM_VERSION})
 
 SET(SRCS
-  antdefs.hpp
+  antdefs.hpp antdefs.cpp
   SmartPtrFwd.hpp   w_inttypes.h w_stdint.h stdintfwd.hpp
   common.hpp common.cpp
   AntMessage.hpp AntMessage.cpp
@@ -99,7 +99,7 @@ SET(SRCS
   AntFr310XT.hpp AntFr310XT.cpp
   AntFr405.hpp AntFr405.cpp
   lqueue.hpp
-  Serial.hpp
+  Serial.hpp Serial.cpp
 
   FIT.hpp FIT.cpp
   GPX.hpp GPX.cpp
