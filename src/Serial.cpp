@@ -23,6 +23,10 @@
 #include <fstream>
 #include "Log.hpp"
 
+#ifdef __linux__
+# include <sys/utsname.h>
+#endif
+
 namespace antpm {
 
 
@@ -31,6 +35,13 @@ Serial*
 Serial::instantiate(void*)
 {
 #ifdef __linux__
+  utsname u;
+  int urv = uname(&u);
+  if(urv==0)
+  {
+    LOG(LOG_DBG) << "Running under: " << u.sysname << ", " << u.release << ", " << u.version << ", " << u.machine << "\n";
+  }
+
   // check for cp210x kernel module
   std::string line;
   std::ifstream mods("/proc/modules");
