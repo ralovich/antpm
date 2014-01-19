@@ -280,11 +280,11 @@ SerialTty::open()
   if(m_p->m_fd<0)
   {
     char se[256];
-    strerror_r(m_p->m_fd, se, sizeof(se));
+    int r = strerror_r(m_p->m_fd, se, sizeof(se));
     LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and /dev/ttyUSBxxx was created by cp210x!\n"
                         << "\tAlso make sure that /dev/ttyUSBxxx is R+W accessible by your user (usually enabled through udev.rules)!\n";
     LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << se << "\n";
-    return rv;
+    return rv && (r==0);
   }
 
   //printf("m_fd=%d\n", m_fd);
