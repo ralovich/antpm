@@ -227,7 +227,7 @@ SerialTty::SerialTty()
 
 SerialTty::~SerialTty()
 {
-  //printf("%s\n", __FUNCTION__);
+  lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
 #define ENSURE_OR_RETURN_FALSE(e)                           \

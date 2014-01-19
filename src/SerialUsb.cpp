@@ -365,6 +365,7 @@ SerialUsb::~SerialUsb()
 {
   close();
   m_p.reset();
+  lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
 //#define ENSURE_OR_RETURN_FALSE(e) do {  if(-1 == (e)) {perror(#e); return false;} } while(false)

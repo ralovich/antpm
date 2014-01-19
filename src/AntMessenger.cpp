@@ -81,6 +81,7 @@ AntMessenger::~AntMessenger()
   m_packerTh.join();
   m_io=0;
   m_cb=0;
+  lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
 size_t AntMessenger::getQueueLength() const
