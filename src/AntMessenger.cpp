@@ -1138,6 +1138,16 @@ AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t
 }
 
 
+void
+AntMessenger::interruptWait()
+{
+  for(size_t i = 0; i < ANTPM_MAX_CHANNELS; i++)
+  {
+    chs[i].interruptWait();
+  }
+}
+
+
 // receive bytes from the serial interface
 void*
 AntMessenger::th_messageHandler()

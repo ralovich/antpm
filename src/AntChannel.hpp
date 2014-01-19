@@ -38,6 +38,7 @@ public:
   AntListenerBase(AntChannel& o);
   virtual ~AntListenerBase();
   virtual void onMsg(AntMessage& m);
+  virtual void interruptWait();
 protected:
   virtual bool match(AntMessage& other) const = 0;
 public:
@@ -55,6 +56,7 @@ public:
   void addMsgListener2(AntListenerBase* lb);
   void rmMsgListener2(AntListenerBase* lb);
   void onMsg(AntMessage &m);
+  void interruptWait();
 };
 
 

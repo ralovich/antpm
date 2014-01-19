@@ -48,6 +48,16 @@ AntChannel::onMsg(AntMessage &m)
   }
 }
 
+void
+AntChannel::interruptWait()
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
+  {
+    (*i)->interruptWait();
+  }
+}
+
 
 
 
@@ -76,6 +86,14 @@ AntListenerBase::onMsg(AntMessage& m)
     m_msgResp.reset(new AntMessage(m));
     m_cndResp.notify_all();
   }
+}
+
+void
+AntListenerBase::interruptWait()
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  m_msgResp.reset();
+  m_cndResp.notify_all(); // intentionally generate a "spurious" wakeup
 }
 
 bool

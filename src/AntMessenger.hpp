@@ -162,6 +162,7 @@ private:
 public:
   bool waitForBurst(const uchar chan, std::vector<uchar>& burstData, const size_t timeout_ms = 30000);
   bool waitForBroadcast(const uchar chan, AntMessage* reply = NULL, const size_t timeout_ms = 2000);
+  void interruptWait();
 //public:
 private:
   Serial* m_io;
