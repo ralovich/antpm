@@ -11,7 +11,16 @@ OPTION(USE_COVERAGE "use gcov" FALSE)
 OPTION(USE_BOOST_TEST "use boost::test" FALSE)
 OPTION(USE_BOOST_STATIC_LINK "link statically against boost" TRUE)
 
+
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
+# Set a default build type for single-configuration
+# CMake generators if no build type is set.
+IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE Debug)
+ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+MESSAGE(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "CMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES}")
 
 set(CMAKE_CXX_FLAGS_RELEASE        "-DNDEBUG")
 #set(CMAKE_CXX_FLAGS_DEBUGFULL      "-g -Ob0 -noalign")
@@ -32,8 +41,10 @@ IF(MSVC)
 ENDIF()
 
 IF(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
-  set(CMAKE_CXX_FLAGS_DEBUG          "-g3 -ggdb3")
+  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
+  SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-O2 -g")
+  SET(CMAKE_CXX_FLAGS_RELEASE        "-O2")
+  set(CMAKE_CXX_FLAGS_DEBUG          "-O0 -g3 -ggdb3")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Wextra -Wall")
   set(CMAKE_C_FLAGS_DEBUG            "-g3 -ggdb3")
 
@@ -156,22 +167,22 @@ add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
 ADD_SUBDIRECTORY(gant)
 
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_SOURCE_GENERATOR "TGZ")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-src")
-MESSAGE(STATUS "${CPACK_SOURCE_IGNORE_FILES}")
-set(CPACK_SOURCE_IGNORE_FILES
-  "/build/;/.bzr/;~$;${CPACK_SOURCE_IGNORE_FILES};/CMakeLists.txt.user;/gpsbabel/;/gtest-1.6.0/")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kristof Ralovich <tade60@freemail.hu>")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANT+minus")
-set(CPACK_PACKAGE_DESCRIPTION "Userspace implementation of a wire protocol similar to the ANT/ANT+ protocols. The goal is to be able to communicate with the Forerunner 310XT watch, in order to retrieve sports tracks. Communication with other watches might work, please report your experiences to improve the software.")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0)")
-#set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0), cmake, debhelper (>= 7), libboost-filesystem, libboost-system")
-#set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA 	This variable allow advanced user to add custom script to the control.tar.gz (inside the .deb archive) 	${CMAKE_CURRENT_SOURCE_DIR}/postinst
-#set(CPACK_DEBIAN_PACKAGE_SECTION 	Package section (see http://packages.debian.org/stable/) 	Network
-#set(CPACK_DEBIAN_PACKAGE_VERSION 	Package version 	${CPACK_PACKAGE_VERSION}+lenny1
-INCLUDE(CPack)
+# set(CPACK_PACKAGE_VERSION_MAJOR "1")
+# set(CPACK_PACKAGE_VERSION_MINOR "0")
+# set(CPACK_SOURCE_GENERATOR "TGZ")
+# set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-src")
+# MESSAGE(STATUS "${CPACK_SOURCE_IGNORE_FILES}")
+# set(CPACK_SOURCE_IGNORE_FILES
+#   "/build/;/.bzr/;~$;${CPACK_SOURCE_IGNORE_FILES};/CMakeLists.txt.user;/gpsbabel/;/gtest-1.6.0/")
+# set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kristof Ralovich <tade60@freemail.hu>")
+# set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANT+minus")
+# set(CPACK_PACKAGE_DESCRIPTION "Userspace implementation of a wire protocol similar to the ANT/ANT+ protocols. The goal is to be able to communicate with the Forerunner 310XT watch, in order to retrieve sports tracks. Communication with other watches might work, please report your experiences to improve the software.")
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0)")
+# #set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0), cmake, debhelper (>= 7), libboost-filesystem, libboost-system")
+# #set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA 	This variable allow advanced user to add custom script to the control.tar.gz (inside the .deb archive) 	${CMAKE_CURRENT_SOURCE_DIR}/postinst
+# #set(CPACK_DEBIAN_PACKAGE_SECTION 	Package section (see http://packages.debian.org/stable/) 	Network
+# #set(CPACK_DEBIAN_PACKAGE_VERSION 	Package version 	${CPACK_PACKAGE_VERSION}+lenny1
+# INCLUDE(CPack)
 
 IF(USE_BOOST_TEST)
 
