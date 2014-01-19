@@ -203,11 +203,15 @@ void AntFr310XT::stop()
   changeState(ST_ANTFS_START0, true);
 }
 
-void AntFr310XT::stopAsync()
+
+void
+AntFr310XT::stopAsync()
 {
+  LOG(LOG_WARN) << "\nstopAsync called!\n\n";
   // FIXME: setting ST_ANTFS_LAST might not be enough for stopping immediately,
   //        as other thread might be
   //        sleeping in a listener, and we stop only when that returns.
+  if(m_antMessenger) m_antMessenger->interruptWait(); // FIXME locking needed to access m_antMessenger!!!
   changeState(ST_ANTFS_LAST);
 }
 
