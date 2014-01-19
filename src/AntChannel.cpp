@@ -111,8 +111,8 @@ AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
     // false means, timeout was reached
     return false;
   }
-  // true means, either nitification OR spurious wakeup!!
-  //assert(m_msgResp); // this maught fail for spurious wakeups!!
+  // true means, either notification OR spurious wakeup!!
+  //assert(m_msgResp); // this might fail for spurious wakeups!!
   if(m_msgResp)
   {
     if(m) *m=*m_msgResp;//copy
@@ -256,10 +256,18 @@ AntBurstListener::waitForBursts(std::list<AntMessage>& bs, const size_t timeout_
   }
   // TODO: handle arrival of event:EVENT_RX_FAIL
   if(!m_cndResp.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms)))
+  {
+    // // false means, timeout was reached
     return false;
-  assert(!bursts.empty());
-  std::swap(bs, bursts);
-  return true;
+  }
+  // true means, either notification OR spurious wakeup!!
+  //assert(!bursts.empty()); // this might fail for spurious wakeups!!
+  if(!bursts.empty())
+  {
+    std::swap(bs, bursts);
+    return true;
+  }
+  return false;
 }
 
 
