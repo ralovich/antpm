@@ -20,12 +20,46 @@
 #include "Serial.hpp"
 #include "SerialUsb.hpp"
 #include "SerialTty.hpp"
+#include <fstream>
+#include "Log.hpp"
 
 namespace antpm {
+
+
 
 Serial*
 Serial::instantiate(void*)
 {
+#ifdef __linux__
+  // check for cp210x kernel module
+  std::string line;
+  std::ifstream mods("/proc/modules");
+  bool cp210x_found=false;
+  bool usbserial_found=false;
+  if(!mods.is_open())
+    LOG(LOG_WARN) << "Could not open /proc/modules!\n";
+  else
+  {
+    while (mods.good())
+    {
+      getline(mods,line);
+      if(line.find("cp210x ")==0)
+        cp210x_found = true;
+      if(line.find("usbserial ")==0)
+        usbserial_found = true;
+    }
+    mods.close();
+    if(cp210x_found)
+      LOG(LOG_DBG) << "Found loaded cp210x kernel module.\n";
+    else
+      LOG(LOG_DBG) << "cp210x is not listed among loaded kernel modules.\n";
+    if(usbserial_found)
+      LOG(LOG_DBG) << "Found loaded usbserial kernel module.\n";
+    else
+      LOG(LOG_DBG) << "usbserial is not listed among loaded kernel modules.\n";
+  }
+#endif
+
   Serial* s = new SerialUsb();
   if(!s)
     return NULL;
