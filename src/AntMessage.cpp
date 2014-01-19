@@ -294,6 +294,7 @@ AntMessage::str2() const
       vector<uchar> payl=getPayload();
       const uchar* p=getPayloadRef();
       assert(payl[i]==p[i]);
+      UNUSED(p);
     }
     const M_ANT_Burst* burst(reinterpret_cast<const M_ANT_Burst*>(getPayloadRef()));
     //sstr << " chan=0x" << toString<int>(burst->chan,2,'0') << ", seq=" << toStringDec<int>(burst->seq,1,' ') << ", last=" << (burst->last?"yes":"no ");

@@ -312,6 +312,8 @@ struct SerialUsbPrivate
 
     //LOG_VAR2(dBuses, dDevices);
     //lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
+    UNUSED(dBuses);
+    UNUSED(dDevices);
 
     for (UsbBus = usb_get_busses(); UsbBus; UsbBus = UsbBus->next)
     {
