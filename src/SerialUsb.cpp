@@ -249,7 +249,7 @@ struct SerialUsbPrivate
   void
   modprobe()
   {
-    if(dev_vid=0x0fcf && (dev_pid==0x1008 || dev_pid==0x1009))
+    if((dev_vid==0x0fcf) && (dev_pid==0x1008 || dev_pid==0x1009))
       return;
 
 //    ffff8800364a8300 962108826 S Co:3:001:0 s 23 03 0004 0001 0000 0
@@ -295,7 +295,7 @@ struct SerialUsbPrivate
   void
   open_tty()
   {
-    if(dev_vid=0x0fcf && (dev_pid==0x1008 || dev_pid==0x1009))
+    if((dev_vid==0x0fcf) && (dev_pid==0x1008 || dev_pid==0x1009))
       return;
   }
 
