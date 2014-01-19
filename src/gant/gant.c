@@ -1,6 +1,6 @@
-// copyright 2010 Klaus@Ethgen.de. released under GPLv3
-// copyright 2008-2009 paul@ant.sbrk.co.uk
-// copyright 2009-2009 Wali
+/* copyright 2010 Klaus@Ethgen.de. released under GPLv3 */
+/* copyright 2008-2009 paul@ant.sbrk.co.uk */
+/* copyright 2009-2009 Wali */
 #include <stdio.h>
 #include <sys/select.h>
 #include <sys/time.h>
@@ -56,7 +56,7 @@ struct _lap {
    int trigger;
 };
 
-// all version numbering according ant agent for windows 2.2.1
+/* all version numbering according ant agent for windows 2.2.1 */
 char *releasetime = "Apr 25 2010, 10:00:00";
 uint majorrelease = 2;
 uint minorrelease = 2;
@@ -76,7 +76,7 @@ int seenphase0 = 0;
 int lastphase;
 int sentack2;
 int newfreq = 0;
-int period = 0x1000;		// garmin specific broadcast period
+int period = 0x1000;		/* garmin specific broadcast period */
 int donebind = 0;
 int sentgetv;
 char *fname = "garmin";

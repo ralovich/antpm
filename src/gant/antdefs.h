@@ -1,5 +1,5 @@
-// copyright 2008-2009 paul@ant.sbrk.co.uk. released under GPLv3
-// vers 0.6t
+/* copyright 2008-2009 paul@ant.sbrk.co.uk. released under GPLv3 */
+/* vers 0.6t */
 
 #ifndef __ANTDEFS_H__
 #define __ANTDEFS_H__

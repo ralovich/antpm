@@ -1,5 +1,5 @@
-// copyright 2008 paul@ant.sbrk.co.uk. released under GPLv3
-// vers 0.6t
+/* copyright 2008 paul@ant.sbrk.co.uk. released under GPLv3 */
+/* vers 0.6t */
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -13,14 +13,10 @@
 #define __declspec(X)
 
 #include "antdefs.h"
-//#include "antdefines.h"
-//#include "ANT_Interface.h"
-//#include "antmessage.h"
-//#include "anttypes.h"
 
 #define S(e) do { if (-1 == (e)) {perror(#e); return 0;} } while(0)
 
-#define MAXMSG 30 // SYNC,LEN,MSG,data[9+],CHKSUM
+#define MAXMSG 30 /* SYNC,LEN,MSG,data[9+],CHKSUM */
 #define MAXCHAN 32
 #define BSIZE 8*10000
 
@@ -45,7 +41,7 @@ struct msg_queue {
 	uchar len;
 };
 
-// send message over serial port
+/* send message over serial port */
 uchar
 msg_send(uchar mesg, uchar *inbuf, uchar len)
 {
