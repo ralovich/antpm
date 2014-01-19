@@ -301,13 +301,21 @@ AntFr310XT::handleEvents()
           changeState(ST_ANTFS_BAD);
         }
       }
+//      else if(msgId==MESG_CLOSE_CHANNEL_ID)
+//      {
+//        uint8_t msgCode = m.getPayloadRef()[2]; // e.g. CHANNEL_IN_WRONG_STATE
+//        if(msgCode==CHANNEL_IN_WRONG_STATE)
+//        {
+//          changeState(ST_ANTFS_BAD);
+//        }
+//      }
     }
   }
 
   // new state machine
   if(state==ST_ANTFS_RESTART)
   {
-    if(++m_restartCount==80)
+    if(++m_restartCount==10)
       stop();
     else
     {
