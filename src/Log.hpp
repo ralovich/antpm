@@ -200,6 +200,7 @@ namespace antpm
       this->lprintf2(LOG_INF,
                      "%s\n",
                      v.c_str());
+      this->lprintf2(LOG_RAW, "logging level: %d\n", this->_logReportingLevel);
     }
   }
 
@@ -285,6 +286,7 @@ namespace antpm
   Log::setLogReportingLevel(const LogLevel& logReportingLevel)
   {
     _logReportingLevel = logReportingLevel;
+    this->lprintf2(LOG_RAW, "logging level: %d\n", this->_logReportingLevel);
   }
 
   int
