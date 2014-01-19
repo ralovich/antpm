@@ -103,7 +103,7 @@ AntFr310XT::AntFr310XT(bool eventLoopInBgTh)
 
 AntFr310XT::~AntFr310XT()
 {
-  m_antMessenger->setCallback(0);
+  if(m_antMessenger) m_antMessenger->setCallback(0);
   //m_antMessenger->setHandler(0);
 
   m_eventThKill=1;
@@ -202,6 +202,9 @@ void AntFr310XT::stop()
     m_antMessenger->ANT_CloseChannel(chan);
     m_antMessenger->ANT_ResetSystem();
   }
+  if(m_antMessenger) m_antMessenger->setCallback(0);
+  //m_antMessenger->setHandler(0);
+  m_antMessenger.reset();
   if(m_serial) m_serial->close();
   changeState(ST_ANTFS_START0, true);
 }

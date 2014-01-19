@@ -243,7 +243,7 @@ main(int argc, char** argv)
       watch2.start();
 
 
-      watch2.stop();
+      //watch2.stop();
     }
   }
 

@@ -47,7 +47,9 @@ public:
   virtual void onAntSent(const AntMessage m);
 
   void start();
+protected:
   void stop();
+public:
   void stopAsync();
 
   const int getSMState() const;
