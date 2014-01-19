@@ -43,12 +43,16 @@ ClassInstantiator<Log>::instantiate()
 class BurstDecodeVisitor
 {
 public:
+  BurstDecodeVisitor() { mFilterDirect=false; }
   void onMessage(const AntMessage& m);
   void onLastBurst(const uchar chan);
   bool tryDecodeDirect(const uchar chan, std::vector<uint8_t> &burstData);
+  bool tryFilterDirect(const uchar chan, std::vector<uint8_t> &burstData);
+  void printDirect(const char *dir, std::vector<uint8_t> &burstData);
 protected:
   map<uchar, list<AntMessage> > chanBursts; // <channel, aggregated burst> pairs
   map<uchar, int> chanLastCmd;              // <channel, pid> pairs
+  bool mFilterDirect;
 };
 
 
@@ -95,7 +99,10 @@ BurstDecodeVisitor::onLastBurst(const uchar chan)
   }
   msgs.clear();
 
-  tryDecodeDirect(chan, burstData);
+  if(!mFilterDirect)
+    tryDecodeDirect(chan, burstData);
+  else
+    tryFilterDirect(chan, burstData);
 }
 
 
@@ -138,6 +145,7 @@ BurstDecodeVisitor::tryDecodeDirect(const uchar chan, std::vector<uint8_t>& burs
 
     data = vector<uint8_t>(burstData.begin()+8, burstData.end());
 
+    // save the last command, we expect to decode the corresponding response based on this
     this->chanLastCmd[chan] = gpi.interpretPid(data);
 
     return gpi.interpret(-1, data);
@@ -147,6 +155,73 @@ BurstDecodeVisitor::tryDecodeDirect(const uchar chan, std::vector<uint8_t>& burs
     LOG(LOG_WARN) << "Couldn't decode burst data starting with 0x" << toString<int>((int)burstData[0], 2, '0') << " !\n";
     return false;
   }
+}
+
+
+bool
+BurstDecodeVisitor::tryFilterDirect(const uchar chan, std::vector<uint8_t> &burstData)
+{
+  CHECK_RETURN_FALSE(burstData.size()>=8);
+  const M_ANTFS_Beacon* beac(reinterpret_cast<const M_ANTFS_Beacon*>(&burstData[0]));
+  const M_ANTFS_Command* cmd(reinterpret_cast<const M_ANTFS_Command*>(&burstData[0]));
+  std::vector<uint8_t> data;
+  //GarminPacketIntf gpi;
+
+  if(beac->beaconId==ANTFS_BeaconId)
+  {
+    // beacon+response
+    CHECK_RETURN_FALSE(burstData.size()>=2*8);
+    const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
+    CHECK_RETURN_FALSE(resp->responseId==ANTFS_CommandResponseId);
+    //CHECK_RETURN_FALSE(resp->response==ANTFS_RespDirect);
+    if(resp->response!=ANTFS_RespDirect) return false;
+
+    logger() << "expecting " << resp->detail.directResponse.data << "x8 bytes of direct data, plus 16 bytes\n";
+    logger() << "got back = \"" << burstData.size() << "\" bytes\n";
+    CHECK_RETURN_FALSE(burstData.size()==size_t((2+resp->detail.directResponse.data)*8));
+
+    data = vector<uint8_t>(burstData.begin()+16, burstData.end());
+
+    this->printDirect("R ", data);
+
+    return true;
+  }
+  else if(cmd->commandId==ANTFS_CommandResponseId)
+  {
+    // command
+    //CHECK_RETURN_FALSE(cmd->command==ANTFS_CmdDirect);
+    if(cmd->command!=ANTFS_CmdDirect) return false;
+
+    logger() << "got = \"" << burstData.size() << "\" bytes\n";
+    CHECK_RETURN_FALSE(burstData.size()==size_t((1+1)*8));
+
+    data = vector<uint8_t>(burstData.begin()+8, burstData.end());
+
+    this->printDirect("S ", data);
+
+    return true;
+  }
+  else
+  {
+    LOG(LOG_WARN) << "Couldn't decode burst data starting with 0x" << toString<int>((int)burstData[0], 2, '0') << " !\n";
+    return false;
+  }
+
+}
+
+void BurstDecodeVisitor::printDirect(const char* dir, std::vector<uint8_t> &data)
+{
+  cout << "@#@#: " << dir;
+  for(size_t i = 0; i < data.size(); i++)
+  {
+    cout << toString<int>(data[i], 2, '0');
+  }
+  cout << " ";
+  for(size_t i = 0; i < data.size(); i++)
+  {
+    cout << char(isprint(data[i])?data[i]:'.');
+  }
+  cout << "\n";
 }
 
 }

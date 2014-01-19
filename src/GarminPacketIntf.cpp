@@ -130,7 +130,7 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
         ProtocolDataType* prota = reinterpret_cast<ProtocolDataType*>(&data[i]);
         if(prota->tag==Tag_Phys_Prot_Id || prota->tag==Tag_Link_Prot_Id || prota->tag==Tag_Appl_Prot_Id || prota->tag==Tag_Data_Type_Id)
         {
-          //sstr << "tag=0x" << toString((int)prota->tag) << "=" << prota->tag << ", data=0x" << toString(prota->data,4,'0') << "=" << prota->data << endl;
+          sstr << "tag=0x" << toString((int)prota->tag) << "=" << prota->tag << ", data=0x" << toString(prota->data,4,'0') << "=" << prota->data << endl;
           std::stringstream sstr2;
           sstr2 << prota->tag << prota->data;
           caps.insert(sstr2.str());
@@ -223,8 +223,8 @@ const std::string
 GarminPacket::toString8() const
 {
   std::stringstream sstr;
-  sstr << "packet_type=0x" << antpm::toString<int>((int)mPacketType, 2, '0') << "=" << (int)mPacketType;
-  sstr << " pid=0x" << antpm::toString<int>((int)mPacketId, 4, '0') << "=" << (int)mPacketId << " " << garmin_pid_name((int)mPacketId);
+  sstr << "packet_type=0x" << antpm::toString<int>((int)mPacketType, 2, '0') << "=" << (int)mPacketType << "\n";
+  sstr << "pid=0x" << antpm::toString<int>((int)mPacketId, 4, '0') << "=" << (int)mPacketId << "\n" << garmin_pid_name((int)mPacketId);
   return sstr.str();
 }
 
