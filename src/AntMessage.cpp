@@ -790,5 +790,272 @@ template bool AntMessage::saveAsAntParse<std::list<AntMessage> >(std::ostream& o
 //template bool AntMessage::saveAsAntParse<std::queue<AntMessage> >(std::ostream& os, const std::queue<AntMessage>& messages);
 template bool AntMessage::saveAsAntParse<std::vector<AntMessage> >(std::ostream& os, const std::vector<AntMessage>& messages);
 
+const char *M_ANTFS_Beacon::szBeaconChannelPeriod() const
+{
+  if(beaconChannelPeriod==0x0) return "Beacon=0.5Hz";
+  else if(beaconChannelPeriod==0x1) return "Beacon=1Hz";
+  else if(beaconChannelPeriod==0x2) return "Beacon=2Hz";
+  else if(beaconChannelPeriod==0x3) return "Beacon=4Hz";
+  else if(beaconChannelPeriod==0x4) return "Beacon=8Hz";
+  else if(beaconChannelPeriod==0x7) return "Beacon=MatchEstablishedChannelPeriod";
+  else return "Beacon=??";
+}
+
+const char *M_ANTFS_Beacon::szPairingEnabled() const
+{
+  return pairingEnabled ? "pairing=enabled" : "pairing=disabled";
+}
+
+const char *M_ANTFS_Beacon::szUploadEnabled() const
+{
+  return uploadEnabled ? "upload=enabled" : "upload=disabled";
+}
+
+const char *M_ANTFS_Beacon::szClientDeviceState() const
+{
+  if(clientDeviceState==0x00) return "State=Link";
+  else if(clientDeviceState==0x01) return "State=Authentication";
+  else if(clientDeviceState==0x02) return "State=Transport";
+  else if(clientDeviceState==0x03) return "State=Busy";
+  else return "State=??";
+}
+
+const char *M_ANTFS_Beacon::szDataAvail() const
+{
+  return dataAvail ? "dataAvail=yes" : "dataAvail=no";
+}
+
+const char *M_ANTFS_Beacon::szAuthType() const
+{
+  if(authType==0x0) return "Auth=Passthrough";
+  else if(authType==0x1) return "Auth=NA";
+  else if(authType==0x2) return "Auth=PairingOnly";
+  else if(authType==0x3) return "Auth=PasskeyAndPairingOnly";
+  else  return "Auth=??";
+}
+
+const string M_ANTFS_Beacon::strDeviceDescriptor() const
+{
+  return std::string("dev=0x") + antpm::toString(this->dev, 4, '0') + std::string("manuf=0x") + antpm::toString(this->manuf, 4, '0');
+}
+
+const string M_ANTFS_Beacon::strDeviceSerial() const
+{
+  return std::string("SN=0x") + antpm::toString(this->sn, 8, '0');
+}
+
+void M_ANTFS_Beacon::getDeviceDescriptor(ushort &dev, ushort &manuf) const
+{
+  dev=this->dev;
+  manuf=this->manuf;
+}
+
+uint M_ANTFS_Beacon::getDeviceSerial() const
+{
+  return this->sn;
+}
+
+const string M_ANTFS_Beacon::toString() const
+{
+  assert(beaconId==ANTFS_BeaconId);
+  std::stringstream sstr;
+  sstr << " ANTFS_BEACON(0x" << antpm::toString(unsigned(beaconId), 2, '0') << ") "
+       << this->szBeaconChannelPeriod()
+       << ", " << this->szPairingEnabled()
+       << ", " << this->szUploadEnabled()
+       << ", " << this->szDataAvail()
+       << ", " << this->szClientDeviceState()
+       << ", " << this->szAuthType();
+  return sstr.str();
+}
+
+const string M_ANTFS_Command::Detail1::Link::toString() const
+{
+  std::stringstream sstr;
+  sstr << "freq=0x" << antpm::toString(unsigned(chanFreq), 2, '0') << ", period=0x" << antpm::toString(unsigned(chanPeriod), 2, '0') << ", SNhost=0x" << antpm::toString(sn, 8, '0');
+  return sstr.str();
+}
+
+const char *M_ANTFS_Command::Detail1::Disconnect::szCmdType() const
+{
+  if(cmdType==ReturnToLinkLayer) return "type=ReturnToLinkLayer";
+  else if(cmdType==ReturnToBroadcastMode) return "type=ReturnToBroadcastMode";
+  else return "type=??";
+}
+
+const char *M_ANTFS_Command::Detail1::Authenticate::szCmdType() const
+{
+  if(cmdType==ProceedToTransport) return "type=ProceedToTransport(pass-through)";
+  else if(cmdType==RequestClientDeviceSerialNumber) return "type=RequestClientDeviceSerialNumber";
+  else if(cmdType==RequestPairing) return "type=RequestPairing";
+  else if(cmdType==RequestPasskeyExchange) return "type=RequestPasskeyExchange";
+  else return "type=??";
+}
+
+const string M_ANTFS_Command::Detail1::Authenticate::toString() const
+{
+  std::stringstream sstr;
+  sstr << szCmdType() << ", authStrLen=" << int(authStrLen) << ", SNhost=0x" << antpm::toString(sn, 8, '0');
+  return sstr.str();
+}
+
+const string M_ANTFS_Command::Detail1::DownloadRequest::toString() const
+{
+  std::stringstream sstr;
+  sstr << "file=0x" << antpm::toString(dataFileIdx, 4, '0') << ", dataOffset=0x" << antpm::toString(dataOffset, 8, '0');
+  return sstr.str();
+}
+
+const string M_ANTFS_Command::Detail1::UploadRequest::toString() const
+{
+  std::stringstream sstr;
+  sstr << "file=0x" << antpm::toString(dataFileIdx, 4, '0') << ", maxSize=0x" << antpm::toString(maxSize, 8, '0');
+  return sstr.str();
+}
+
+const string M_ANTFS_Command::Detail1::EraseRequest::toString() const
+{
+  std::stringstream sstr;
+  sstr << "dataFileIdx=0x" << antpm::toString(dataFileIdx, 4, '0');
+  return sstr.str();
+}
+
+const string M_ANTFS_Command::Detail1::UploadData::toString() const
+{
+  std::stringstream sstr;
+  sstr << "crcSeed=0x" << antpm::toString(crcSeed, 4, '0') << ", dataOffset=0x" << antpm::toString(dataOffset, 8, '0');
+  return sstr.str();
+}
+
+const string M_ANTFS_Command::Detail1::DirectCmd::toString() const
+{
+  std::stringstream sstr;
+  sstr << "fd=0x" << antpm::toString(fd, 4, '0')
+       << ", offset=0x" << antpm::toString(offset, 4, '0')
+       << ", data=0x" << antpm::toString(data, 4, '0') ;
+  return sstr.str();
+}
+
+const string M_ANTFS_Command::toString() const
+{
+  assert(commandId==ANTFS_CommandResponseId);
+  std::stringstream sstr;
+  sstr << " ANTFS_CMD(0x" << antpm::toString(unsigned(commandId),2,'0') << ") "
+       << antFSCommand2Str(command);
+  if(command==ANTFS_CmdLink) sstr << " " << detail.link.toString();
+  else if(command==ANTFS_CmdDisconnect) sstr << " " << detail.disconnect.toString();
+  else if(command==ANTFS_CmdAuthenticate) sstr << " " << detail.authenticate.toString();
+  else if(command==ANTFS_ReqDownload) sstr << " " << detail.downloadRequest.toString();
+  else if(command==ANTFS_ReqUpload)  sstr << " " << detail.uploadRequest.toString();
+  else if(command==ANTFS_ReqErase)   sstr << " " << detail.eraseRequest.toString();
+  else if(command==ANTFS_UploadData) sstr << " " << detail.uploadData.toString();
+  else if(command==ANTFS_CmdDirect)  sstr << " " << detail.direct.toString();
+  return sstr.str();
+}
+
+const char *M_ANTFS_Response::Detail::AuthenticateResponse::szRespType() const
+{
+  if(respType==0) return "resp=SN";
+  else if(respType==1) return "resp=accept";
+  else if (respType==2) return "resp=reject";
+  else return "resp=??";
+}
+
+const string M_ANTFS_Response::Detail::AuthenticateResponse::toString() const
+{
+  std::stringstream sstr;
+  sstr << szRespType() << ", authStrLen=" << int(authStrLen) << ", SNclient=0x" << antpm::toString(sn, 8, '0');
+  return sstr.str();
+}
+
+const char *M_ANTFS_Response::Detail::DownloadRequestResponse::szResponseVal() const
+{
+  if(responseVal==DownloadRequestOK) return "resp=DownloadRequestOK";
+  else if(responseVal==DataDoesNotExist) return "resp=DataDoesNotExist";
+  else if(responseVal==DataExistsButIsNotDownloadable) return "resp=DataExistsButIsNotDownloadable";
+  else if(responseVal==NotReadyToDownload) return "resp=NotReadyToDownload";
+  else if(responseVal==DownloadRequestInvalid) return "resp=DownloadRequestInvalid";
+  else if(responseVal==CRCIncorrect) return "resp=CRCIncorrect";
+  return "resp=??";
+}
+
+const string M_ANTFS_Response::Detail::DownloadRequestResponse::toString() const
+{
+  std::stringstream sstr;
+  sstr << szResponseVal() << ", remainingBytes=0x" << antpm::toString(remainingBytes, 8, '0');
+  return sstr.str();
+}
+
+const char *M_ANTFS_Response::Detail::UploadRequestResponse::szResponseVal() const
+{
+  if(responseVal==UploadRequestOK) return "resp=UploadRequestOK";
+  else if(responseVal==DataFileIndexDoesNotExist) return "resp=DataFileIndexDoesNotExist";
+  else if(responseVal==DataFileIndexExistsButIsNotWriteable) return "resp=DataFileIndexExistsButIsNotWriteable";
+  else if(responseVal==NotEnoughSpaceToCompleteWrite) return "resp=NotEnoughSpaceToCompleteWrite";
+  else if(responseVal==UploadRequestInvalid) return "resp=UploadRequestInvalid";
+  else if(responseVal==NotReadyToUpload) return "resp=NotReadyToUpload";
+  return "resp=??";
+}
+
+const string M_ANTFS_Response::Detail::UploadRequestResponse::toString() const
+{
+  std::stringstream sstr;
+  sstr << szResponseVal() << ", lastDataOffset=0x" << antpm::toString(lastDataOffset, 8, '0');
+  return sstr.str();
+}
+
+const char *M_ANTFS_Response::Detail::EraseRequestResponse::szResponseVal() const
+{
+  if(responseVal==0) return "resp=EraseSuccessful";
+  else if(responseVal==1) return "resp=EraseFailed";
+  else if(responseVal==2) return "resp=NotReady";
+  return "resp=??";
+}
+
+const string M_ANTFS_Response::Detail::EraseRequestResponse::toString() const
+{
+  std::stringstream sstr;
+  sstr << szResponseVal() << " 0x" << antpm::toString<int>(int(responseVal),2,'0');
+  return sstr.str();
+}
+
+const char *M_ANTFS_Response::Detail::UploadDataResponse::szResponseVal() const
+{
+  if(responseVal==DataUploadSuccessfulOK) return "resp=DataUploadSuccessfulOK";
+  else if(responseVal==DataUploadFailed) return "resp=DataUploadFailed";
+  return "resp=??";
+}
+
+const string M_ANTFS_Response::Detail::DirectResponse::toString() const
+{
+  std::stringstream sstr;
+  sstr << "fd=0x" << antpm::toString(fd, 4, '0')
+       << ", offset=0x" << antpm::toString(offset, 4, '0')
+       << ", data=0x" << antpm::toString(data, 4, '0') ;
+  return sstr.str();
+}
+
+const string M_ANTFS_Response::toString() const
+{
+  assert(responseId==ANTFS_CommandResponseId);
+  std::stringstream sstr;
+  sstr << " ANTFS_RESP(0x" << antpm::toString(unsigned(responseId),2,'0') << ") "
+       << antFSResponse2Str(response);
+  if(response==ANTFS_RespAuthenticate) sstr << " " << detail.authenticateResponse.toString();
+  else if(response==ANTFS_RespDownload) sstr << " " << detail.downloadRequestResponse.toString();
+  else if(response==ANTFS_RespUpload) sstr << " " << detail.uploadRequestResponse.toString();
+  else if(response==ANTFS_RespErase)      sstr << " " << detail.eraseRequestResponse.toString();
+  else if(response==ANTFS_RespUploadData) sstr << " " << detail.uploadDataResponse.toString();
+  else if(response==ANTFS_RespDirect)     sstr << " " << detail.directResponse.toString();
+  return sstr.str();
+}
+
+const string M_ANT_Burst::toString() const
+{
+  std::stringstream sstr;
+  sstr << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", seq=" << antpm::toStringDec<int>(seq,1,' ') << ", last=" << (isLast()?"yes":"no ");
+  return sstr.str();
+}
+
 
 }
