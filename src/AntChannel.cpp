@@ -331,7 +331,7 @@ AntBurstListener::collectBurst(std::vector<uint8_t>& burstData, const size_t tim
     lprintf(LOG_ERR, "couldn't reconstruct burst data transmission before timeout\n"); fflush(stdout);
     return false;
   }
-  lprintf(LOG_INF, "collectBurst: %d bytes\n", int(burstData.size()));
+  lprintf(LOG_DBG, "collectBurst: %d bytes\n", int(burstData.size()));
   return true;
 }
 
