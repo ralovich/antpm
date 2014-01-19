@@ -154,8 +154,8 @@ bool DeviceSettings::loadFromFile(const char *fname)
 void DeviceSettings::mergeLastUserProfileTime(const std::time_t gmt)
 {
   //std::time_t gmt = t + timezone;
-  LOG(LOG_DBG) << "LastUserProfileTime: " << time2str(LastUserProfileTime) << " => " << time2str(gmt) << "\n";
-  LOG(LOG_DBG) << "LastUserProfileTime: " << LastUserProfileTime << " => " << gmt << "\n";
+  LOG(LOG_DBG2) << "LastUserProfileTime: " << time2str(LastUserProfileTime) << " => " << time2str(gmt) << "\n";
+  LOG(LOG_DBG2) << "LastUserProfileTime: " << LastUserProfileTime << " => " << gmt << "\n";
   if(gmt > LastUserProfileTime)
   {
     LastUserProfileTime = gmt;
@@ -166,7 +166,7 @@ void DeviceSettings::mergeLastUserProfileTime(const std::time_t gmt)
 /// \param t expected to be represented as local time
 void DeviceSettings::mergeLastTransferredTime(const std::time_t gmt)
 {
-  LOG(LOG_DBG) << "LastTransferredTime: " << time2str(LastTransferredTime) << " => " << time2str(gmt) << "\n";
+  LOG(LOG_DBG2) << "LastTransferredTime: " << time2str(LastTransferredTime) << " => " << time2str(gmt) << "\n";
   //std::time_t gmt = t + timezone;
   LastTransferredTime = std::max(LastTransferredTime, gmt);
 }
