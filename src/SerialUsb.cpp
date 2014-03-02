@@ -1,30 +1,20 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
-/*
- * Portions copyright as:
- * Silicon Laboratories CP2101/CP2102/CP2103 USB to RS232 serial adaptor driver
- *
- * Copyright (C) 2010 Craig Shelley (craig@microtron.org.uk)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- *
- * Support to set flow control line levels using TIOCMGET and TIOCMSET
- * thanks to Karl Hiramoto karl@hiramoto.org. RTSCTS hardware flow
- * control thanks to Munir Nassar nassarmu@real-time.com
- * Original backport to 2.4 by andreas 'randy' weinberger randy@ebv.com
- * Several fixes and enhancements by Bill Pfutzenreuter BPfutzenreuter@itsgames.com
- * Ported to userspace by Kristof Ralovich
- *
- */
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2014 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+// ***** BEGIN LICENSE BLOCK *****
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
+// ***** END LICENSE BLOCK *****
 
 
 
@@ -97,206 +87,63 @@ struct SerialUsbPrivate
 #define USB_CTRL_GET_TIMEOUT	5000
 #define USB_CTRL_SET_TIMEOUT	5000
 
-  /* Config request codes */
-  #define CP210X_IFC_ENABLE	0x00
-  #define CP210X_SET_BAUDDIV	0x01
-  #define CP210X_GET_BAUDDIV	0x02
-  #define CP210X_SET_LINE_CTL	0x03
-  #define CP210X_GET_LINE_CTL	0x04
-  #define CP210X_SET_BREAK	0x05
-  #define CP210X_IMM_CHAR		0x06
-  #define CP210X_SET_MHS		0x07
-  #define CP210X_GET_MDMSTS	0x08
-  #define CP210X_SET_XON		0x09
-  #define CP210X_SET_XOFF		0x0A
-  #define CP210X_SET_EVENTMASK	0x0B
-  #define CP210X_GET_EVENTMASK	0x0C
-  #define CP210X_SET_CHAR		0x0D
-  #define CP210X_GET_CHARS	0x0E
-  #define CP210X_GET_PROPS	0x0F
-  #define CP210X_GET_COMM_STATUS	0x10
-  #define CP210X_RESET		0x11
-  #define CP210X_PURGE		0x12
-  #define CP210X_SET_FLOW		0x13
-  #define CP210X_GET_FLOW		0x14
-  #define CP210X_EMBED_EVENTS	0x15
-  #define CP210X_GET_EVENTSTATE	0x16
-  #define CP210X_SET_CHARS	0x19
-  #define CP210X_GET_BAUDRATE	0x1D
-  #define CP210X_SET_BAUDRATE	0x1E
+#define CP210X_IFC_ENABLE	0x00
+#define CP210X_SET_MHS		0x07
+#define CP210X_SET_BAUDRATE	0x1E
+#define UART_ENABLE		0x0001
 
-  /* CP210X_IFC_ENABLE */
-  #define UART_ENABLE		0x0001
-  #define UART_DISABLE		0x0000
-
-  /* CP210X_(SET|GET)_BAUDDIV */
-  #define BAUD_RATE_GEN_FREQ	0x384000
-
-  /* CP210X_(SET|GET)_LINE_CTL */
-  #define BITS_DATA_MASK		0X0f00
-  #define BITS_DATA_5		0X0500
-  #define BITS_DATA_6		0X0600
-  #define BITS_DATA_7		0X0700
-  #define BITS_DATA_8		0X0800
-  #define BITS_DATA_9		0X0900
-
-  #define BITS_PARITY_MASK	0x00f0
-  #define BITS_PARITY_NONE	0x0000
-  #define BITS_PARITY_ODD		0x0010
-  #define BITS_PARITY_EVEN	0x0020
-  #define BITS_PARITY_MARK	0x0030
-  #define BITS_PARITY_SPACE	0x0040
-
-  #define BITS_STOP_MASK		0x000f
-  #define BITS_STOP_1		0x0000
-  #define BITS_STOP_1_5		0x0001
-  #define BITS_STOP_2		0x0002
-
-  /* CP210X_SET_BREAK */
-  #define BREAK_ON		0x0001
-  #define BREAK_OFF		0x0000
-
-  /* CP210X_(SET_MHS|GET_MDMSTS) */
-  #define CONTROL_DTR		0x0001
-  #define CONTROL_RTS		0x0002
-  #define CONTROL_CTS		0x0010
-  #define CONTROL_DSR		0x0020
-  #define CONTROL_RING		0x0040
-  #define CONTROL_DCD		0x0080
-  #define CONTROL_WRITE_DTR	0x0100
-  #define CONTROL_WRITE_RTS	0x0200
-
-
-#define TIOCM_DTR       0x002
-#define TIOCM_RTS       0x004
-
-  int get_config(int request, char* data, int size)
-  {
-    if(!dev)
-      return -1111;
-
-    int index = 0; // bInterfaceNumber ==? USB_ANT_INTERFACE
-
-    int irv;
-    irv = usb_control_msg(dev, REQTYPE_INTERFACE_TO_HOST, request, 0,
-                          index, data, size, USB_CTRL_GET_TIMEOUT);
-    LOG_VAR(irv);
-
-    return irv;
-  }
+#define CONTROL_DTR		0x0001
+#define CONTROL_RTS		0x0002
+#define CONTROL_WRITE_DTR	0x0100
+#define CONTROL_WRITE_RTS	0x0200
 
   // size in bytes
-  int set_config(int request, char* data, int size)
+  bool
+  setConfig(int request, char* data, int size)
   {
-    if(!dev)
-      return -1111;
+    if(!dev || size<0)
+      return false;
 
     int index = 0; // bInterfaceNumber ==? USB_ANT_INTERFACE
 
-    int irv;
+    int irv = -1;
+    int sz = 0;
     if(size>2)
     {
-      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, 0,
-                            index, data, size, USB_CTRL_SET_TIMEOUT);
+      sz = size;
+      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, 0, index, data, sz, USB_CTRL_SET_TIMEOUT);
     }
     else
     {
-      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0],
-                            index, NULL, 0, USB_CTRL_SET_TIMEOUT);
+      sz = 0;
+      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0], index, NULL, sz, USB_CTRL_SET_TIMEOUT);
     }
     if(irv<0) { LOG_VAR(irv); }
 
-    return irv;
+    return irv==sz;
   }
 
-  int set_config_single(int request, unsigned short data)
-  {
-    return set_config(request, reinterpret_cast<char*>(&data), 2);
-  }
-
-  int change_speed(unsigned int baud)
-  {
-    return set_config(CP210X_SET_BAUDRATE, reinterpret_cast<char*>(&baud), sizeof(baud));
-  }
-
-  int tiocmset(unsigned int set, unsigned int clear)
-  {
-	  unsigned int control = 0;
-
-	  if (set & TIOCM_RTS) {
-		  control |= CONTROL_RTS;
-		  control |= CONTROL_WRITE_RTS;
-	  }
-	  if (set & TIOCM_DTR) {
-		  control |= CONTROL_DTR;
-		  control |= CONTROL_WRITE_DTR;
-	  }
-	  if (clear & TIOCM_RTS) {
-		  control &= ~CONTROL_RTS;
-      control |= CONTROL_WRITE_RTS;
-	  }
-	  if (clear & TIOCM_DTR) {
-      control &= ~CONTROL_DTR;
-		  control |= CONTROL_WRITE_DTR;
-	  }
-
-    //lprintf(LOG_INF, "%s - control = 0x%.4x\n", __FUNCTION__, control);
-
-	  return set_config(CP210X_SET_MHS, reinterpret_cast<char*>(&control), 2);
-  }
-
-
-  void
-  modprobe()
+  bool
+  cp210xInit()
   {
     if((dev_vid==0x0fcf) && (dev_pid==0x1008 || dev_pid==0x1009))
-      return;
+      return true;
 
-//    ffff8800364a8300 962108826 S Co:3:001:0 s 23 03 0004 0001 0000 0
-//    ffff8800364a8300 962108840 C Co:3:001:0 0 0
-//    ffff8800b225b780 962162649 S Ci:3:001:0 s a3 00 0000 0001 0004 4 <
-//    ffff8800b225b780 962162697 C Ci:3:001:0 0 4 = 03010000
-//    ffff8800b225b780 962218579 S Co:3:001:0 s 23 01 0014 0001 0000 0
-//    ffff8800b225b780 962218591 C Co:3:001:0 0 0
-//    ffff8800b225b780 962218620 S Ci:3:000:0 s 80 06 0100 0000 0040 64 <
-//    ffff8800b225b780 962222272 C Ci:3:000:0 0 18 = 12011001 00000040 cf0f0410 00030102 0301
-//    ffff8800364a8300 962222320 S Co:3:001:0 s 23 03 0004 0001 0000 0
-//    ffff8800364a8300 962222330 C Co:3:001:0 0 0
-//    ffff8800b225b3c0 962274639 S Ci:3:001:0 s a3 00 0000 0001 0004 4 <
-//    ffff8800b225b3c0 962274675 C Ci:3:001:0 0 4 = 03010000
-//    ffff8800364a8300 962330667 S Co:3:001:0 s 23 01 0014 0001 0000 0
-//    ffff8800364a8300 962330676 C Co:3:001:0 0 0
-//    ffff8800364a8300 962330685 S Co:3:000:0 s 00 05 0002 0000 0000 0
-//    ffff8800364a8300 962333269 C Co:3:000:0 0 0
-//    ffff8800b225b3c0 962350649 S Ci:3:002:0 s 80 06 0100 0000 0012 18 <
-//    ffff8800b225b3c0 962354268 C Ci:3:002:0 0 18 = 12011001 00000040 cf0f0410 00030102 0301
-//    ffff8800b225b3c0 962354312 S Ci:3:002:0 s 80 06 0200 0000 0020 32 <
-//    ffff8800b225b3c0 962357263 C Ci:3:002:0 0 32 = 09022000 01010080 32090400 0002ff00 00020705 81024000 00070501 02400000
-//    ffff8800364a8300 962357309 S Ci:3:002:0 s 80 06 0303 0409 00ff 255 <
-//    ffff8800364a8300 962364268 C Ci:3:002:0 0 128 = 80033100 30003000 36003200 00001400 28002f00 f300a700 18003a00 80004700
-//    ffff8800b225ba80 962364316 S Co:3:002:0 s 00 09 0001 0000 0000 0
-//    ffff8800b225ba80 962366264 C Co:3:002:0 0 0
-    if(!dev)
-      return;
+    CHECK_RETURN_FALSE(dev);
 
-    //cp210x_startup: usb_reset_device
+    unsigned short word = UART_ENABLE;
+    CHECK_RETURN_FALSE(setConfig(CP210X_IFC_ENABLE, reinterpret_cast<char*>(&word), sizeof(word)));
+    unsigned int baud = 115200;
+    CHECK_RETURN_FALSE(setConfig(CP210X_SET_BAUDRATE, reinterpret_cast<char*>(&baud), sizeof(baud)));
 
-    set_config_single(CP210X_IFC_ENABLE, UART_ENABLE);
-    //cp2101_set_config_single(port, CP210X_IFC_ENABLE, UART_ENABLE);
-    /* Configure the termios structure */
-    //cp2101_get_termios(port);
-    change_speed(115200);
-    /* Set the DTR and RTS pins low */
-    //cp2101_tiocmset(port, NULL, TIOCM_DTR | TIOCM_RTS, 0);
-    tiocmset(TIOCM_DTR | TIOCM_RTS, 0);
+    unsigned int control = 0;
+    control |= CONTROL_RTS;
+    control |= CONTROL_WRITE_RTS;
+    control |= CONTROL_DTR;
+    control |= CONTROL_WRITE_DTR;
+    CHECK_RETURN_FALSE(setConfig(CP210X_SET_MHS, reinterpret_cast<char*>(&control), 2));
 
-  }
-
-  void
-  open_tty()
-  {
-    if((dev_vid==0x0fcf) && (dev_pid==0x1008 || dev_pid==0x1009))
-      return;
+    return true;
   }
 
   usb_dev_handle*
@@ -466,27 +313,7 @@ SerialUsb::open()
   assert(m_p->dev_vid!=0);
   assert(m_p->dev_pid!=0);
 
-  m_p->modprobe();
-
-  m_p->open_tty();
-
-  //cp2101_set_config_single(port, CP2101_UART, UART_ENABLE)
-  /* Configure the termios structure */
-  //cp2101_get_termios(port);
-  /* Set the DTR and RTS pins low */
-  //cp2101_tiocmset(port, NULL, TIOCM_DTR | TIOCM_RTS, 0);
-
-  // ffff8800b1c470c0 1328873580 S Co:3:002:0 s 02 01 0000 0001 0000 0
-  // ffff8800b1c470c0 1328874338 C Co:3:002:0 0 0
-  //int irv = usb_clear_halt(m_p->dev, USB_ANT_EP_OUT);
-  //LOG_VAR(irv);
-
-  // usb_clear_halt()
-  // usb_get_string_simple()
-  // usb_reset()
-  // usb_device()
-  // usb_set_configuration()
-  // usb_set_debug()
+  CHECK_RETURN_FALSE(m_p->cp210xInit());
 
   m_p->m_recvThKill = 0;
   AntUsbHandler2_Recevier recTh;
@@ -663,15 +490,6 @@ const size_t SerialUsb::getQueueLength() const
   len += m_p->m_recvQueue.size();
   return len;
 }
-
-
-//// called from other thread
-//void
-//AntUsbHandler::queueData()
-//{
-//}
-
-
 
 
 bool
