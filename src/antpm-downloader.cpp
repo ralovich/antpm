@@ -214,8 +214,7 @@ main(int argc, char** argv)
     LOG(antpm::LOG_DBG2) << "\targv[" << i << "]\t\"" << argv[i] << "\"" << endl;
   }
 
-  char* ANTPM_405 = getenv("ANTPM_405");
-  if(ANTPM_405!=NULL && strncmp("1",ANTPM_405,1)==0)
+  if(false && isAntpm405Override())
   {
     logger() << "\n\nApplying ANTPM_405 override mode!\n\n\n";
     AntFr405 watch2(false);

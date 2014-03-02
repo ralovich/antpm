@@ -783,7 +783,7 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
 
 
 bool
-AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
+AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<uint8_t>& bytes)
 {
   M_ANTFS_Command_Direct cmd;
   cmd.commandId = ANTFS_CommandResponseId;
@@ -839,6 +839,8 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
   logger() << "expecting " << resp->detail.directResponse.data << "x8 bytes of direct data, plus 16 bytes\n";
 
   logger() << "got back = \"" << burstData.size() << "\" bytes\n";
+
+  bytes = burstData;
 
   CHECK_RETURN_FALSE_LOG_OK(burstData.size()==size_t((2+resp->detail.directResponse.data)*8));
 

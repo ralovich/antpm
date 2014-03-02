@@ -329,6 +329,16 @@ getVersionString()
 }
 
 
+bool
+isAntpm405Override()
+{
+  char* ANTPM_405 = getenv("ANTPM_405");
+  if(ANTPM_405!=NULL && strncmp("1",ANTPM_405,1)==0)
+  {
+    return true;
+  }
+  return false;
+}
 
 
 
@@ -360,7 +370,6 @@ template const std::string toStringDec(const int& val, const int width, const ch
 template const std::string toStringDec(const unsigned long& val, const int width, const char fill);
 template const std::string toStringDec(const double& val, const int width, const char fill);
 template const std::string toStringDec(const unsigned int& val, const int width, const char fill);
-
 
 
 #ifdef _WIN64

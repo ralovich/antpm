@@ -472,7 +472,7 @@ AntFr310XT::handleEvents()
     // channel status <>
     CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    if(clientDevName=="Forerunner 405")
+    if(clientDevName=="Forerunner 405" || isAntpm405Override())
       changeStateSafe(ST_ANTFS_GINTF_DL_CAPS);
     else if(mode==MD_DOWNLOAD_ALL || mode==MD_DIRECTORY_LISTING)
       changeStateSafe(ST_ANTFS_DL_DIRECTORY);
@@ -697,12 +697,50 @@ AntFr310XT::handleEvents()
     //R   1.546 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
     //S   2.477 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes fe00000000000000 ........
 
-    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(0xfe00000000000000)));
+    CHECK_RETURN_FALSE(createDownloadFolder());
 
-    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(0x06000200ff000000)));
+    vector<uint8_t> data;
+    uint64_t code = 0xfe00000000000000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
+    code = 0x06000200ff000000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
     // 06000200f8000000
-    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(0x06000200f8000000)));
+    code = 0x06000200f8000000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
+    // 0x060002001b000000 pid=0x001b=27 L001_Pid_Records
+    code = 0x060002001b000000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
+    // 0x06000200de030000 pid=0x03de=990 L001_Pid_Run
+    code = 0x06000200de030000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
+
+    // 0x0600020095000000 pid=0x0095=149 L001_Pid_Lap
+    code = 0x0600020095000000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
+
+    // 0x0600020063000000 pid=0x0063=99 L001_Pid_Trk_Hdr
+    code = 0x0600020063000000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
+
+    // 0x06000200e6050000 pid=0x05e6=1510 ????_Pid_Unknown
+    code = 0x06000200e6050000;
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
 
     // just exit
     changeStateSafe(ST_ANTFS_LAST);

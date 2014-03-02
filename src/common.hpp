@@ -117,4 +117,7 @@ enum
 # define ANTPM_SERIAL_IMPL SerialUsb
 #endif
 
+bool
+isAntpm405Override();
+
 }
