@@ -74,7 +74,13 @@ Serial::instantiate(void*)
   Serial* s = new SerialUsb();
   if(!s)
     return NULL;
-#ifndef _WIN32
+#ifdef _WIN32
+  if(!s->open())
+  {
+    delete s;
+    return NULL;
+  }
+#else
   if(!s->open())
   {
     delete s;
