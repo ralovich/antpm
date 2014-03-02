@@ -83,3 +83,4 @@ src/gant/GantMonitor.py
 src/gant/resources/gant.png
 LICENSE
 gpl-3.0.txt
+README.rst
