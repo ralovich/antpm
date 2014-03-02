@@ -1,3 +1,79 @@
+antpm (1.16-1) experimental; urgency=low
+
+  * open for new development
+  * ant: try logging MESG_STARTUP_MSG_ID
+  * more verbose debug
+  * more verbose debug
+  * SerialUsb.cpp: more VID/PID pairs to be recognised
+  * Serial: implement central factory method
+  * use central factory to create serial interface
+  * tell apart 32/64 bit linux
+  * scripts: create snapshot .deb package
+  * output formatting fixes
+  * decode: MESG_STARTUP_MSG_ID
+  * SerialUsb: print only on error path
+  * remove stale comment
+  * do skip already downloaded files
+  * let us not consider EVENT_TRANSFER_TX_START events
+  * log sent messages too
+  * create antpm-dbg package too
+  * Log: make sure current log level threshold is logged
+  * fix comments
+  * usb: win and linux have different errno values
+  * ANT_CloseChannel: accept more responses are success
+  * catch spurious wakeups of condition variables
+  * infrastructure to interrupt waiting message listeners
+  * extra statement
+  * disable device guessing
+  * give up restarting sooner
+  * Quit quicker.
+  * SerialUsb: reduce verbosity
+  * AntChannel: bugfix
+  * build packages with RelWithDebInfo
+  * cmake: default to Debug build
+  * move method from header to .cpp
+  * fix warning about unused variable
+  * move methods from header to .cpp
+  * add comment
+  * log the dtors
+  * include timstamp in version string
+  * FIT: omit extra printing
+  * debug macros
+  * reduce chattiness in release
+  * make ANTFS_Disconnect not wait for reply
+  * SerialUsb: overhaul
+  * reduce chattiness in release
+  * reduce chattiness in release
+  * reduce chattiness in release
+  * move messy definitions
+  * AntMessage::str2(): decode MESG_STARTUP_MSG_ID
+  * log when state machine destructs
+  * AntFr310XT: stop() is not thread safe, or reentrant
+  * state machine for GarminIntf
+  * provide some end user messages
+  * fold in the GarminIntf states
+  * cmake: inherit compiler flags
+  * check return value of strerror_r
+  * Serial: list linux kernel modules
+  * downloader: more debugging info
+  * UNUSED() macro
+  * gant: fix a bunch of warnings
+  * SerialUsb: bugfix, what a typo
+  * fix warnings about unused variables
+  * use gnu variant of strerror_r
+  * serial: unify unblocking readBlocking()
+  * serial: more info to help remote debugging
+  * add readme file
+  * usb: remove GPLv2 code
+  * update copyright info
+  * serial: try to actually open a device under win too
+  * scripts: arch build file
+  * make lintian happier
+  * tar README.rst too
+  * make lintian happier 2
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Sun, 02 Mar 2014 10:42:06 +0100
+
 antpm (1.15-1) experimental; urgency=low
 
   * open for new development
