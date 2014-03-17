@@ -76,9 +76,9 @@ struct AntFr310XT_EventLoop
   void* rv;
 };
 
-AntFr310XT::AntFr310XT(bool eventLoopInBgTh)
+AntFr310XT::AntFr310XT(bool eventLoopInBgTh, Serial *s)
   //: m_serial(new ANTPM_SERIAL_IMPL())
-  : m_serial(Serial::instantiate())
+  : m_serial(s?s:Serial::instantiate())
   , m_antMessenger(new AntMessenger(eventLoopInBgTh))
   , state(ST_ANTFS_0)
   , m_eventThKill(0)
