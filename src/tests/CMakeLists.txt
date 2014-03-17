@@ -21,6 +21,14 @@ TARGET_LINK_LIBRARIES(testDateTime
 )
 
 
+ADD_EXECUTABLE(sm1
+  sm1.cpp
+)
+TARGET_LINK_LIBRARIES(sm1
+  antpm
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
 
 IF(VALGRIND_PROGRAM)
   function(add_my_test name binary)
@@ -57,3 +65,6 @@ ADD_MY_TEST(testUsbmon2AntDump   ../antpm-usbmon2ant --op dump   ${CMAKE_CURRENT
 ADD_MY_TEST(testUsbmon2AntUsbmon ../antpm-usbmon2ant --op usbmon ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 ADD_MY_TEST(testUsbmon2AntFilter ../antpm-usbmon2ant --op filter ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 ADD_MY_TEST(testUsbmon2AntCount  ../antpm-usbmon2ant --op count  ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
+
+
+ADD_MY_TEST(testsm1 sm1)
