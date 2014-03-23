@@ -1045,7 +1045,10 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
   return true;
 }
 
-bool AntMessenger::onMessage(std::vector<AntMessage> v)
+
+/// Called from m_rpackQueue2.eventLoop()
+bool
+AntMessenger::onMessage(std::vector<AntMessage> v)
 {
   //TODO: don't presort here, but call onMsg for all incoming packets
 
@@ -1154,7 +1157,8 @@ AntMessenger::interruptWait()
 }
 
 
-// receive bytes from the serial interface
+/// Receive bytes from the serial interface, assemble ANT packets,
+/// forward the ANT packets.
 void*
 AntMessenger::th_messageHandler()
 {
