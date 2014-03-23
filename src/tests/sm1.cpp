@@ -217,6 +217,8 @@ BOOST_AUTO_TEST_CASE(test_serial)
 
         break;
       }
+
+      io_service.stop();
     }
     catch (std::exception& e)
     {
