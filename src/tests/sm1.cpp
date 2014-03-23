@@ -44,10 +44,10 @@ using namespace antpm;
 
 using boost::asio::local::stream_protocol;
 
-class uppercase_filter
+class AntHostMessenger
 {
 public:
-  uppercase_filter(boost::asio::io_service& io_service)
+  AntHostMessenger(boost::asio::io_service& io_service)
     : socket_(io_service)
   {
   }
@@ -61,7 +61,7 @@ public:
   {
     // Wait for request.
     socket_.async_read_some(boost::asio::buffer(data_),
-        boost::bind(&uppercase_filter::handle_read,
+        boost::bind(&AntHostMessenger::handle_read,
           this, boost::asio::placeholders::error,
           boost::asio::placeholders::bytes_transferred));
   }
@@ -77,7 +77,7 @@ private:
 
       // Send result.
       boost::asio::async_write(socket_, boost::asio::buffer(data_, size),
-          boost::bind(&uppercase_filter::handle_write,
+          boost::bind(&AntHostMessenger::handle_write,
             this, boost::asio::placeholders::error));
     }
     else
@@ -92,7 +92,7 @@ private:
     {
       // Wait for request.
       socket_.async_read_some(boost::asio::buffer(data_),
-          boost::bind(&uppercase_filter::handle_read,
+          boost::bind(&AntHostMessenger::handle_read,
             this, boost::asio::placeholders::error,
             boost::asio::placeholders::bytes_transferred));
     }
@@ -110,6 +110,7 @@ void run(boost::asio::io_service* io_service)
 {
   try
   {
+    std::cout << "io_service=" << io_service << endl;
     io_service->run();
   }
   catch (std::exception& e)
@@ -142,7 +143,16 @@ public:
 
   virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
   virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
-  virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten) {return false; }
+  virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
+  {
+    bytesWritten = 0;
+    for(size_t i = 0; i < sizeBytes; i++)
+    {
+      m_q.push(src[i]);
+      bytesWritten += 1;
+    }
+    return true;
+  }
 
 private:
   void* ioHandler();
@@ -157,6 +167,7 @@ private:
   void queueData();
 
 private:
+  lqueue3<uint8_t> m_q;
   //boost::scoped_ptr<
   //std::auto_ptr<SerialTtyPrivate> m_p;
 };
@@ -182,49 +193,50 @@ BOOST_AUTO_TEST_CASE(test_serial)
     AntFr310XT watch2(false, st);
 
     boost::asio::io_service io_service;
+    std::cout << "io_service=" << &io_service << endl;
 
-      // Create filter and establish a connection to it.
-      uppercase_filter filter(io_service);
-      stream_protocol::socket socket(io_service);
-      boost::asio::local::connect_pair(socket, filter.socket());
-      filter.start();
+    // Create filter and establish a connection to it.
+    AntHostMessenger filter(io_service);
+    stream_protocol::socket socket(io_service);
+    boost::asio::local::connect_pair(socket, filter.socket());
+    filter.start();
 
-      // The io_service runs in a background thread to perform filtering.
-      boost::thread thread(boost::bind(run, &io_service));
+    // The io_service runs in a background thread to perform filtering.
+    boost::thread bgthread(boost::bind(run, &io_service));
 
-      for (;;)
-      {
-        // Collect request from user.
-        //std::cout << "Enter a string: ";
-        std::string request;
-        //std::getline(std::cin, request);
-        request = "abcdef";
-
-        // Send request to filter.
-        boost::asio::write(socket, boost::asio::buffer(request));
-
-        // Wait for reply from filter.
-        std::vector<char> reply(request.size());
-        boost::asio::read(socket, boost::asio::buffer(reply));
-
-        // Show reply to user.
-        std::cout << "Result: ";
-        std::cout.write(&reply[0], request.size());
-        std::cout << std::endl;
-
-        BOOST_CHECK(reply.size()==6);
-        BOOST_CHECK(reply[0]=='A');
-
-        break;
-      }
-
-      io_service.stop();
-    }
-    catch (std::exception& e)
+    for (;;)
     {
-      std::cerr << "Exception: " << e.what() << "\n";
-      std::exit(1);
+      // Collect request from user.
+      //std::cout << "Enter a string: ";
+      std::string request;
+      //std::getline(std::cin, request);
+      request = "abcdef";
+
+      // Send request to filter.
+      boost::asio::write(socket, boost::asio::buffer(request));
+
+      // Wait for reply from filter.
+      std::vector<char> reply(request.size());
+      boost::asio::read(socket, boost::asio::buffer(reply));
+
+      // Show reply to user.
+      std::cout << "Result: ";
+      std::cout.write(&reply[0], request.size());
+      std::cout << std::endl;
+
+      BOOST_CHECK(reply.size()==6);
+      BOOST_CHECK(reply[0]=='A');
+
+      break;
     }
+
+    io_service.stop();
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Exception: " << e.what() << "\n";
+    std::exit(1);
+  }
 }
 
 #else // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
