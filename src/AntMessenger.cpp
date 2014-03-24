@@ -997,7 +997,8 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
 }
 
 
-// interpret byte stream, assemble packets and store results in \a m_rpackQueue
+/// interpret byte stream, assemble packets and store results in \a m_rpackQueue
+/// Also, forward messages with onAntReceived()
 bool
 AntMessenger::assemblePackets(std::list<uchar>& q)
 {
@@ -1029,10 +1030,6 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     }
     m.timestamp = boost::get_system_time();
     m.idx = packetIdx++;
-    //{
-    //  boost::unique_lock<boost::mutex> lock(m_rpackMutex);
-    //  m_rpackQueue.push_back(m);
-    //}
     m_rpackQueue2.push(m);
     if(m_cb)
     {
