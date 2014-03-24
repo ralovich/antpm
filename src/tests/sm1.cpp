@@ -131,15 +131,80 @@ ClassInstantiator<Log>::instantiate()
   return new Log(NULL);
 }
 
-//
-class SerialTester : public Serial
+class SerialTester0 : public Serial
 {
 public:
-  SerialTester() {}
-  virtual ~SerialTester() {}
+  SerialTester0() {}
+  virtual ~SerialTester0() {}
 
   virtual bool open() { return true; }
-  virtual void close() {}
+  virtual void close() { }
+
+  virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+  virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+  virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten) {return false;}
+
+private:
+  void* ioHandler();
+
+public:
+  virtual const size_t getQueueLength() const { return 0; }
+  virtual const char*  getImplName() { return "SerialTester0"; }
+  virtual bool         isOpen() const { return true; }
+  virtual bool         setWriteDelay(const size_t ms) {return true;}
+
+};
+
+
+//
+class SerialTester1 : public Serial
+{
+public:
+  SerialTester1() {}
+  virtual ~SerialTester1() {}
+
+  virtual bool open() { return true; }
+  virtual void close() { m_q.clear(); }
+
+  virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+  virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+  virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
+  {
+    bytesWritten = 0;
+    for(size_t i = 0; i < sizeBytes; i++)
+    {
+      m_q.push(src[i]);
+      bytesWritten += 1;
+    }
+    return false;
+  }
+
+private:
+  void* ioHandler();
+
+public:
+  virtual const size_t getQueueLength() const { return m_q.size(); }
+  virtual const char*  getImplName() { return "SerialTester1"; }
+  virtual bool         isOpen() const { return true; }
+  virtual bool         setWriteDelay(const size_t ms) {return true;}
+
+private:
+  void queueData();
+
+private:
+  lqueue3<uint8_t> m_q; // FIFO for bytes written into this "serial port" with write() method
+  lqueue4<uint8_t> m_q_r; // FIFO for bytes produced by this "serial port", to be emptied by read()
+};
+
+
+class SerialTester2 : public Serial
+{
+public:
+  SerialTester2() {}
+  virtual ~SerialTester2() {}
+
+  virtual bool open() { return true; }
+  virtual void close() { m_q.clear(); }
 
   virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
   virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
@@ -158,8 +223,8 @@ private:
   void* ioHandler();
 
 public:
-  virtual const size_t getQueueLength() const { return 0; }
-  virtual const char*  getImplName() { return "SerialTester"; }
+  virtual const size_t getQueueLength() const { return m_q.size(); }
+  virtual const char*  getImplName() { return "SerialTester2"; }
   virtual bool         isOpen() const { return true; }
   virtual bool         setWriteDelay(const size_t ms) {return true;}
 
@@ -167,11 +232,9 @@ private:
   void queueData();
 
 private:
-  lqueue3<uint8_t> m_q;
-  //boost::scoped_ptr<
-  //std::auto_ptr<SerialTtyPrivate> m_p;
+  lqueue3<uint8_t> m_q; // FIFO for bytes written into this "serial port" with write() method
+  lqueue4<uint8_t> m_q_r; // FIFO for bytes produced by this "serial port", to be emptied by read()
 };
-
 
 }
 
@@ -179,7 +242,7 @@ private:
 
 
 
-BOOST_AUTO_TEST_CASE(test_serial)
+BOOST_AUTO_TEST_CASE(test_asio)
 {
   antpm::Log::instance()->addSink(std::cout);
   antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
@@ -189,7 +252,7 @@ BOOST_AUTO_TEST_CASE(test_serial)
   try
   {
     //SerialTester st;
-    SerialTester* st = new SerialTester();
+    SerialTester1* st = new SerialTester1();
     AntFr310XT watch2(false, st);
 
     boost::asio::io_service io_service;
@@ -237,6 +300,42 @@ BOOST_AUTO_TEST_CASE(test_serial)
     std::cerr << "Exception: " << e.what() << "\n";
     std::exit(1);
   }
+}
+
+BOOST_AUTO_TEST_CASE(test_serial0)
+{
+  antpm::Log::instance()->addSink(std::cout);
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
+
+  Serial* st = new SerialTester0();
+  AntFr310XT watch2(false, st);
+
+  watch2.start();
+
+}
+
+BOOST_AUTO_TEST_CASE(test_serial1)
+{
+  antpm::Log::instance()->addSink(std::cout);
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
+
+  Serial* st = new SerialTester1();
+  AntFr310XT watch2(false, st);
+
+  watch2.start();
+
+}
+
+BOOST_AUTO_TEST_CASE(test_serial2)
+{
+  antpm::Log::instance()->addSink(std::cout);
+  antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
+
+  Serial* st = new SerialTester2();
+  AntFr310XT watch2(false, st);
+
+  watch2.start();
+
 }
 
 #else // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
