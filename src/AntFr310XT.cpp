@@ -187,13 +187,20 @@ AntFr310XT::run()
   m_antMessenger->eventLoop();
 }
 
-void AntFr310XT::stop()
+/// Stop all processing within the event thread.
+/// Shut down the state machine, resetting it into ST_ANTFS_START0.
+/// Close the serial port.
+/// Must be called from within our event thread itself.
+void
+AntFr310XT::stop()
 {
+  assert(boost::this_thread::get_id() == this->m_eventTh.get_id());
   m_eventThKill = 1;
-  // stop() might be called from the event thread
+  // stop() is called from the event thread
   // terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::thread_resource_error> >'
   //   what():  boost thread: trying joining itself: Resource deadlock avoided
   //m_eventTh.join();
+
   m_antMessenger->kill();
   if(m_serial && m_serial->isOpen())
   {
@@ -210,11 +217,15 @@ void AntFr310XT::stop()
 }
 
 
+/// To be called from threads other than our own event thread. Basically the outside world can tell us to tear down.
 void
 AntFr310XT::stopAsync()
 {
+  assert(boost::this_thread::get_id() != this->m_eventTh.get_id());
+
+
   LOG(LOG_WARN) << "stopAsync called!\n\n";
-  // FIXME: setting ST_ANTFS_LAST might not be enough for stopping immediately,
+  // NOTE:  setting ST_ANTFS_LAST might not be enough for stopping immediately,
   //        as other thread might be
   //        sleeping in a listener, and we stop only when that returns.
   if(m_antMessenger) m_antMessenger->interruptWait(); // FIXME locking needed to access m_antMessenger!!!
