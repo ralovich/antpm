@@ -294,6 +294,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
     }
 
     io_service.stop();
+    bgthread.join();
   }
   catch (std::exception& e)
   {
