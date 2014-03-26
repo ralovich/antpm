@@ -82,10 +82,10 @@ int sentgetv;
 char *fname = "garmin";
 time_t garmin_epoch = 631065600;
 
-static const uchar ANTSPT_KEY[] = "A8A423B9F55E63C1";	// ANT+Sport key
+static const uchar ANTSPT_KEY[] = "A8A423B9F55E63C1";	/* ANT+Sport key */
 
-static uchar ebuf[MESG_DATA_SIZE];	// response event data gets stored here
-static uchar cbuf[MESG_DATA_SIZE];	// channel event data gets stored here
+static uchar ebuf[MESG_DATA_SIZE];	/* response event data gets stored here */
+static uchar cbuf[MESG_DATA_SIZE];	/* channel event data gets stored here */
 
 int passive = 0;
 int verbose = 0;
@@ -112,8 +112,8 @@ ushort part = 0;
 ushort ver = 0;
 uint unitid = 0;
 
-//char *getversion = "440dffff00000000fe00000000000000";
-//char *getgpsver = "440dffff0000000006000200ff000000";
+/*char *getversion = "440dffff00000000fe00000000000000";*/
+/*char *getgpsver = "440dffff0000000006000200ff000000";*/
 const char *acks[] = {
    "fe00000000000000",		// get version - 255, 248, 253
    "0e02000000000000",		// device short name (fr405a) - 525
