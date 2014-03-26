@@ -64,7 +64,7 @@ msg_send(uchar mesg, uchar *inbuf, uchar len)
 			perror("failed write");
 		}
 	} else if (dbg == 2) {
-		// Wali: additional raw data output
+		/*  Wali: additional raw data output */
 		printf(">>>\n    00000000:");
 		for (i = 0; i < (len + 4); i++) {
 			printf(" %02x", buf[i]);
@@ -74,7 +74,7 @@ msg_send(uchar mesg, uchar *inbuf, uchar len)
 	return 1;
 }
 
-// two argument send
+/*  two argument send */
 uchar
 msg_send2(uchar mesg, uchar data1, uchar data2)
 {
@@ -84,7 +84,7 @@ msg_send2(uchar mesg, uchar data1, uchar data2)
 	return msg_send(mesg, buf, 2);
 }
 
-// three argument send
+/*  three argument send */
 uchar
 msg_send3(uchar mesg, uchar data1, uchar data2, uchar data3)
 {
@@ -125,22 +125,22 @@ void get_data(int fd)
 		fprintf(stderr, "\n");
 		exit(1);
 	} else if (dbg == 2) {
-		// Wali: additional raw data output
+		/*  Wali: additional raw data output */
 		printf("<<<\n    00000000:");
 		for (i = 0; i < bufc; i++) {
 			printf(" %02x", buf[i]);
 		}
 		putchar('\n');
 	}
-	// some data in buf
-	// search for possible valid messages
+	/*  some data in buf */
+	/*  search for possible valid messages */
   srch = 0;
 	while (srch < bufc) {
 		found = 0;
-		//printf("srch %d bufc %d\n", srch, bufc);
+		/* printf("srch %d bufc %d\n", srch, bufc); */
 		for (i = srch; i < bufc; i++) {
 			if (buf[i] == MESG_TX_SYNC) {
-				//fprintf(stderr, "bufc %d sync %d\n", bufc, i);
+				/* fprintf(stderr, "bufc %d sync %d\n", bufc, i); */
 				if (i+1 < bufc && buf[i+1] >= 1 && buf[i+1] <= 13) {
 					dlen = buf[i+1];
 					if (i+3+dlen < bufc) {
@@ -148,7 +148,7 @@ void get_data(int fd)
 						for (j = i; j <= i+3+dlen; j++)
 							chk ^= buf[j];
 						if (0 == chk) {
-							found = 1; // got a valid message
+							found = 1; /*  got a valid message */
 							break;
 						} else {
 							fprintf(stderr, "bad chk %02x\n", chk);
@@ -162,8 +162,8 @@ void get_data(int fd)
 		}
 		if (found) {
 			next = j;
-			//printf("next %d %02x\n", next, buf[j-1]);
-			// got a valid message, see if any data needs to be discarded
+			/* printf("next %d %02x\n", next, buf[j-1]); */
+			/*  got a valid message, see if any data needs to be discarded */
 			if (i > srch) {
 				fprintf(stderr, "\nDiscarding: ");
 				for (j = 0; j < i; j++)
@@ -181,10 +181,10 @@ void get_data(int fd)
 			event = 0;
 			switch (buf[i+2]) {
 			case MESG_RESPONSE_EVENT_ID:
-					//if (cfn) {
-					//	memcpy(cbufp, buf+i+4, dlen);
-					//	(*cfn)(buf[i+3], buf[i+5]);
-					//	else
+					/* if (cfn) { */
+					/* 	memcpy(cbufp, buf+i+4, dlen); */
+					/* 	(*cfn)(buf[i+3], buf[i+5]); */
+					/* 	else */
 					if (rfn) {
 						memcpy(rbufp, buf+i+3, dlen);
 						(*rfn)(buf[i+3], buf[i+5]);
@@ -201,8 +201,8 @@ void get_data(int fd)
 					break;
 				case MESG_BURST_DATA_ID:
 					event = EVENT_RX_BURST_PACKET;
-					// coalesce these and generate a fake event on last packet
-					// in case client wishes to ignore these events and capture the fake one
+					/*  coalesce these and generate a fake event on last packet */
+					/*  in case client wishes to ignore these events and capture the fake one */
 					{
 						static uchar *burstbuf[MAXCHAN];
 						static int bused[MAXCHAN];
@@ -288,8 +288,8 @@ void get_data(int fd)
 					break;
 				default:
 					if (rfn) {
-						// should be this according to the docs, but doesn't fit
-						// if (dlen > MESG_RESPONSE_EVENT_SIZE) {
+						/*  should be this according to the docs, but doesn't fit */
+						/*  if (dlen > MESG_RESPONSE_EVENT_SIZE) { */
 						 if (dlen > MESG_DATA_SIZE) {
 							fprintf(stderr, "cresponse buffer too small %d > %d\n", dlen, MESG_DATA_SIZE);
 							for (j = 0; j < dlen; j++)
@@ -329,7 +329,7 @@ void get_data(int fd)
 							fprintf(stderr, "%02x", *(blast+j));
 						fprintf(stderr, "\n");
 					}
-					// FAKE BURST message
+					/*  FAKE BURST message */
 					if (event == EVENT_RX_BURST_PACKET && blast && blsize) {
 						if (dbg) {
 							fprintf(stderr, "Fake burst ch#%d %d %lx\n", chan, blsize, (long)blast);
@@ -526,7 +526,7 @@ ANT_SetSearchWaveform(uchar chan, ushort waveform)
 }
 
 uchar
-ANT_SendAcknowledgedDataA(uchar chan, uchar *data) // ascii version
+ANT_SendAcknowledgedDataA(uchar chan, uchar *data) /*  ascii version */
 {
 	uchar buf[9];
 	int i;
@@ -624,4 +624,4 @@ int ANT_fd()
 	return fd;
 }
 
-// vim: se ts=2 sw=2:
+/*  vim: se ts=2 sw=2: */

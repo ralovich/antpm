@@ -115,19 +115,19 @@ uint unitid = 0;
 /*char *getversion = "440dffff00000000fe00000000000000";*/
 /*char *getgpsver = "440dffff0000000006000200ff000000";*/
 const char *acks[] = {
-   "fe00000000000000",		// get version - 255, 248, 253
-   "0e02000000000000",		// device short name (fr405a) - 525
-// "1c00020000000000", // no data
-   "0a0002000e000000",		// unit id - 38
-   "0a00020002000000",		// send position
-   "0a00020005000000",		// send time
-   "0a000200ad020000",		// 4 byte something? 0x10270000 = 10000 dec - 1523
-   "0a000200c6010000",		// 3 x 4 ints? - 994
-   "0a00020035020000",		// guessing this is # trackpoints per run - 1066
-   "0a00020097000000",		// load of software versions - 247
-   "0a000200c2010000",		// download runs - 27 (#runs), 990?, 12?
-   "0a00020075000000",		// download laps - 27 (#laps), 149 laps, 12?
-   "0a00020006000000",		// download trackpoints - 1510/99(run marker), ..1510,12
+   "fe00000000000000",		/*  get version - 255, 248, 253 */
+   "0e02000000000000",		/*  device short name (fr405a) - 525 */
+/*  "1c00020000000000", // no data */
+   "0a0002000e000000",		/*  unit id - 38 */
+   "0a00020002000000",		/*  send position */
+   "0a00020005000000",		/*  send time */
+   "0a000200ad020000",		/*  4 byte something? 0x10270000 = 10000 dec - 1523 */
+   "0a000200c6010000",		/*  3 x 4 ints? - 994 */
+   "0a00020035020000",		/*  guessing this is # trackpoints per run - 1066 */
+   "0a00020097000000",		/*  load of software versions - 247 */
+   "0a000200c2010000",		/*  download runs - 27 (#runs), 990?, 12? */
+   "0a00020075000000",		/*  download laps - 27 (#laps), 149 laps, 12? */
+   "0a00020006000000",		/*  download trackpoints - 1510/99(run marker), ..1510,12 */
    "0a000200ac020000",
    ""
 };
@@ -141,8 +141,8 @@ char *authfile;
 char *progname;
 
 #define BSIZE 8*10000
-//uchar blast[BSIZE]; // should be like that, but not working
-uchar *blast = 0;		// first time reading not initialized, but why it is working reading from adr 0?
+/* uchar blast[BSIZE]; // should be like that, but not working */
+uchar *blast = 0;		/*  first time reading not initialized, but why it is working reading from adr 0? */
 
 int blsize = 0;
 int bused = 0;
@@ -276,7 +276,7 @@ void dump_data(FILE * out, uchar *data, size_t offset, size_t size)
 	    fprintf(out, "   ");
 	 else
 	    fprintf(out, " %02x", buf[j]);
-      } // for (j=0; j < 16; j++)
+      } /*  for (j=0; j < 16; j++) */
 
       fprintf(out, " ");
       for (j=0; j < 16; j++)
@@ -291,13 +291,13 @@ void dump_data(FILE * out, uchar *data, size_t offset, size_t size)
 	    fprintf(out, "%c", buf[j]);
 	 else
 	    fprintf(out, ".");
-      } // for (j=0; j < 16; j++)
+      } /*  for (j=0; j < 16; j++) */
 
       fprintf(out, "\n");
-   } // for (i=0; i < size; i+=16)
+   } /*  for (i=0; i < size; i+=16) */
 
    return;
-} // void dump_ata(void *data, siz...
+} /*  void dump_ata(void *data, siz... */
 
 
 #pragma pack(1)
@@ -331,11 +331,11 @@ struct pair_msg {
 };
 
 #pragma pack()
-#define ACKSIZE 8		// above structure must be this size
-#define AUTHSIZE 24		// ditto
+#define ACKSIZE 8		/*  above structure must be this size */
+#define AUTHSIZE 24		/*  ditto */
 #define PAIRSIZE 16
-#define MAXLAPS 256		// max of saving laps data before output with trackpoint data
-#define MAXTRACK 256*256	// max number of tracks to be saved per download
+#define MAXLAPS 256		/*  max of saving laps data before output with trackpoint data */
+#define MAXTRACK 256*256	/*  max number of tracks to be saved per download */
 
 void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * data)
 {
@@ -365,14 +365,14 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
    DEBUG_OUT(3, "decode %d %d %d %d", bloblen, pkttype, pktlen, dsize);
    switch (pkttype)
    {
-      case 255:		// Identifier
+      case 255:		/*  Identifier */
 	 memset(model, 0, sizeof model);
 	 memcpy(model, data + doff + 4, pktlen - 4);
 	 part = data[doff] + data[doff + 1] * 256;
 	 ver = data[doff + 2] + data[doff + 3] * 256;
 	 DEBUG_OUT(1, "Packet %d: Part#: %d Version: %d Name: %s", pkttype, part, ver, model);
 	 break;
-      case 248:		// GPS identifier
+      case 248:		/*  GPS identifier */
 	 memset(gpsver, 0, sizeof gpsver);
 	 memcpy(gpsver, data + doff, pktlen);
 	 DEBUG_OUT(1, "Packet %d: GPS: %s", pkttype, gpsver);
@@ -393,8 +393,8 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	    dump_data(stderr, data+doff, 2, pktlen-2);
 	 switch (data[doff] + data[doff + 1] * 256)
 	 {
-	    case 6:		// Wayboint end
-	       // last file completed, add footer and close file
+	    case 6:		/*  Wayboint end */
+	       /*  last file completed, add footer and close file */
 	       if (tcxfile)
 	       {
 		  print_tcx_footer(tcxfile);
@@ -404,9 +404,9 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 		  tcxfile = NULL;
 	       }
 	       break;
-	    case 117:		// Lap informations end
+	    case 117:		/*  Lap informations end */
 	       break;
-	    case 450:		// Track informations end
+	    case 450:		/*  Track informations end */
 	       break;
 	    default:
 	       break;
@@ -416,18 +416,18 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 unitid = data[doff] + data[doff + 1] * 256 + data[doff + 2] * 256 * 256 + data[doff + 3] * 256 * 256 * 256;
 	 DEBUG_OUT(1, "Packet %d: UnitID: %u", pkttype, unitid);
 	 break;
-      case 27:			// Number of following packages
+      case 27:			/*  Number of following packages */
 	 ndata = data[doff] + data[doff + 1] * 256;
 	 DEBUG_OUT(2, "Packet %d: Number of following packages: %u", pkttype, ndata);
 	 break;
-      case 1523:		// Max Trackpoints (?) 10000
-      case 994:		// Drei Limits (?) 200, 25, 200
-      case 1066:		// 20, 200, 100, ????
+      case 1523:		/*  Max Trackpoints (?) 10000 */
+      case 994:		/*  Drei Limits (?) 200, 25, 200 */
+      case 1066:		/*  20, 200, 100, ???? */
 	 DEBUG_OUT(1, "Packet %d", pkttype);
 	 if (dbg >= 2)
 	    dump_data(stderr, data+doff, 0, pktlen);
 	 break;
-      case 14:			// Current time (UTC)
+      case 14:			/*  Current time (UTC) */
 	 DEBUG_OUT(1, "Packet %d: Current time: %04u-%02u-%02u %02u:%02u:%02u", pkttype, data[doff + 2] + data[doff + 3] * 256, data[doff + 1], data[doff], data[doff + 4], data[doff + 6], data[doff + 7]);
 	 break;
       case 17:
@@ -435,10 +435,10 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 if (dbg >= 2)
 	    dump_data(stderr, data+doff, 0, pktlen);
 	 break;
-      case 990:		// Activity specification
+      case 990:		/*  Activity specification */
 	 DEBUG_OUT(1, "Packet %d: Activity %u: laps %u-%u sport %u", pkttype, data[doff] + data[doff + 1] * 256, data[doff + 2] + data[doff + 3] * 256, data[doff + 4] + data[doff + 5] * 256, data[doff + 6]);
 
-	 // Initialize memory if not done before
+	 /*  Initialize memory if not done before */
 	 if (activities == NULL)
 	 {
 	    activities = (struct _activity *)calloc(256 * 256, sizeof(struct _activity));
@@ -448,7 +448,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	       exit(-1);
 	    }
 	    memset(activities, 0x00, sizeof(struct _activity) * 256 * 256);
-	 }			// if (activities == NULL)
+	 }			/*  if (activities == NULL) */
 
 	 activity_id = data[doff] + data[doff + 1] * 256;
 	 activities[activity_id].first_lap = data[doff + 2] + data[doff + 3] * 256;
@@ -456,17 +456,17 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 activities[activity_id].sport = data[doff + 6];
 	 activities[activity_id].valid = 1;
 
-	 // leftover (Most of!)
+	 /*  leftover (Most of!) */
 	 if (dbg >= 2)
 	    dump_data(stderr, data+doff, 7, pktlen-7);
 	 break;
       case 99:
 	 DEBUG_OUT(1, "Packet %d: Activity index: %u", pkttype, data[doff] + data[doff + 1] * 256);
 
-	 // close previous file
+	 /*  close previous file */
 	 if (tcxfile)
 	 {
-	    // add xml footer and close file, the next file will be open further down
+	    /*  add xml footer and close file, the next file will be open further down */
 	    DEBUG_OUT(1, "Closing file");
 	    print_tcx_footer(tcxfile);
 	    xml_position = XML_OUTSIDE;
@@ -485,11 +485,11 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 
 	 lap_id = activities[activity_id].first_lap;
 
-	 // use first lap starttime as filename
+	 /*  use first lap starttime as filename */
 	 tv_lap = laps[lap_id].timestamp;
 	 strftime(tbuf, sizeof(tbuf), "%Y-%m-%d-%H%M%S.tcx", localtime(&tv_lap));
 	 DEBUG_OUT(1, "Open file %s", tbuf);
-	 // open file and start with header of xml file
+	 /*  open file and start with header of xml file */
 	 tcxfile = xmlNewTextWriterFilename(tbuf, 0);
 	 if (tcxfile == NULL)
 	 {
@@ -521,22 +521,22 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&tv_lap));
 	 rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Id", "%s", tbuf); XML_ERROR_CHECK;
 
-	 // leftover (5)
+	 /*  leftover (5) */
 	 if (dbg >= 2)
 	    dump_data(stderr, data+doff, 2, pktlen-2);
 	 break;
       case 1510:
 	 DEBUG_OUT(1, "%d Track package with %u waypoints", pkttype, data[doff] + data[doff + 1] * 256);
 
-	 // if trackpoints are split into more than one message 1510, do not add xml head again
+	 /*  if trackpoints are split into more than one message 1510, do not add xml head again */
 
-	 // Do some sanity checks
+	 /*  Do some sanity checks */
 	 if (activities[activity_id].valid == 0 || laps[lap_id].valid == 0 || lap_id < activities[activity_id].first_lap || lap_id > activities[activity_id].last_lap)
 	 {
 	    ERROR_OUT("Sanity check failed");
 	    ERROR_OUT("Activity: %u, lap: %u", activity_id, lap_id);
 	    exit(-1);
-	 }			// if (activities[activity_id].va...
+	 }			/*  if (activities[activity_id].va... */
 
 	 for (i = 4; i < pktlen; i += 24)
 	 {
@@ -545,17 +545,17 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	    if (lap_id < activities[activity_id].last_lap && laps[lap_id + 1].valid && tv >= laps[lap_id + 1].timestamp)
 	    {
 	       lap_id++;
-	       // Close track and lap if still open (Should ever be)
+	       /*  Close track and lap if still open (Should ever be) */
 	       if (xml_position == XML_IN_Track)
 	       {
 		  rc = xmlTextWriterEndElement(tcxfile); XML_ERROR_CHECK;	/* Track */
 		  xml_position--;
 		  rc = xmlTextWriterEndElement(tcxfile); XML_ERROR_CHECK;	/* Lap */
 		  xml_position--;
-	       }		// if (xml_position == XML_IN_Tra...
-	    }			// if (lap_id < activities[activi...
+	       }		/*  if (xml_position == XML_IN_Tra... */
+	    }			/*  if (lap_id < activities[activi... */
 
-	    // New lap, handle here to only write the code once
+	    /*  New lap, handle here to only write the code once */
 	    if (xml_position == XML_IN_Activity)
 	    {
 	       strftime(tbuf, sizeof tbuf, "%Y-%m-%dT%H:%M:%SZ", gmtime(&laps[lap_id].timestamp));
@@ -595,7 +595,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	       }
 	       XML_ERROR_CHECK;
 
-	       // for bike the average cadence of this lap is here
+	       /*  for bike the average cadence of this lap is here */
 	       if (activities[activity_id].sport == 1)
 	       {
 		  if (laps[lap_id].cadence != 255)
@@ -626,7 +626,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	       }
 	       XML_ERROR_CHECK;
 
-	       // I prefere the average run cadence here than at the end of this lap according windows ANTagent
+	       /*  I prefere the average run cadence here than at the end of this lap according windows ANTagent */
 	       if (activities[activity_id].sport == 0)
 	       {
 		  if (laps[lap_id].cadence != 255)
@@ -642,7 +642,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	       xml_position++;
 
 	       track_pause = 0;
-	    }			// if (xml_position == XML_IN_Act...
+	    }			/*  if (xml_position == XML_IN_Act... */
 
 	    if (xml_position != XML_IN_Track)
 	    {
@@ -660,7 +660,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	    u1 = data[doff + i + 22];
 	    u2 = data[doff + i + 23];
 	    DEBUG_OUT(2, "lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %d %s alt %f dist %f %02x %02x%02x%02x%02x", lat, lon, hr, cad, u1, u2, (int)tv, tbuf, alt, dist, data[doff + i + 3], data[doff + i + 16], data[doff + i + 17], data[doff + i + 18], data[doff + i + 19]);
-	    // track pause only if following trackpoint is aswell 'timemarker' with utopic distance
+	    /*  track pause only if following trackpoint is aswell 'timemarker' with utopic distance */
 	    if (track_pause && dist > (float)40000000)
 	    {
 	       rc = xmlTextWriterEndElement(tcxfile); XML_ERROR_CHECK;	/* Track */
@@ -680,7 +680,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	       rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AltitudeMeters", "%s", ground(alt)); XML_ERROR_CHECK;
 	    }
 
-	    // last trackpoint has utopic distance, 40000km should be enough, hack?
+	    /*  last trackpoint has utopic distance, 40000km should be enough, hack? */
 	    if (dist < (float)40000000)
 	    {
 	       rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "DistanceMeters", "%s", ground(dist)); XML_ERROR_CHECK;
@@ -694,7 +694,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	       rc = xmlTextWriterEndElement(tcxfile); XML_ERROR_CHECK;	/* HeartRateBpm */
 	    }
 
-	    // for bikes the cadence is written here and for the footpod in <Extensions>, why garmin?
+	    /*  for bikes the cadence is written here and for the footpod in <Extensions>, why garmin? */
 	    if (activities[activity_id].sport == 1)
 	    {
 	       if (cad != 255)
@@ -711,7 +711,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 		  rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Extensions"); XML_ERROR_CHECK;
 		  rc = xmlTextWriterStartElementNS(tcxfile, NULL, BAD_CAST "TPX", BAD_CAST "http://www.garmin.com/xmlschemas/ActivityExtension/v2"); XML_ERROR_CHECK;
 		  rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "AvgRunCadence", "%d", cad); XML_ERROR_CHECK;
-		  // get type of pod from data, could not figure it out, so using sporttyp of first track
+		  /*  get type of pod from data, could not figure it out, so using sporttyp of first track */
 		  if (activities[activity_id].sport == 1)
 		  {
 		     rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "CadenceSensor", BAD_CAST "Bike"); XML_ERROR_CHECK;
@@ -733,7 +733,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	    rc = xmlTextWriterEndElement(tcxfile); XML_ERROR_CHECK;	/* Trackpoint */
 	    xml_position--;
 
-	    // maybe if we recieve utopic position and distance this tells pause in the run (stop and go) if not begin or end of lap
+	    /*  maybe if we recieve utopic position and distance this tells pause in the run (stop and go) if not begin or end of lap */
 	    if (dist > (float)40000000 && track_pause == 0)
 	    {
 	       track_pause = 1;
@@ -743,12 +743,12 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	    {
 	       track_pause = 0;
 	    }
-	 }			// for (i = 4; i < pktlen; i += 2...
+	 }			/*  for (i = 4; i < pktlen; i += 2... */
 	 break;
-      case 149:		// Lap specification
+      case 149:		/*  Lap specification */
 	 DEBUG_OUT(1, "%d Lap data id: %u %u", pkttype, data[doff] + data[doff + 1] * 256, data[doff + 2] + data[doff + 3] * 256);
 
-	 // Initialize memory if not done before
+	 /*  Initialize memory if not done before */
 	 if (laps == NULL)
 	 {
 	    laps = (struct _lap *)calloc(256 * 256, sizeof(struct _lap));
@@ -758,13 +758,13 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	       exit(-1);
 	    }
 	    memset(laps, 0x00, sizeof(struct _lap) * 256 * 256);
-	 }			// if (laps == NULL)
+	 }			/*  if (laps == NULL) */
 
 	 lap_id = data[doff] + data[doff + 1] * 256;
 	 laps[lap_id].timestamp = data[doff + 4] + data[doff + 5] * 256 + data[doff + 6] * 256 * 256 + data[doff + 7] * 256 * 256 * 256 + garmin_epoch;
 	 laps[lap_id].duration = data[doff + 8] + data[doff + 9] * 256 + data[doff + 10] * 256 * 256 + data[doff + 11] * 256 * 256 * 256;
-	 memcpy(&laps[lap_id].distance, &data[doff + 12], 4);	// Dirty, but seems to work
-	 memcpy(&laps[lap_id].max_speed, &data[doff + 16], 4);	// Dirty, but seems to work
+	 memcpy(&laps[lap_id].distance, &data[doff + 12], 4);	/*  Dirty, but seems to work */
+	 memcpy(&laps[lap_id].max_speed, &data[doff + 16], 4);	/*  Dirty, but seems to work */
 	 laps[lap_id].calories = data[doff + 36] + data[doff + 37] * 256;
 	 laps[lap_id].hr_avg = data[doff + 38];
 	 laps[lap_id].hr_max = data[doff + 39];
@@ -781,7 +781,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
 	 }
 
 	 break;
-      case 247:		// Software versions
+      case 247:		/*  Software versions */
 	 memset(modelname, 0, sizeof modelname);
 	 memcpy(modelname, data + doff + 88, dsize - 88);
 	 DEBUG_OUT(1, "%d Device name \"%s\"\n", pkttype, modelname);
@@ -847,7 +847,7 @@ uchar chevent(uchar chan, uchar event)
    switch (event)
    {
       case EVENT_RX_BROADCAST:
-	 lastphase = phase;	// store the last phase we see the watch broadcast
+	 lastphase = phase;	/*  store the last phase we see the watch broadcast */
 	 DEBUG_OUT(3, "Lastphase %d", lastphase);
 	 if (!pairing && !nopairing)
 	    pairing = cbuf[1] & 8;
@@ -885,7 +885,7 @@ uchar chevent(uchar chan, uchar event)
 	    ANT_RequestMessage(chan, MESG_CHANNEL_ID_ID);	/* request sender id */
 	 }
 
-	 // if we don't see a phase 0 message first, reset the watch
+	 /*  if we don't see a phase 0 message first, reset the watch */
 	 if (reset || (phase != 0 && !seenphase0))
 	 {
 	    DEBUG_OUT(1, "Resetting");
@@ -894,7 +894,7 @@ uchar chevent(uchar chan, uchar event)
 	    ack.c1 = 0x00;
 	    ack.c2 = 0x00;
 	    ack.id = 0;
-	    ANT_SendAcknowledgedData(chan, (uchar *)&ack);	// tell garmin we're finished
+	    ANT_SendAcknowledgedData(chan, (uchar *)&ack);	/*  tell garmin we're finished */
 	    sleep(1);
 	    exit(1);
 	 }
@@ -907,27 +907,27 @@ uchar chevent(uchar chan, uchar event)
 		  donebind = 0;
 	       if (newfreq)
 	       {
-		  // switch to new frequency
+		  /*  switch to new frequency */
 		  ANT_SetChannelPeriod(chan, period);
 		  ANT_SetChannelSearchTimeout(chan, 3);
 		  ANT_SetChannelRFFreq(chan, newfreq);
 		  newfreq = 0;
 	       }
-	       // phase 0 seen after reset at end of download
+	       /*  phase 0 seen after reset at end of download */
 	       if (downloadfinished)
 	       {
 		  DEBUG_OUT(1, "Download finished");
 		  exit(0);
 	       }
-	       // generate a random id if pairing and user didn't specify one
+	       /*  generate a random id if pairing and user didn't specify one */
 	       if (pairing && !myid)
 	       {
 		  myid = randno();
 		  DEBUG_OUT(1, "Pairing, using id %08x", myid);
 	       }
-	       // need id codes from auth file if not pairing
-	       // TODO: handle multiple watches
-	       // BUG: myauth1 should be allowed to be 0
+	       /*  need id codes from auth file if not pairing */
+	       /*  TODO: handle multiple watches */
+	       /*  BUG: myauth1 should be allowed to be 0 */
 	       if (!pairing && !myauth1)
 	       {
 		  int nr;
@@ -947,14 +947,14 @@ uchar chevent(uchar chan, uchar event)
 		     ERROR_OUT("Bad auth file len %d != 32 or 24", nr);
 		     exit(1);
 		  }
-		  // BUG: auth file not portable
+		  /*  BUG: auth file not portable */
 		  memcpy((void *)&myauth1, authdata + 16, 4);
 		  memcpy((void *)&myauth2, authdata + 20, 4);
 		  memcpy((void *)&mydev, authdata + 12, 4);
 		  memcpy((void *)&myid, authdata + 4, 4);
 		  DEBUG_OUT(4, "dev %08x auth %08x %08x id %08x", mydev, myauth1, myauth2, myid);
 	       }
-	       // bind to watch
+	       /*  bind to watch */
 	       if (!donebind && devid)
 	       {
 		  donebind = 1;
@@ -965,7 +965,7 @@ uchar chevent(uchar chan, uchar event)
 		  ack.c1 = isa50 ? 0x32 : newfreq;
 		  ack.c2 = 0x04;
 		  ack.id = myid;
-		  ANT_SendAcknowledgedData(chan, (void *)&ack);	// bind
+		  ANT_SendAcknowledgedData(chan, (void *)&ack);	/*  bind */
 	       }
 	       else
 	       {
@@ -977,7 +977,7 @@ uchar chevent(uchar chan, uchar event)
 	       if (peerdev)
 	       {
 		  DEBUG_OUT(4, " -: peerdev");
-		  // if watch has sent id
+		  /*  if watch has sent id */
 		  if (mydev != 0 && peerdev != mydev)
 		  {
 		     DEBUG_OUT(1, "Don't know this device %08x != %08x", peerdev, mydev);
@@ -995,7 +995,7 @@ uchar chevent(uchar chan, uchar event)
 		     auth.auth2 = myauth2;
 		     auth.fill1 = auth.fill2 = 0;
 		     sentauth = 1;
-		     ANT_SendBurstTransfer(chan, (void *)&auth, (sizeof auth) / 8);	// send our auth data
+		     ANT_SendBurstTransfer(chan, (void *)&auth, (sizeof auth) / 8);	/*  send our auth data */
 		  }
 	       }
 	       DEBUG_OUT(4, " -: cid %x myid %x", cid, myid);
@@ -1003,17 +1003,17 @@ uchar chevent(uchar chan, uchar event)
 	       {
 		  sentack2 = 1;
 		  DEBUG_OUT(4, " -: sending ack2");
-		  // if it did bind to me before someone else
+		  /*  if it did bind to me before someone else */
 		  ack.code = 0x44;
 		  ack.atype = 4;
 		  ack.c1 = 0x01;
 		  ack.c2 = 0x00;
 		  ack.id = myid;
-		  ANT_SendAcknowledgedData(chan, (void *)&ack);	// request id
+		  ANT_SendAcknowledgedData(chan, (void *)&ack);	/*  request id */
 	       }
 	       break;
 	    case 2:
-	       // successfully authenticated
+	       /*  successfully authenticated */
 	       if (!downloadstarted)
 	       {
 		  downloadstarted = 1;
@@ -1023,7 +1023,7 @@ uchar chevent(uchar chan, uchar event)
 		  ack.c1 = 0x01;
 		  ack.c2 = 0x00;
 		  ack.id = 0;
-		  //ANT_SendAcknowledgedData(chan, (void *)&ack); // tell garmin to start upload
+		  /* ANT_SendAcknowledgedData(chan, (void *)&ack); // tell garmin to start upload */
 	       }
 	       if (downloadfinished)
 	       {
@@ -1034,15 +1034,15 @@ uchar chevent(uchar chan, uchar event)
 		  ack.c2 = 0x00;
 		  ack.id = 0;
 		  if (!passive)
-		     ANT_SendAcknowledgedData(chan, (void *)&ack);	// tell garmin we're finished
+		     ANT_SendAcknowledgedData(chan, (void *)&ack);	/*  tell garmin we're finished */
 	       }
 	       break;
 	    case 3:
 	       if (pairing)
 	       {
-		  // waiting for the user to pair
+		  /*  waiting for the user to pair */
 		  printf("Please press \"View\" on watch to confirm pairing\n");
-		  waitauth = 2;	// next burst data is auth data
+		  waitauth = 2;	/*  next burst data is auth data */
 	       }
 	       else
 	       {
@@ -1050,7 +1050,7 @@ uchar chevent(uchar chan, uchar event)
 		  if (!sentgetv)
 		  {
 		     sentgetv = 1;
-		     //ANT_SendBurstTransferA(chan, getversion, strlen(getversion)/16);
+		     /* ANT_SendBurstTransferA(chan, getversion, strlen(getversion)/16); */
 		  }
 	       }
 	       break;
@@ -1060,7 +1060,7 @@ uchar chevent(uchar chan, uchar event)
 	 }
 	 break;
       case EVENT_RX_BURST_PACKET:
-	 // now handled in coalesced burst below
+	 /*  now handled in coalesced burst below */
 	 DEBUG_OUT(5, "Burst");
 	 break;
       case EVENT_RX_FAKE_BURST:
@@ -1085,7 +1085,7 @@ uchar chevent(uchar chan, uchar event)
 	    static int nacksent = 0;
 	    static char ackpkt[100];
 
-	    // ack the last packet
+	    /*  ack the last packet */
 	    ushort bloblen = blast[14] + 256 * blast[15];
 
 	    ushort pkttype = blast[16] + 256 * blast[17];
@@ -1094,18 +1094,18 @@ uchar chevent(uchar chan, uchar event)
 
 	    if (bloblen == 0)
 	    {
-	       // request next set of data
+	       /*  request next set of data */
 	       const char* ackdata = acks[nacksent++];
 	       DEBUG_OUT(2, "bloblen %d, get next data", bloblen);
 	       if (!strcmp(ackdata, ""))
-	       {		// finished
+	       {		/*  finished */
 		  DEBUG_OUT(2, "ACKs finished, resetting");
 		  ack.code = 0x44;
 		  ack.atype = 3;
 		  ack.c1 = 0x00;
 		  ack.c2 = 0x00;
 		  ack.id = 0;
-		  ANT_SendAcknowledgedData(chan, (void *)&ack);	// go to idle
+		  ANT_SendAcknowledgedData(chan, (void *)&ack);	/*  go to idle */
 		  sleep(1);
 		  exit(1);
 	       }
@@ -1114,7 +1114,7 @@ uchar chevent(uchar chan, uchar event)
 	    }
 	    else if (bloblen == 65535)
 	    {
-	       // repeat last ack
+	       /*  repeat last ack */
 	       DEBUG_OUT(2, "Repeating ACK %s", ackpkt);
 	       ANT_SendBurstTransferA(chan, (uchar *) ackpkt, strlen(ackpkt) / 16);
 	    }
@@ -1141,7 +1141,7 @@ uchar chevent(uchar chan, uchar event)
 	    {
 	       int nw;
 
-	       // should be receiving auth data
+	       /*  should be receiving auth data */
 	       if (nowriteauth)
 	       {
 		  ERROR_OUT("Not overwriting auth data");
@@ -1162,33 +1162,33 @@ uchar chevent(uchar chan, uchar event)
 		  exit(1);
 	       }
 	       close(authfd);
-	       //exit(1);
+	       /* exit(1); */
 	       pairing = 0;
 	       waitauth = 0;
 	       reset = 1;
 	    }
 	    if (pairing && !waitauth)
 	    {
-	       //assert(sizeof pair == PAIRSIZE);
+	       /* assert(sizeof pair == PAIRSIZE); */
 	       pair.code = 0x44;
 	       pair.atype = 4;
 	       pair.phase = 2;
 	       pair.id = myid;
 	       bzero(pair.devname, sizeof pair.devname);
-	       //if (peerdev <= 9999999) // only allow 7 digits
-	       //sprintf(pair.devname, "%u", peerdev);
+	       /* if (peerdev <= 9999999) // only allow 7 digits */
+	       /* sprintf(pair.devname, "%u", peerdev); */
 	       strcpy(pair.devname, fname);
-	       //else
-	       //       DEBUG_OUT(1, "Pair dev name too large %08x \"%d\"\n", peerdev, peerdev)
+	       /* else */
+	       /*        DEBUG_OUT(1, "Pair dev name too large %08x \"%d\"\n", peerdev, peerdev) */
 	       pair.u1 = strlen(pair.devname);
 	       DEBUG_OUT(1, "Sending pair data for dev %s", pair.devname);
 	       waitauth = 1;
 	       if (isa405 && pairing)
 	       {
-		  // go straight to storing auth data
+		  /*  go straight to storing auth data */
 		  waitauth = 2;
 	       }
-	       ANT_SendBurstTransfer(chan, (void *)&pair, (sizeof pair) / 8);	// send pair data
+	       ANT_SendBurstTransfer(chan, (void *)&pair, (sizeof pair) / 8);	/*  send pair data */
 	    }
 	    else
 	    {
@@ -1200,7 +1200,7 @@ uchar chevent(uchar chan, uchar event)
 	    static int once = 0;
 
 	    gotwatchid = 1;
-	    // garmin sending authentication/identification data
+	    /*  garmin sending authentication/identification data */
 	    if (!once)
 	    {
 	       once = 1;
@@ -1222,8 +1222,8 @@ uchar chevent(uchar chan, uchar event)
 	    static int once = 0;
 
 	    DEBUG_OUT(2, "Once %d", once)
-	       // garmin uploading in response to sendack3
-	       // in this state we're receiving the workout data
+	       /*  garmin uploading in response to sendack3 */
+	       /*  in this state we're receiving the workout data */
 	       if (!once)
 	    {
 	       DEBUG_OUT(2, "Receiving");
@@ -1272,7 +1272,7 @@ uchar revent(uchar chan, uchar event)
 	 else
 	 {
 	    DEBUG_OUT(3, "Ignoring unknown device %08x, mydev %08x", devid, mydev);
-	    devid = sentid = 0;	// reset
+	    devid = sentid = 0;	/*  reset */
 	 }
 	 break;
       case MESG_NETWORK_KEY_ID:
@@ -1291,7 +1291,7 @@ uchar revent(uchar chan, uchar event)
       case EVENT_RX_FAIL:
       case EVENT_TRANSFER_TX_FAILED:
       case EVENT_TRANSFER_RX_FAILED:
-	 // ignore this
+	 /*  ignore this */
 	 break;
       case EVENT_RX_SEARCH_TIMEOUT:
 	 printf("Timeout, please make sure the device is not in standby.\n");
@@ -1308,18 +1308,18 @@ int main(int ac, char *av[])
    int devnum = 0;
    int chan = 0;
    int net = 0;
-   int chtype = 0;		// wildcard
-   int devno = 0;		// wildcard
-   int devtype = 0;		// wildcard
-   int manid = 0;		// wildcard
-   int freq = 0x32;		// garmin specific radio frequency
-   int srchto = 255;		// max timeout
-   int waveform = 0x0053;	// aids search somehow
+   int chtype = 0;		/*  wildcard */
+   int devno = 0;		/*  wildcard */
+   int devtype = 0;		/*  wildcard */
+   int manid = 0;		/*  wildcard */
+   int freq = 0x32;		/*  garmin specific radio frequency */
+   int srchto = 255;		/*  max timeout */
+   int waveform = 0x0053;	/*  aids search somehow */
    int c;
    extern char *optarg;
    extern int optind;
 
-   // default auth file //
+   /*  default auth file // */
    if (getenv("HOME"))
    {
       authfile = malloc(strlen(getenv("HOME")) + strlen("/.gant") + 1);
@@ -1378,27 +1378,27 @@ int main(int ac, char *av[])
    if ((!passive && !authfile) || ac)
       usage();
 
-   if (!ANT_Init(devnum))	// should be 115200 but doesn't fit into a short
+   if (!ANT_Init(devnum))	/*  should be 115200 but doesn't fit into a short */
    {
       ERROR_OUT("Open /dev/ttyUSB%d failed", devnum);
       exit(1);
    }
    ANT_ResetSystem();
    ANT_AssignResponseFunction(revent, ebuf);
-   ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID);	//informative
+   ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID);	/* informative */
    ANT_SetNetworkKeya(net, ANTSPT_KEY);
    ANT_AssignChannel(chan, chtype, net);
-   // Wali: changed order of the following seq. according windows
+   /*  Wali: changed order of the following seq. according windows */
    ANT_SetChannelPeriod(chan, period);
    ANT_SetChannelSearchTimeout(chan, srchto);
-   ANT_RequestMessage(chan, MESG_CAPABILITIES_ID);	//informative
+   ANT_RequestMessage(chan, MESG_CAPABILITIES_ID);	/* informative */
    ANT_SetChannelRFFreq(chan, freq);
    ANT_SetSearchWaveform(chan, waveform);
    ANT_SetChannelId(chan, devno, devtype, manid);
    ANT_OpenChannel(chan);
-   ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID);	//informative
+   ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID);	/* informative */
 
-   // everything handled in event functions
+   /*  everything handled in event functions */
    for (;;)
       sleep(10);
 }
