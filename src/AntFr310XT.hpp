@@ -33,7 +33,7 @@ struct AntFr310XT_EventLoop;
 class AntFr310XT: public AntCallback
 {
 public:
-  AntFr310XT(bool eventLoopInBgTh = true, Serial* s = NULL);
+  AntFr310XT(Serial* s = NULL);
   virtual ~AntFr310XT();
 
   void setModeForcePairing() { doPairing=true; }
@@ -79,8 +79,6 @@ protected:
   uint        clientSN;
   std::string clientDevName;
   uint64_t    pairedKey;
-
-  bool m_eventLoopInBgTh;
 
   bool        doPairing;
   std::string folder;

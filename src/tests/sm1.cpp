@@ -253,7 +253,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
   {
     //SerialTester st;
     SerialTester1* st = new SerialTester1();
-    AntFr310XT watch2(false, st);
+    AntFr310XT watch2(st);
 
     boost::asio::io_service io_service;
     std::cout << "io_service=" << &io_service << endl;
@@ -308,7 +308,7 @@ BOOST_AUTO_TEST_CASE(test_serial0)
   antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
 
   Serial* st = new SerialTester0();
-  AntFr310XT watch2(false, st);
+  AntFr310XT watch2(st);
 
   watch2.start();
 
@@ -320,7 +320,7 @@ BOOST_AUTO_TEST_CASE(test_serial1)
   antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
 
   Serial* st = new SerialTester1();
-  AntFr310XT watch2(false, st);
+  AntFr310XT watch2(st);
 
   watch2.start();
 
@@ -332,7 +332,7 @@ BOOST_AUTO_TEST_CASE(test_serial2)
   antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
 
   Serial* st = new SerialTester2();
-  AntFr310XT watch2(false, st);
+  AntFr310XT watch2(st);
 
   watch2.start();
 

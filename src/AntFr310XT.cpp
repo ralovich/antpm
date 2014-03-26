@@ -76,17 +76,16 @@ struct AntFr310XT_EventLoop
   void* rv;
 };
 
-AntFr310XT::AntFr310XT(bool eventLoopInBgTh, Serial *s)
-  //: m_serial(new ANTPM_SERIAL_IMPL())
+/// s[in] allocated by "new"
+AntFr310XT::AntFr310XT(Serial *s)
   : m_serial(s?s:Serial::instantiate())
-  , m_antMessenger(new AntMessenger(eventLoopInBgTh))
+  , m_antMessenger(new AntMessenger())
   , state(ST_ANTFS_0)
   , m_eventThKill(0)
   , m_restartCount(0)
   , aplc(getConfigFolder()+std::string("antparse_")+getDateString()+".txt")
   , clientSN(0)
   , pairedKey(0)
-  , m_eventLoopInBgTh(eventLoopInBgTh)
   , doPairing(false)
   , mode(MD_DOWNLOAD_ALL)
 {
@@ -103,8 +102,10 @@ AntFr310XT::AntFr310XT(bool eventLoopInBgTh, Serial *s)
 
 AntFr310XT::~AntFr310XT()
 {
-  if(m_antMessenger) m_antMessenger->setCallback(0);
-  //m_antMessenger->setHandler(0);
+  if(m_antMessenger)
+  {
+    m_antMessenger->setCallback(0);
+  }
 
   m_eventThKill=1;
   m_eventTh.join();
@@ -183,8 +184,7 @@ AntFr310XT::start()
 
   changeState(ST_ANTFS_START0);
 
-  if(!m_eventLoopInBgTh)
-    m_antMessenger->eventLoop();
+  m_antMessenger->eventLoop();
 }
 
 void AntFr310XT::stop()

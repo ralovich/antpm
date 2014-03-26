@@ -33,7 +33,7 @@ struct AntFr405_EventLoop;
 class AntFr405: public AntCallback
 {
 public:
-  AntFr405(bool eventLoopInBgTh = true);
+  AntFr405();
   virtual ~AntFr405();
 
   void setModeForcePairing() { doPairing=true; }
@@ -76,8 +76,6 @@ protected:
   uint        clientSN;
   std::string clientDevName;
   uint64_t    pairedKey;
-
-  bool m_eventLoopInBgTh;
 
   bool        doPairing;
   std::string folder;

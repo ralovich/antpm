@@ -76,13 +76,12 @@ struct AntFr405_EventLoop
   void* rv;
 };
 
-AntFr405::AntFr405(bool eventLoopInBgTh)
+AntFr405::AntFr405()
   : m_serial(new ANTPM_SERIAL_IMPL())
-  , m_antMessenger(new AntMessenger(eventLoopInBgTh))
+  , m_antMessenger(new AntMessenger())
   , aplc(getConfigFolder()+std::string("antparse_")+getDateString()+".txt")
   , clientSN(0)
   , pairedKey(0)
-  , m_eventLoopInBgTh(eventLoopInBgTh)
   , doPairing(false)
   , mode(MD_DOWNLOAD_ALL)
 {
@@ -179,8 +178,7 @@ AntFr405::start()
 
   changeState(ST_ANTFS_START0);
 
-  if(!m_eventLoopInBgTh)
-    m_antMessenger->eventLoop();
+  m_antMessenger->eventLoop();
 }
 
 void AntFr405::stop()

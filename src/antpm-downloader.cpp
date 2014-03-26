@@ -217,7 +217,7 @@ main(int argc, char** argv)
   if(false && isAntpm405Override())
   {
     logger() << "\n\nApplying ANTPM_405 override mode!\n\n\n";
-    AntFr405 watch2(false);
+    AntFr405 watch2;
     stopFunc = boost::bind(&AntFr405::stopAsync, &watch2);
     {
       watch2.setModeDownloadAll();
@@ -234,7 +234,7 @@ main(int argc, char** argv)
   }
   else
   {
-    AntFr310XT watch2(false);
+    AntFr310XT watch2;
     stopFunc = boost::bind(&AntFr310XT::stopAsync, &watch2);
     {
       watch2.setModeDownloadAll();

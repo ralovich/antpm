@@ -56,11 +56,11 @@ struct AntMessenger_Recevier
 };
 
 
-AntMessenger::AntMessenger(bool eventLoopInBgTh)
+AntMessenger::AntMessenger()
   : m_io(0)
   , m_cb(0)
   , m_packerThKill(0)
-  , m_rpackQueue2(eventLoopInBgTh)
+  , m_rpackQueue2()
 {
   m_packerThKill = 0;
   AntMessenger_Recevier msgTh;
@@ -77,6 +77,7 @@ AntMessenger::AntMessenger(bool eventLoopInBgTh)
 
 AntMessenger::~AntMessenger()
 {
+  m_rpackQueue2.setOnDataArrivedCallback(0);
   m_packerThKill = 1;
   m_packerTh.join();
   m_io=0;

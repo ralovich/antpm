@@ -109,7 +109,7 @@ struct AntMessenger_Recevier;
 class AntMessenger
 {
 public:
-  AntMessenger(bool eventLoopInBgTh = true);
+  AntMessenger();
   ~AntMessenger();
   void setHandler(Serial* io){m_io=io;}
   void setCallback(AntCallback* cb){m_cb=cb;}
