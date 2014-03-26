@@ -12,11 +12,18 @@ notifications:
 branches:
   only:
     - master
-before_install: sudo apt-get update && uname -a
+before_install:
+  - sudo apt-get update
+  - uname -a
+  - free
+  - cat /proc/cpuinfo
+  - g++ -v
+  - clang++ -v
 install: sudo apt-get install libboost-dev libboost-date-time-dev libboost-thread-dev libboost-system-dev libboost-filesystem-dev	libboost-program-options-dev libboost-test-dev libusb-dev libxml2-dev valgrind
 before_script: mkdir cmake-build
 script:
-  - cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
-  - cd cmake-build && make clean
-  - cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
-  - cd cmake-build && make clean
+  - cd cmake-build
+  - cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
+  - make distclean
+  - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
+  - make distclean
