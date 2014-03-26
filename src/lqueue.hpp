@@ -85,7 +85,7 @@ protected:
 
 
 
-// implements push consumer
+/// implements push consumer
 template < class DataType>
 class lqueue3 : public lqueue2<DataType>
 {
