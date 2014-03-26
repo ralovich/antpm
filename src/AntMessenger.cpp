@@ -854,6 +854,7 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<ui
 void AntMessenger::eventLoop()
 {
   m_rpackQueue2.eventLoop();
+  lprintf(LOG_DBG2, "~%s\n", __FUNCTION__);
 }
 
 void AntMessenger::kill()
@@ -1189,6 +1190,7 @@ AntMessenger::th_messageHandler()
   {
     lprintf(antpm::LOG_WARN, "%d remaining uninterpreted bytes\n", (int)q.size());
   }
+  lprintf(LOG_DBG2, "~%s\n", __FUNCTION__);
   return NULL;
 }
 

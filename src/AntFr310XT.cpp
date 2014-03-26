@@ -261,10 +261,12 @@ AntFr310XT::th_eventLoop()
       sleepms(1000);
     }
   }
+  lprintf(LOG_DBG2, "~%s\n", __FUNCTION__);
   return 0;
 }
 
 
+/// Return true if event was handled according to the State Machine, false otherwise.
 bool
 AntFr310XT::handleEvents()
 {
