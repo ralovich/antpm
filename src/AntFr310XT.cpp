@@ -55,8 +55,8 @@ const ushort waveform = 0x5300;
 const uchar fsFreq = 0x46;  // other values seen: 0x46 0x50 0x0f
 const uchar beaconPer = 0x04;
 const uchar fsSearchTimeout = 0x03;
-
-
+const int ANTPM_MAX_RESTARTS = 10;
+const int ANTPM_DELAY_MS_UNHANDLED = 1000;
 
 
 struct AntFr310XT_EventLoop
@@ -176,10 +176,6 @@ AntFr310XT::run()
   CHECK_RETURN(m_serial);
   CHECK_RETURN(m_serial->isOpen());
 
-  //createDownloadFolder();
-
-  //m_antMessenger->addListener(boost::bind(&AntFr310XT2::listenerFunc2, this, _1));
-
   //m_antMessenger->setCallback(&aplc);
 
   changeState(ST_ANTFS_START0);
@@ -269,7 +265,7 @@ AntFr310XT::th_eventLoop()
     else
     {
       changeState(ST_ANTFS_BAD);
-      sleepms(1000);
+      sleepms(ANTPM_DELAY_MS_UNHANDLED);
     }
   }
   lprintf(LOG_DBG2, "~%s\n", __FUNCTION__);
@@ -338,7 +334,7 @@ AntFr310XT::handleEvents()
   // new state machine
   if(state==ST_ANTFS_RESTART)
   {
-    if(++m_restartCount==10)
+    if(++m_restartCount==ANTPM_MAX_RESTARTS)
     {
       LOG(LOG_RAW) << "\n\nTried " << m_restartCount << " times, and couldn't communicate with ANT device!\n"
                    << "Please try again running the downloader.\n"
