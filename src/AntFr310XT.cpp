@@ -171,7 +171,7 @@ AntFr310XT::onAntSent(const AntMessage m)
 
 
 void
-AntFr310XT::start()
+AntFr310XT::run()
 {
   CHECK_RETURN(m_serial);
   CHECK_RETURN(m_serial->isOpen());

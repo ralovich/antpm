@@ -243,7 +243,7 @@ main(int argc, char** argv)
       else if(dlFileIdx!=0x0000) watch2.setModeDownloadSingleFile(dlFileIdx);
       else if(eraseFileIdx!=0x000) watch2.setModeEraseSingleFile(eraseFileIdx);
 
-      watch2.start();
+      watch2.run();
 
 
       //watch2.stop();

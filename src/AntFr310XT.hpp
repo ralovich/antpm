@@ -46,7 +46,7 @@ public:
   virtual void onAntReceived(const AntMessage m);
   virtual void onAntSent(const AntMessage m);
 
-  void start();
+  void run();
 protected:
   void stop();
 public:

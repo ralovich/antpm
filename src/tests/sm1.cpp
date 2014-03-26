@@ -311,7 +311,7 @@ BOOST_AUTO_TEST_CASE(test_serial0)
   Serial* st = new SerialTester0();
   AntFr310XT watch2(st);
 
-  watch2.start();
+  watch2.run();
 
 }
 
@@ -323,7 +323,7 @@ BOOST_AUTO_TEST_CASE(test_serial1)
   Serial* st = new SerialTester1();
   AntFr310XT watch2(st);
 
-  watch2.start();
+  watch2.run();
 
 }
 
@@ -335,7 +335,7 @@ BOOST_AUTO_TEST_CASE(test_serial2)
   Serial* st = new SerialTester2();
   AntFr310XT watch2(st);
 
-  watch2.start();
+  watch2.run();
 
 }
 
