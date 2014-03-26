@@ -194,14 +194,15 @@ public:
   {
     boost::mutex::scoped_lock lock(Super::m_mtx);
 
-    /// if queue empty, wait untile timeout if there was anything pushed
+    /// if queue empty, wait until timeout if there was anything pushed
     if(Super::m_q.empty() && timeout > 0)
     {
       boost::posix_time::time_duration td = boost::posix_time::milliseconds(timeout);
       if(!Super::m_pushEvent.timed_wait(lock, td))
         return false;
     }
-    assert(!Super::m_q.empty());
+    if(Super::m_q.empty()) // spurious wakeup
+      return false;
 
     data = Super::m_q.front();
     Super::m_q.pop_front();
@@ -226,7 +227,8 @@ public:
         return false;
       }
     }
-    assert(!Super::m_q.empty());
+    if(Super::m_q.empty()) // spurious wakeup
+      return false;
 
     size_t s = Super::m_q.size();
     s = std::min(s, sizeBytes);
