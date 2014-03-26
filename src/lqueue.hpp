@@ -94,33 +94,29 @@ public:
   typedef boost::function<bool (std::vector<DataType>&)> Listener2;
   typedef lqueue2<DataType>                              Super;
 
-  struct ListenerProc
-  {
-    void operator() (lqueue3* This)
-    {
-      This->eventLoop();
-    }
-  };
-
-
-  lqueue3(bool eventLoopInBgTh = true)
+  lqueue3()
     : stop(false)
+    , started(false)
+    , stopped(false)
   {
-    if(eventLoopInBgTh)
-      th_listener.reset( new boost::thread(lp, this) );
   }
 
   ~lqueue3()
   {
-    stop = true;
-    if(th_listener.get())
-      th_listener->join();
+    kill();
   }
 
   void
   kill()
   {
     stop = true;
+    if(started)
+    {
+      while(!stopped)
+      {
+        boost::thread::yield();
+      }
+    }
   }
 
   void
@@ -132,6 +128,8 @@ public:
 public:
   void eventLoop()
   {
+    assert(!started);
+    started = true;
     while(!stop)
     {
       boost::unique_lock<boost::mutex> lock(Super::m_mtx);
@@ -155,17 +153,18 @@ public:
       if(mCallback)
         /*bool rv =*/ mCallback(v);
     }
+    stopped = true;
   }
 
 protected:
-  ListenerProc lp;
-  boost::scoped_ptr<boost::thread> th_listener;
   volatile bool stop;
+  volatile bool started;
+  volatile bool stopped;
   Listener2 mCallback;
 };
 
 
-// implements poll-able pop consumer
+/// implements poll-able pop consumer
 template < class DataType>
 class lqueue4 : public lqueue2<DataType>
 {
