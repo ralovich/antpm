@@ -21,7 +21,6 @@
 #include <queue>
 #include <boost/thread.hpp>
 #include "antdefs.hpp"
-#include "lqueue.hpp"
 #include <list>
 #include "Serial.hpp"
 

@@ -71,9 +71,7 @@ struct SerialUsbPrivate
   mutable boost::mutex m_queueMtx;
   boost::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
-  //lqueue<uchar> m_recvQueue2;
   volatile int m_recvThKill;
-  //AntCallback* m_callback;
   usb_dev_handle* dev;
   unsigned short dev_vid;
   unsigned short dev_pid;
