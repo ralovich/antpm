@@ -4,6 +4,9 @@
 #ifndef __ANTDEFS_H__
 #define __ANTDEFS_H__
 typedef unsigned char uchar;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
 typedef uchar (*RESPONSE_FUNC)(uchar chan, uchar msgid);
 typedef uchar (*CHANNEL_EVENT_FUNC)(uchar chan, uchar event);
 

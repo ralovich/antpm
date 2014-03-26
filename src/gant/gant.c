@@ -1,6 +1,8 @@
 /* copyright 2010 Klaus@Ethgen.de. released under GPLv3 */
 /* copyright 2008-2009 paul@ant.sbrk.co.uk */
 /* copyright 2009-2009 Wali */
+
+#define _XOPEN_SOURCE /* getopt */
 #include <stdio.h>
 #include <sys/select.h>
 #include <sys/time.h>
@@ -14,6 +16,7 @@
 #include <time.h>
 #include <math.h>
 #include <ctype.h>
+#include <strings.h> /* bzero */
 
 #include <libxml/encoding.h>
 #include <libxml/xmlwriter.h>

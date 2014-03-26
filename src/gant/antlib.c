@@ -1,5 +1,8 @@
 /* copyright 2008 paul@ant.sbrk.co.uk. released under GPLv3 */
 /* vers 0.6t */
+
+#define _XOPEN_SOURCE 500
+#define _BSD_SOURCE
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -9,6 +12,8 @@
 #include <pthread.h>
 #include <termios.h>
 #include <stdlib.h>
+#include <strings.h> /* bzero */
+#include <sys/select.h> /* fd_set */
 
 #define __declspec(X)
 
