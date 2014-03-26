@@ -25,9 +25,6 @@
 #include <list>
 
 
-
-
-
 template <typename DataType>
 class lqueue2
 {
@@ -286,7 +283,7 @@ public:
     mCallback = l;
   }
 
-public:
+protected:
   void eventLoop()
   {
     while(!stop)
