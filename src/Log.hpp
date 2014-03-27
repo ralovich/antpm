@@ -29,7 +29,7 @@
 # include <crtdbg.h>
 # include <io.h>
 #endif
-#ifdef __linux__
+#if defined(__linux__) || defined(__GNU__) || defined(__FreeBSD__)
 # include <unistd.h>
 #endif
 #include <iostream>
