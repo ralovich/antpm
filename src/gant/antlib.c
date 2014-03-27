@@ -3,6 +3,9 @@
 
 #define _XOPEN_SOURCE 500
 #define _BSD_SOURCE
+#if defined(__GNU__) /* Hurd */
+# define _GNU_SOURCE
+#endif
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
