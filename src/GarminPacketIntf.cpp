@@ -24,6 +24,7 @@ namespace antpm {
 
 
 const char* garmin_pid_name ( int s );
+const char* A010_cmnd_name ( int s );
 
 
 bool
@@ -32,10 +33,9 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
   size_t off = 0;
   CHECK_RETURN_FALSE(data.size()>=8);
 
-
   std::stringstream sstr;
-
   sstr << "\n\n_______________\n";
+
   if(data.size()==8 || lastPid==-1)
   {
     // check for known commands
@@ -213,6 +213,8 @@ GarminPacket::toString() const
   std::stringstream sstr;
   sstr << "packet_type=0x" << antpm::toString<int>((int)mPacketType, 2, '0') << "=" << (int)mPacketType;
   sstr << " pid=0x" << antpm::toString<int>((int)mPacketId, 4, '0') << "=" << (int)mPacketId << " " << garmin_pid_name((int)mPacketId);
+  if(mPacketType == appl_A010)
+    sstr << " " << A010_cmnd_name(mPacketId);
   sstr << " data_size=0x" << antpm::toString<uint32_t>((uint32_t)mDataSize, 8, '0') << "=" << (uint32_t)mDataSize;
   //sstr << "max  size=" << data.size()-off-12 << endl;
   return sstr.str();
@@ -224,14 +226,22 @@ GarminPacket::toString8() const
 {
   std::stringstream sstr;
   sstr << "packet_type=0x" << antpm::toString<int>((int)mPacketType, 2, '0') << "=" << (int)mPacketType << "\n";
-  sstr << "pid=0x" << antpm::toString<int>((int)mPacketId, 4, '0') << "=" << (int)mPacketId << "\n" << garmin_pid_name((int)mPacketId);
+  sstr << "pid=0x" << antpm::toString<int>((int)mPacketId, 4, '0') << "=" << (int)mPacketId;
+  if(mPacketType == appl_A010)
+    sstr << " " << A010_cmnd_name(mPacketId) << "\n";
+  else
+    sstr << " " << garmin_pid_name((int)mPacketId) << "\n";
   return sstr.str();
 }
 
 
-#define SYMBOL_NAME                     \
+
+
+
+
+#define SYMBOL_NAME(func_name)                     \
   const char *                          \
-  garmin_pid_name ( int s )             \
+  func_name ( int s )             \
   {                                     \
     const char * name = "????_Pid_Unknown";      \
                                         \
@@ -246,7 +256,7 @@ GarminPacket::toString8() const
     return name
 
 
-SYMBOL_NAME {
+SYMBOL_NAME(garmin_pid_name) {
   SYMBOL_CASE(L000_Pid_Protocol_Array);
   SYMBOL_CASE(L000_Pid_Product_Rqst);
   SYMBOL_CASE(L000_Pid_Product_Data);
@@ -290,6 +300,34 @@ SYMBOL_NAME {
   SYMBOL_CASE(L002_Pid_Rte_Hdr);
   SYMBOL_CASE(L002_Pid_Rte_Wpt_Data);
   SYMBOL_CASE(L002_Pid_Wpt_Data);*/
+  SYMBOL_DEFAULT;
+}
+
+SYMBOL_NAME(A010_cmnd_name) {
+  SYMBOL_CASE(A010_Cmnd_Abort_Transfer);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Alm);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Posn);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Prx);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Rte);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Time);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Trk);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Wpt);
+  SYMBOL_CASE(A010_Cmnd_Turn_Off_Pwr);
+  SYMBOL_CASE(A010_Cmnd_Start_Pvt_Data);
+  SYMBOL_CASE(A010_Cmnd_Stop_Pvt_Data);
+  SYMBOL_CASE(A010_Cmnd_FlightBook_Transfer);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Laps);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Wpt_Cats);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Runs);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Workouts);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Workout_Occurrences);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Fitness_User_Profile);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Workout_Limits);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Courses);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Course_Laps);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Course_Points);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Course_Tracks);
+  SYMBOL_CASE(A010_Cmnd_Transfer_Course_Limits);
   SYMBOL_DEFAULT;
 }
 
