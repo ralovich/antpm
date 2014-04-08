@@ -99,9 +99,13 @@ DeviceSettings::time2str(const std::time_t t)
   gmtime_s(&tm, &t);
 #endif
 
+#ifdef _MSC_VER
+  if(::strftime(outstr, sizeof(outstr), "%Y-%m-%dT%H:%M:%SZ", &tm) == 0)
+    return "";
+#else
   if(::strftime(outstr, sizeof(outstr), "%Y-%m-%dT%TZ", &tm) == 0)
     return "";
-
+#endif
   return outstr;
 }
 
