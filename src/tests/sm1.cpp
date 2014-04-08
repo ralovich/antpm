@@ -20,6 +20,9 @@
 // run AntFr310XT on that port
 // in return just send ANT replies
 
+#ifdef _MSC_VER
+# define _WIN32_WINNT 0x0501
+#endif
 
 #include "common.hpp"
 
@@ -120,128 +123,6 @@ void run(boost::asio::io_service* io_service)
   }
 }
 
-
-namespace antpm
-{
-
-template<>
-Log*
-ClassInstantiator<Log>::instantiate()
-{
-  return new Log(NULL);
-}
-
-class SerialTester0 : public Serial
-{
-public:
-  SerialTester0() {}
-  virtual ~SerialTester0() {}
-
-  virtual bool open() { return true; }
-  virtual void close() { }
-
-  virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
-  virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
-  virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten) {return false;}
-
-private:
-  void* ioHandler();
-
-public:
-  virtual const size_t getQueueLength() const { return 0; }
-  virtual const char*  getImplName() { return "SerialTester0"; }
-  virtual bool         isOpen() const { return true; }
-  virtual bool         setWriteDelay(const size_t ms) {return true;}
-
-};
-
-
-//
-class SerialTester1 : public Serial
-{
-public:
-  SerialTester1() {}
-  virtual ~SerialTester1() {}
-
-  virtual bool open() { return true; }
-  virtual void close() { m_q.clear(); }
-
-  virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
-  virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
-  virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
-  {
-    bytesWritten = 0;
-    for(size_t i = 0; i < sizeBytes; i++)
-    {
-      m_q.push(src[i]);
-      bytesWritten += 1;
-    }
-    return false;
-  }
-
-private:
-  void* ioHandler();
-
-public:
-  virtual const size_t getQueueLength() const { return m_q.size(); }
-  virtual const char*  getImplName() { return "SerialTester1"; }
-  virtual bool         isOpen() const { return true; }
-  virtual bool         setWriteDelay(const size_t ms) {return true;}
-
-private:
-  void queueData();
-
-private:
-  lqueue3<uint8_t> m_q; // FIFO for bytes written into this "serial port" with write() method
-  lqueue4<uint8_t> m_q_r; // FIFO for bytes produced by this "serial port", to be emptied by read()
-};
-
-
-class SerialTester2 : public Serial
-{
-public:
-  SerialTester2() {}
-  virtual ~SerialTester2() {}
-
-  virtual bool open() { return true; }
-  virtual void close() { m_q.clear(); }
-
-  virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
-  virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
-  virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
-  {
-    bytesWritten = 0;
-    for(size_t i = 0; i < sizeBytes; i++)
-    {
-      m_q.push(src[i]);
-      bytesWritten += 1;
-    }
-    return true;
-  }
-
-private:
-  void* ioHandler();
-
-public:
-  virtual const size_t getQueueLength() const { return m_q.size(); }
-  virtual const char*  getImplName() { return "SerialTester2"; }
-  virtual bool         isOpen() const { return true; }
-  virtual bool         setWriteDelay(const size_t ms) {return true;}
-
-private:
-  void queueData();
-
-private:
-  lqueue3<uint8_t> m_q; // FIFO for bytes written into this "serial port" with write() method
-  lqueue4<uint8_t> m_q_r; // FIFO for bytes produced by this "serial port", to be emptied by read()
-};
-
-}
-
-
-
-
-
 BOOST_AUTO_TEST_CASE(test_asio)
 {
   antpm::Log::instance()->addSink(std::cout);
@@ -303,6 +184,128 @@ BOOST_AUTO_TEST_CASE(test_asio)
   }
 }
 
+
+#else // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
+//# error Local sockets not available on this platform.
+#endif // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
+
+namespace antpm
+{
+
+  template<>
+  Log*
+    ClassInstantiator<Log>::instantiate()
+  {
+    return new Log(NULL);
+  }
+
+  class SerialTester0 : public Serial
+  {
+  public:
+    SerialTester0() {}
+    virtual ~SerialTester0() {}
+
+    virtual bool open() { return true; }
+    virtual void close() { }
+
+    virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+    virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+    virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten) {return false;}
+
+  private:
+    void* ioHandler();
+
+  public:
+    virtual const size_t getQueueLength() const { return 0; }
+    virtual const char*  getImplName() { return "SerialTester0"; }
+    virtual bool         isOpen() const { return true; }
+    virtual bool         setWriteDelay(const size_t ms) {return true;}
+
+  };
+
+
+  //
+  class SerialTester1 : public Serial
+  {
+  public:
+    SerialTester1() {}
+    virtual ~SerialTester1() {}
+
+    virtual bool open() { return true; }
+    virtual void close() { m_q.clear(); }
+
+    virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+    virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+    virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
+    {
+      bytesWritten = 0;
+      for(size_t i = 0; i < sizeBytes; i++)
+      {
+        m_q.push(src[i]);
+        bytesWritten += 1;
+      }
+      return false;
+    }
+
+  private:
+    void* ioHandler();
+
+  public:
+    virtual const size_t getQueueLength() const { return m_q.size(); }
+    virtual const char*  getImplName() { return "SerialTester1"; }
+    virtual bool         isOpen() const { return true; }
+    virtual bool         setWriteDelay(const size_t ms) {return true;}
+
+  private:
+    void queueData();
+
+  private:
+    lqueue3<uint8_t> m_q; // FIFO for bytes written into this "serial port" with write() method
+    lqueue4<uint8_t> m_q_r; // FIFO for bytes produced by this "serial port", to be emptied by read()
+  };
+
+
+  class SerialTester2 : public Serial
+  {
+  public:
+    SerialTester2() {}
+    virtual ~SerialTester2() {}
+
+    virtual bool open() { return true; }
+    virtual void close() { m_q.clear(); }
+
+    virtual bool read(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+    virtual bool readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead) {return false;}
+    virtual bool write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
+    {
+      bytesWritten = 0;
+      for(size_t i = 0; i < sizeBytes; i++)
+      {
+        m_q.push(src[i]);
+        bytesWritten += 1;
+      }
+      return true;
+    }
+
+  private:
+    void* ioHandler();
+
+  public:
+    virtual const size_t getQueueLength() const { return m_q.size(); }
+    virtual const char*  getImplName() { return "SerialTester2"; }
+    virtual bool         isOpen() const { return true; }
+    virtual bool         setWriteDelay(const size_t ms) {return true;}
+
+  private:
+    void queueData();
+
+  private:
+    lqueue3<uint8_t> m_q; // FIFO for bytes written into this "serial port" with write() method
+    lqueue4<uint8_t> m_q_r; // FIFO for bytes produced by this "serial port", to be emptied by read()
+  };
+
+}
+
 BOOST_AUTO_TEST_CASE(test_serial0)
 {
   antpm::Log::instance()->addSink(std::cout);
@@ -339,6 +342,3 @@ BOOST_AUTO_TEST_CASE(test_serial2)
 
 }
 
-#else // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
-# error Local sockets not available on this platform.
-#endif // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
