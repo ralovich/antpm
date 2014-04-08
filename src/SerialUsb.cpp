@@ -37,6 +37,7 @@
 #include <vector>
 #include <string>
 #include <boost/thread/thread.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <boost/thread/thread_time.hpp>
 #include <iostream>
 
