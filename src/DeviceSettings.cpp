@@ -85,7 +85,9 @@ DeviceSettings::str2time(const char* from)
   boost::posix_time::ptime t(boost::posix_time::time_from_string(froms));
   tm = boost::posix_time::to_tm( t );
 #endif
-  return ::mktime(&tm) - timezone;
+  std::time_t myt  = ::mktime(&tm);
+  std::time_t mytz = timezone;
+  return myt - mytz;
 }
 
 /// Both input and output are represented in GMT/UTC.
