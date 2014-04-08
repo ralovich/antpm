@@ -179,7 +179,7 @@ getConfigFolder()
 
 
 void
-readUInt64(const uint clientSN, uint64_t& pairedKey)
+readUInt64(const unsigned int clientSN, uint64_t& pairedKey)
 {
   std::stringstream ss;
   ss << getConfigFolder() << "libantpmauth_" << clientSN;
@@ -194,7 +194,7 @@ readUInt64(const uint clientSN, uint64_t& pairedKey)
 }
 
 void
-writeUInt64(const uint clientSN, const uint64_t& pairedKey)
+writeUInt64(const unsigned int clientSN, const uint64_t& pairedKey)
 {
   std::stringstream ss;
   ss << getConfigFolder() << "libantpmauth_" << clientSN;
