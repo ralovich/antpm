@@ -64,6 +64,21 @@ BOOST_AUTO_TEST_CASE( free_test_function )
   LOG(LOG_INF) << getVersionString() << "\n";
 }
 
+BOOST_AUTO_TEST_CASE(convert_0)
+{
+  // $ date -u +%F\ %X\ %s
+  // 2013-07-06 08:40:16 PM 1373143216
+  // 2013-07-06 09:01:28 PM 1373144488
+  {
+    const char* s="2013-07-06T20:40:16Z";
+    std::time_t t=1373143216;
+
+    //LOG(LOG_INF) << DeviceSettings::str2time(s) << "\t" << t << "\n" << std::endl;
+  }
+
+  BOOST_CHECK( true /* test assertion */ );
+}
+
 BOOST_AUTO_TEST_CASE(convert)
 {
   // $ date -u +%F\ %X\ %s
@@ -73,7 +88,7 @@ BOOST_AUTO_TEST_CASE(convert)
     const char* s="2013-07-06T20:40:16Z";
     std::time_t t=1373143216;
 
-    //std::cout << DeviceSettings::str2time(s) << "\n";
+    //LOG(LOG_INF) << DeviceSettings::str2time(s) << "\t" << t << "\n" << std::endl;
 
     BOOST_CHECK(DeviceSettings::str2time(s) == t);
 
