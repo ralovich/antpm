@@ -78,7 +78,11 @@ DeviceSettings::str2time(const char* from)
     return 0;
 #else
   //std::string ts("2002-01-20 23:59:59.000");
-  boost::posix_time::ptime t(boost::posix_time::time_from_string(from));
+  std::string froms(from);
+  std::replace( froms.begin(), froms.end(), 'T', ' ');
+  std::replace( froms.begin(), froms.end(), 'Z', '.');
+  froms += "000";
+  boost::posix_time::ptime t(boost::posix_time::time_from_string(froms));
   tm = boost::posix_time::to_tm( t );
 #endif
   return ::mktime(&tm) - timezone;
