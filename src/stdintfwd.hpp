@@ -25,7 +25,11 @@
 
 #else
 
-#include "w_stdint.h"
+# if _MSC_VER >= 1700
+#  include <cstdint>
+# else
+#  include "w_stdint.h"
+#endif
 
 #endif // _MSC_VER ]
 
