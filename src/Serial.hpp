@@ -38,7 +38,7 @@ public:
   virtual const char*  getImplName() = 0;
   virtual bool         isOpen() const = 0;
   virtual bool         setWriteDelay(const size_t ms) = 0;
-  static Serial*       instantiate(void* p = NULL);
+  static Serial*       instantiate(void* p = 0);
 };
 
 }
