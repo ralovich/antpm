@@ -21,7 +21,7 @@
 
 
 # ifdef _MSC_VER
-#  if _MSC_VER == 1600 // VS2010
+#  if _MSC_VER == 1600 || _MSC_VER == 1700 // VS2010, VS2012
 
 // smart ptr stuff is already in std::
 
