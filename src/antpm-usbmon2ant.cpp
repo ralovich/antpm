@@ -68,7 +68,7 @@ main(int argc, char** argv)
   po::options_description desc("Allowed options");
   desc.add_options()
     ("help,h",                                                       "produce help message")
-    ("op,operation", po::value<string>(&op)->default_value("parse"), "possible modes of operation: parse|dump|usbmon|filter|count")
+    ("op,O", po::value<string>(&op)->default_value("parse"), "possible modes of operation: parse|dump|usbmon|filter|count")
     //("d", po::value<bool>(&dump)->zero_tokens(), "diffable byte dumps + decoded strings")
     //("u", po::value<bool>(&usbmon)->zero_tokens(), "generate pseudo usbmon output")
     //("f", po::value<bool>(&filter)->zero_tokens(), "just filter ANT messages from usbmon stream")
