@@ -133,8 +133,8 @@ BOOST_AUTO_TEST_CASE(test_asio)
   try
   {
     //SerialTester st;
-    SerialTester1* st = new SerialTester1();
-    AntFr310XT watch2(st);
+    //SerialTester1* st = new SerialTester1();
+    //AntFr310XT watch2(st);
 
     boost::asio::io_service io_service;
     std::cout << "io_service=" << &io_service << endl;
