@@ -1,0 +1,54 @@
+#!/usr/bin/env python
+# -*- coding: utf-8; mode: python -*-
+import sys
+from PyQt4 import QtGui, QtCore
+import dbus
+
+def sendNotif(titleStr='ANT+minus', bodyStr='ANT+minus exiting', timeoutMs=5000):
+    """Python 2.5 script. Creates a Notification pop-up bubble"""
+    """http://cheesehead-techblog.blogspot.de/2009/02/five-ways-to-make-notification-pop-up.html"""
+    item              = "org.freedesktop.Notifications"
+    path              = "/org/freedesktop/Notifications"
+    interface         = "org.freedesktop.Notifications"
+    app_name          = "Test Application"
+    id_num_to_replace = 0
+    #icon              = "/usr/share/icons/Tango/32x32/status/sunny.png"
+    icon              = "/home/tade/dev/antpm/src/ui/gant.png"
+    title             = titleStr
+    text              = bodyStr
+    actions_list      = ''
+    hint              = ''
+    time              = timeoutMs
+
+    bus = dbus.SessionBus()
+    notif = bus.get_object(item, path)
+    notify = dbus.Interface(notif, interface)
+    notify.Notify(app_name, id_num_to_replace, icon, title, text, actions_list, hint, time)
+
+class SystemTrayIcon(QtGui.QSystemTrayIcon):
+
+    def __init__(self, icon, parent=None):
+        QtGui.QSystemTrayIcon.__init__(self, icon, parent)
+        menu = QtGui.QMenu(parent)
+        self.exitAction = menu.addAction("Exit")
+        self.setContextMenu(menu)
+        QtCore.QObject.connect(self.exitAction, QtCore.SIGNAL("triggered()"), self.closeMe)
+
+    def closeMe(self):
+        print 'quiting'
+        sendNotif()
+        QtGui.qApp.quit()
+        pass
+
+def main():
+    print 'main...'
+    app = QtGui.QApplication(sys.argv)
+    w = QtGui.QWidget()
+    trayIcon = SystemTrayIcon(QtGui.QIcon("gant.png"), w)
+
+    trayIcon.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
