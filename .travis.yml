@@ -12,6 +12,7 @@ notifications:
 branches:
   only:
     - master
+    - coverity_scan
 before_install:
   - sudo apt-get update
   - uname -a
