@@ -1,5 +1,5 @@
 =========
-ANT+minus
+`ANT+minus <http://code.google.com/p/antpm>`_
 =========
 
 Userspace implementation of a wire protocol similar to the
@@ -19,3 +19,8 @@ support. Please report your experience to help improving the software.
    :width: 77px
    :height: 19px
 
+.. image:: https://scan.coverity.com/projects/1102/badge.svg
+   :alt: Coverity Status
+   :target: https://scan.coverity.com/projects/1102
+   :width: 95px
+   :height: 18px

@@ -27,3 +27,18 @@ script:
   - make clean
   - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
   - make clean
+
+env:
+  global:
+   - secure: "Hy8zgrbQw0D0XPcQY3BYaSXc1twSQjWY31uY0lNZghlS4dYFtT4lTELsYCnDAIjNEbjA2k8sYXoRmQWyDSBiGgLulpkYyApo2zYqvt6gZZIbJOOV7x+qC6whv36cGwgULbiJlF9bwOpZF8a7GPDmxc6tQhuvV6Pwu5E3FJhN9NM="
+
+addons:
+  coverity_scan:
+    project:
+      name: "ralovich/antpm"
+      description: "Build submitted via Travis CI"
+    notification_email: ralovich@in.tum.de
+    build_command_prepend: "mkdir cmake-build && cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make clean"
+    build_command:   "make -j4"
+    branch_pattern: coverity_scan
+
