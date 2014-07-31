@@ -72,6 +72,8 @@ BOOST_AUTO_TEST_CASE(convert_0)
   {
     const char* s="2013-07-06T20:40:16Z";
     std::time_t t=1373143216;
+    (void)(s);
+    (void)(t);
 
     //LOG(LOG_INF) << DeviceSettings::str2time(s) << "\t" << t << "\n" << std::endl;
   }
