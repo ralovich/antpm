@@ -28,6 +28,10 @@
 #define MAXCHAN 32
 #define BSIZE 8*10000
 
+#ifndef IUCLC
+# define IUCLC 0
+#endif
+
 #define uchar unsigned char
 
 #define hexval(c) ((c >= '0' && c <= '9') ? (c-'0') : ((c&0xdf)-'A'+10))
