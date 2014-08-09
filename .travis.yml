@@ -1,6 +1,6 @@
 env:
   global:
-   - secure: "NA10+myP2uSLPi0OTDp9/tPWpX25UW1afZtL0cutaaEwY2kO/Q+sBZr2GgcHLNk8uOP5l+7uOsisPYVhD7qXjrNyjrUdtW80YdKEQ8IQDqAgX6xz+80OnMyjXSM4dlDfGyieH6JFEYkEpKnWqdMLJASQwgBCkm03Ow1jeMDwxvQ="
+   - secure: "DT/lVSxqaBtcgGtXy7of+OoRBtOv4xNI3id1MK0V/XT0FTGJQ5+KWFEZ1vPpViIeSjNNjOkDH9d2j3EtahdzAEeFMb8GdZhKqQcXoS7pl2m6seXqvaYOV/HfgHJ9Y08mROdqOeDzEn7t4CH1Fz9WgHy7W1ulCh4i+yQ1qJOSblU="
 
 addons:
   coverity_scan:
