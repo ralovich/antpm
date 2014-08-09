@@ -35,7 +35,7 @@ before_install:
   - cat /proc/cpuinfo
   - g++ -v
   - clang++ -v
-install: sudo apt-get install libboost-dev libboost-date-time-dev libboost-thread-dev libboost-system-dev libboost-filesystem-dev	libboost-program-options-dev libboost-test-dev libboost-atomic-dev libusb-dev libxml2-dev valgrind
+install: sudo apt-get install libboost-dev libboost-date-time-dev libboost-thread-dev libboost-system-dev libboost-filesystem-dev	libboost-program-options-dev libboost-test-dev libusb-dev libxml2-dev valgrind
 before_script: mkdir cmake-build
 script:
   - cd cmake-build
