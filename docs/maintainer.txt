@@ -122,12 +122,13 @@ apt-get source bc
 pbuilder build *.dsc
 
 ** building the actual package
-rm cmake-build
+rm -r cmake-build
 git reset --hard HEAD
 git clean -f -X
 git clean -f -d
 pristine-tar checkout antpm_1.14.orig.tar.gz
 mv antpm_1.14.orig.tar.gz ..
+DIST=sid ARCH=i386 git-pbuilder --update
 DIST=sid ARCH=i386 git-pbuilder -us -uc
 
 ** managing patches on top of the package with quilt
