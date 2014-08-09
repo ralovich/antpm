@@ -1,6 +1,7 @@
+# -*- coding: iso-8859-2-unix -*-
 env:
   global:
-   - secure: "DT/lVSxqaBtcgGtXy7of+OoRBtOv4xNI3id1MK0V/XT0FTGJQ5+KWFEZ1vPpViIeSjNNjOkDH9d2j3EtahdzAEeFMb8GdZhKqQcXoS7pl2m6seXqvaYOV/HfgHJ9Y08mROdqOeDzEn7t4CH1Fz9WgHy7W1ulCh4i+yQ1qJOSblU="
+   - secure: "WbQ15ePbGMTZQ6Dcbfn2yQ+D3Y/oLJoHhD2dPnzkRdk8/fXoY2VkGBUtgNi9hGm0Cd9kXDicBSEJarxt2NeDEu97VL92ltoicNgJbPNawshIfh1SVCd+tJsI9cBl8OLNCcOu90pK8WubWKcDFTHajAUTpdEujq1NnoyJ57Oynmc="
 
 addons:
   coverity_scan:
@@ -8,7 +9,7 @@ addons:
       name: "ralovich/antpm"
       description: "ANT+minus Build submitted via Travis CI"
     notification_email: ralovich@in.tum.de
-    build_command_prepend: "mkdir cmake-build && cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make clean"
+    build_command_prepend: "cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make clean"
     build_command:   "make -j 4"
     branch_pattern: coverity_scan
     build_script_url: "https://raw.githubusercontent.com/ralovich/antpm/master/scripts/coverity_scan_script.sh"
