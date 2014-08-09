@@ -9,7 +9,7 @@ addons:
       name: "ralovich/antpm"
       description: "ANT+minus Build submitted via Travis CI"
     notification_email: ralovich@in.tum.de
-    build_command_prepend: "cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make clean"
+    build_command_prepend: "pwd && cd cmake-build && pwd && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make clean"
     build_command:   "make -j 4"
     branch_pattern: coverity_scan
     build_script_url: "https://raw.githubusercontent.com/ralovich/antpm/master/scripts/coverity_scan_script.sh"

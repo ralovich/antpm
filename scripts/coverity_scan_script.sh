@@ -59,15 +59,16 @@ if [ ! -d $TOOL_BASE ]; then
   echo -e "\033[33;1mExtracting Coverity Scan Analysis Tool...\033[0m"
   mkdir -p $TOOL_BASE
   pushd $TOOL_BASE
-  tar xzf $TOOL_ARCHIVE
+  tar xzvf $TOOL_ARCHIVE
   popd
 fi
 
 TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
 export PATH=$TOOL_DIR/bin:$PATH
+echo $PATH
 
 # Build
-echo -e "\033[33;1mRunning Coverity Scan Analysis Tool...\033[0m"
+echo -e "\033[33;1mRunning Coverity Scan Analysis Tool....\033[0m"
 COV_BUILD_OPTIONS=""
 #COV_BUILD_OPTIONS="--return-emit-failures 8 --parse-error-threshold 85"
 RESULTS_DIR="cov-int"
