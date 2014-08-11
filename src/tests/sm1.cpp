@@ -20,9 +20,7 @@
 // run AntFr310XT on that port
 // in return just send ANT replies
 
-#ifdef _MSC_VER
-# define _WIN32_WINNT 0x0501
-#endif
+
 
 #include "common.hpp"
 
