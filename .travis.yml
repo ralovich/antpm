@@ -1,3 +1,19 @@
+# -*- coding: iso-8859-2-unix -*-
+env:
+  global:
+   - secure: "DF3a8vcQ7iU7AA4Ons5Ct05G/nhvr7bM8hYHd9B7x7h9tzaGJUgnESXCqiejtoR72fR626iGRXpD/O3h0pvj3OS9IywkuUXaNetnse8/xGZ+aKX+w7Dzvrrg8Q/07xazoR6cIzNJ/FyWWoKoY71gIMRHeOx5pebHyRkIxxFbUIw="
+
+addons:
+  coverity_scan:
+    project:
+      name: "ralovich/antpm"
+      description: "ANT+minus Build submitted via Travis CI"
+    notification_email: ralovich@in.tum.de
+    build_command_prepend: "pwd && cd cmake-build && pwd && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE"
+    build_command:   "make -j 4"
+    branch_pattern: coverity_scan
+    build_script_url: "https://raw.githubusercontent.com/ralovich/antpm/master/scripts/coverity_scan_script.sh"
+
 language: cpp
 script: cmake
 compiler:
@@ -6,7 +22,7 @@ compiler:
 notifications:
   email:
     recipients:
-      - tade60@freemail.hu
+      - ralovich@in.tum.de
     on_success: always
     on_failure: always
 branches:
@@ -28,18 +44,4 @@ script:
   - make clean
   - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
   - make clean
-
-env:
-  global:
-   - secure: "TwkmQpkzvrzW58QB9igH+8wATcWSyW+oWkWKUkCfjjZ4zEz5WA8v1CGk3/ABA1EllvdCxcMXwvP66A8NKQYET79lQxPXBK+l9GtC2gco4M3wZ5afW+5BCnsTehQLzKqM+2CK7Zlab7RKQ4g9/X8XTjrD5gN3rmVkgz2+dNKZ/N0="
-
-addons:
-  coverity_scan:
-    project:
-      name: "ralovich/antpm"
-      description: "Build submitted via Travis CI"
-    notification_email: ralovich@in.tum.de
-    build_command_prepend: "mkdir cmake-build && cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make clean"
-    build_command:   "make -j4"
-    branch_pattern: coverity_scan
 

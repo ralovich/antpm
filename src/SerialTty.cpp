@@ -33,14 +33,18 @@
 #include <algorithm>
 #include <vector>
 #include <string>
-#include <boost/thread/thread_time.hpp>
 
+#include <boost/version.hpp>
+#include <boost/thread/thread_time.hpp>
 #include <boost/filesystem.hpp>
 
 #include "Log.hpp"
 #include "common.hpp"
 #include "DeviceSettings.hpp"
 
+#ifndef IUCLC
+# define IUCLC 0
+#endif
 
 namespace fs = boost::filesystem;
 using namespace std;
@@ -89,10 +93,56 @@ find_file_starts_with(const fs::path & dir,
   for( fs::directory_iterator dir_iter(dir) ; dir_iter != end_iter ; ++dir_iter)
   {
     fs::path p = *dir_iter;
+/// from http://www.boost.org/doc/libs/1_49_0/libs/filesystem/v2/doc/index.htm
+
+/// Version 3, a major revision with many new and improved features,
+/// is also available. Version 3 may break some user code written for
+/// Version 2.
+
+// To ease the transition, Boost releases 1.44 through 1.47 will
+// supply both V2 and V3. Version 2 is the default version for Boost
+// release 1.44 and 1.45. Version 3 will be the default starting with
+// release 1.46.
+
+// Define macro BOOST_FILESYSTEM_VERSION as 3 to use Version 3. This
+// will be the default for release 1.46 and later.
+
+// Define macro BOOST_FILESYSTEM_VERSION as 2 to use Version 2. This
+// is the default for release 1.44 and 1.45.
+
+// You may define the BOOST_FILESYSTEM_VERSION macro:
+
+
+// On the build command line; the exact format depends on your
+// compiler or IDE
+
+
+// In your code, before including any filesystem header, #define
+// BOOST_FILESYSTEM_VERSION n
+
+
+// #define BOOST_FILESYSTEM_VERSION n in boost/config/user.hpp. Note
+// #that this approach applies to all uses of Boost.Filesystem.
+
+// Existing code should be moved to version 3 as soon as
+// convenient. New code should be written for version 3.
+
+// Version 2 is deprecated, and will not be included in Boost releases
+// 1.48 and later.
+
+#if (((BOOST_VERSION/100000)==1) && (((BOOST_VERSION / 100) % 1000)<44)) // BOOST_FILESYSTEM_VERSION==2
+    if(std::string(p.leaf()).find(start)==0)
+    {
+      return std::string(p.leaf());
+    }
+#elif BOOST_FILESYSTEM_VERSION==3
     if(p.leaf().string().find(start)==0)
     {
       return p.leaf().string();
     }
+#else
+# error "Unsupported boost filesystem version" ##BOOST_FILESYSTEM_VERSION
+#endif
   }
   return "";
 }
