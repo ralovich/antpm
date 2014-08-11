@@ -119,7 +119,7 @@ void get_data(int fd)
   uchar event;
   int found;
   int srch;
-  int next;
+  int next = 0;
 
   nr = read(fd, buf+bufc, 20);
   if (nr > 0)

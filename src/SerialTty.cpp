@@ -69,6 +69,7 @@ struct SerialTtyPrivate
 // runs in other thread
 struct SerialTtyIOThread
 {
+  SerialTtyIOThread() : rv(NULL) {}
   void operator() (SerialTty* arg)
   {
     //printf("recvFunc, arg: %p\n", arg); fflush(stdout);

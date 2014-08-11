@@ -1327,9 +1327,10 @@ int main(int ac, char *av[])
   /*  default auth file // */
   if (getenv("HOME"))
   {
-    authfile = malloc(strlen(getenv("HOME")) + strlen("/.gant") + 1);
+    const char* h = getenv("HOME");
+    authfile = malloc(strlen(h) + strlen("/.gant") + 1);
     if (authfile)
-      sprintf(authfile, "%s/.gant", getenv("HOME"));
+      sprintf(authfile, "%s/.gant", h);
   }
   progname = av[0];
   while ((c = getopt(ac, av, "a:f:d:i:m:pvD:rnzh")) != -1)
