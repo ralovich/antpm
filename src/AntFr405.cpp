@@ -80,10 +80,12 @@ AntFr405::AntFr405()
   : m_serial(new ANTPM_SERIAL_IMPL())
   , m_antMessenger(new AntMessenger())
   , aplc(getConfigFolder()+std::string("antparse_")+getDateString()+".txt")
+  , clientState(BUSY)
   , clientSN(0)
   , pairedKey(0)
   , doPairing(false)
   , mode(MD_DOWNLOAD_ALL)
+  , singleFileIdx(0)
 {
   m_antMessenger->setHandler(m_serial.get());
   m_antMessenger->setCallback(this);

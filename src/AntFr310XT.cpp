@@ -80,6 +80,7 @@ struct AntFr310XT_EventLoop
 AntFr310XT::AntFr310XT(Serial *s)
   : m_serial(s?s:Serial::instantiate())
   , m_antMessenger(new AntMessenger())
+  , clientState(BUSY)
   , state(ST_ANTFS_0)
   , m_eventThKill(0)
   , m_restartCount(0)
@@ -88,6 +89,7 @@ AntFr310XT::AntFr310XT(Serial *s)
   , pairedKey(0)
   , doPairing(false)
   , mode(MD_DOWNLOAD_ALL)
+  , singleFileIdx(0)
 {
   if(!m_serial) return;
   m_antMessenger->setHandler(m_serial.get());
