@@ -194,11 +194,13 @@ uint randno(void)
   uint r;
   int fd = open("/dev/urandom", O_RDONLY);
 
-  if (fd > 0)
+  if (fd >= 0)
   {
     read(fd, &r, sizeof r);
     close(fd);
   }
+  else
+    r = rand();
   return r;
 }
 
