@@ -42,6 +42,13 @@
 #include "common.hpp"
 #include "DeviceSettings.hpp"
 
+#include <pwd.h>
+#include <grp.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #ifndef IUCLC
 # define IUCLC 0
 #endif
@@ -244,12 +251,41 @@ SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
 }
 
 
+void
+getFileMode(const char* fname)
+{
+  struct stat fileStat;
+  struct group *grp;
+  struct passwd *pwd;
+
+  if(stat(fname,&fileStat) == 0)
+  {
+    grp = getgrgid(fileStat.st_gid);
+    pwd = getpwuid(fileStat.st_uid);
+
+    LOG(LOG_DBG) << fname << ": \t";
+    LOG(LOG_RAW) << pwd->pw_name << ":" << grp->gr_name << "\t";
+    LOG(LOG_RAW) << ((S_ISLNK(fileStat.st_mode)) ? "l" : ((S_ISDIR(fileStat.st_mode)) ? "d" : "-"));
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IRUSR) ? "r" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IWUSR) ? "w" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IXUSR) ? "x" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IRGRP) ? "r" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IWGRP) ? "w" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IXGRP) ? "x" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IROTH) ? "r" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IWOTH) ? "w" : "-");
+    LOG(LOG_RAW) << ((fileStat.st_mode & S_IXOTH) ? "x\n" : "-\n");
+  }
+}
+
+
 bool
 SerialTtyPrivate::openDevice(vector<string>& names)
 {
   for(size_t i = 0; i < names.size(); i++)
   {
     m_devName = names[i];
+    getFileMode(m_devName.c_str());
     LOG(LOG_INF) << "Trying to open " << m_devName << " ...";
     m_fd = ::open(m_devName.c_str(), O_RDWR | O_NONBLOCK);
     if(m_fd < 0)
