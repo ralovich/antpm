@@ -17,6 +17,12 @@ TOOL_BASE=/tmp/coverity-scan-analysis
 UPLOAD_URL="https://scan.coverity.com/builds"
 SCAN_URL="https://scan.coverity.com"
 
+# Do not run with clang
+if [ "${CC}" = "clang" ]; then
+  echo -e "\033[33;1mINFO: Skipping Coverity Analysis: clang compiler.\033[0m"
+  exit 0
+fi
+
 # Do not run on pull requests
 if [ "${TRAVIS_PULL_REQUEST}" = "true" ]; then
   echo -e "\033[33;1mINFO: Skipping Coverity Analysis: branch is a pull request.\033[0m"
@@ -65,29 +71,14 @@ fi
 
 TOOL_DIR=`find $TOOL_BASE -type d -name 'cov-analysis*'`
 export PATH=$TOOL_DIR/bin:$PATH
-echo $PATH
 
 # Build
 echo -e "\033[33;1mRunning Coverity Scan Analysis Tool....\033[0m"
 COV_BUILD_OPTIONS=""
 #COV_BUILD_OPTIONS="--return-emit-failures 8 --parse-error-threshold 85"
 RESULTS_DIR="cov-int"
-pwd
-echo "COVERITY_SCAN_BUILD_COMMAND_PREPEND=${COVERITY_SCAN_BUILD_COMMAND_PREPEND}"
 eval "${COVERITY_SCAN_BUILD_COMMAND_PREPEND}"
-pwd
-ls -las
-echo "CB=cov-build --dir $RESULTS_DIR $COV_BUILD_OPTIONS $COVERITY_SCAN_BUILD_COMMAND"
 COVERITY_UNSUPPORTED=1 cov-build --dir $RESULTS_DIR $COV_BUILD_OPTIONS $COVERITY_SCAN_BUILD_COMMAND
-echo "++++++++++++++++++++++++++++++"
-cat $RESULTS_DIR/build-log.txt
-echo "++++++++++++++++++++++++++++++"
-pwd
-cov-build --dir $RESULTS_DIR $COV_BUILD_OPTIONS $COVERITY_SCAN_BUILD_COMMAND
-echo "++++++++++++++++++++++++++++++"
-cat $RESULTS_DIR/build-log.txt
-echo "++++++++++++++++++++++++++++++"
-pwd
 cov-import-scm --dir $RESULTS_DIR --scm git --log $RESULTS_DIR/scm_log.txt 2>&1
 
 # Upload results
@@ -95,8 +86,6 @@ echo -e "\033[33;1mTarring Coverity Scan Analysis results...\033[0m"
 RESULTS_ARCHIVE=analysis-results.tgz
 tar czvf $RESULTS_ARCHIVE $RESULTS_DIR
 SHA=`git rev-parse --short HEAD`
-
-exit 0
 
 echo -e "\033[33;1mUploading Coverity Scan Analysis results...\033[0m"
 response=$(curl \

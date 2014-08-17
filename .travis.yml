@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-2-unix -*-
 env:
   global:
-   - secure: "DF3a8vcQ7iU7AA4Ons5Ct05G/nhvr7bM8hYHd9B7x7h9tzaGJUgnESXCqiejtoR72fR626iGRXpD/O3h0pvj3OS9IywkuUXaNetnse8/xGZ+aKX+w7Dzvrrg8Q/07xazoR6cIzNJ/FyWWoKoY71gIMRHeOx5pebHyRkIxxFbUIw="
+   - secure: "I1Jdwk4mbz9YjiYEMeMwWZjrBz1oauuGyW/WNOkdq4FkfyPFQcwvU/VnefIGnXCZ7YBS6tuXY8DNQZC0CSWPusebYCKHDdTiiQlcmQ3+L/UPy5a8jABwASHTXsJtte4S5hUq+KLzzBtMmsBwMT2xWO2zskuOkq6tFIqP4N3hfag="
 
 addons:
   coverity_scan:
@@ -10,7 +10,7 @@ addons:
       description: "ANT+minus Build submitted via Travis CI"
     notification_email: ralovich@in.tum.de
     build_command_prepend: "pwd && cd cmake-build && pwd && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE"
-    build_command:   "make -j 4"
+    build_command:   "make"
     branch_pattern: coverity_scan
     build_script_url: "https://raw.githubusercontent.com/ralovich/antpm/master/scripts/coverity_scan_script.sh"
 
