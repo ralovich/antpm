@@ -90,6 +90,13 @@ main(int argc, char** argv)
     cerr << desc << "\n";
     return EXIT_FAILURE;
   }
+  catch(std::exception& ex)
+  {
+    cerr << ex.what() << "\n";
+    cerr << desc << "\n";
+    return EXIT_FAILURE;
+  }
+
 
   if(vm.count("version") || vm.count("V"))
   {
