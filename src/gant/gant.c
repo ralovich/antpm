@@ -110,7 +110,7 @@ uint isa405;
 uint waitauth;
 int nphase0;
 char modelname[256];
-char devname[256];
+char deviname[256];
 ushort part = 0;
 ushort ver = 0;
 uint unitid = 0;
@@ -230,7 +230,7 @@ void print_tcx_footer(xmlTextWriterPtr tcxfile)
   rc = xmlTextWriterEndElement(tcxfile); XML_ERROR_CHECK;    /* Lap (Is it a good idea to do it here?) */
   rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Creator"); XML_ERROR_CHECK;
   rc = xmlTextWriterWriteAttribute(tcxfile, BAD_CAST "xsi:type", BAD_CAST "Device_t"); XML_ERROR_CHECK;
-  rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Name", "%s", devname); XML_ERROR_CHECK;
+  rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "Name", "%s", deviname); XML_ERROR_CHECK;
   rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "UnitId", "%u", unitid); XML_ERROR_CHECK;
   rc = xmlTextWriterWriteFormatElement(tcxfile, BAD_CAST "ProductID", "%u", part); XML_ERROR_CHECK;
   rc = xmlTextWriterStartElement(tcxfile, BAD_CAST "Version"); XML_ERROR_CHECK;
@@ -388,9 +388,9 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
       dump_data(stderr, data+doff, 0, pktlen);
     break;
   case 525:
-    memset(devname, 0, sizeof devname);
-    memcpy(devname, data + doff, pktlen);
-    DEBUG_OUT(1, "Packet %d: Devname: \"%s\"", pkttype, devname);
+    memset(deviname, 0, sizeof deviname);
+    memcpy(deviname, data + doff, pktlen);
+    DEBUG_OUT(1, "Packet %d: Devname: \"%s\"", pkttype, deviname);
     break;
   case 12:
     DEBUG_OUT(1, "Packet %d: xfer complete (subtype %u)", pkttype, data[doff] + data[doff + 1] * 256);
