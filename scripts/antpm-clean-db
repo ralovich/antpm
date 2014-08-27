@@ -1,0 +1,94 @@
+#!/usr/bin/env python
+# -*- mode: python; coding: utf-8-unix -*-
+# ***** BEGIN LICENSE BLOCK *****
+#////////////////////////////////////////////////////////////////////////
+# Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+#                                                                      //
+# This program is free software; you can redistribute it and/or modify //
+# it under the terms of the GNU General Public License as published by //
+# the Free Software Foundation; either version 3 of the License, or    //
+# (at your option) any later version.                                  //
+#                                                                      //
+# This program is distributed in the hope that it will be useful,      //
+# but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+# GNU General Public License for more details.                         //
+#                                                                      //
+#////////////////////////////////////////////////////////////////////////
+# ***** END LICENSE BLOCK *****
+
+import os
+import fnmatch
+import filecmp
+import sys
+
+db_dir=os.getenv('XDG_CONFIG_HOME')+'/antpm/'
+
+def find_files(directory, pattern):
+    for root, dirs, files in os.walk(directory):
+        for basename in files:
+            if fnmatch.fnmatch(basename, pattern):
+                filename = os.path.join(root, basename)
+                yield filename
+
+def get_immediate_empty_subdirectories(a_dir):
+    return [name for name in os.listdir(a_dir)
+            if ( os.path.isdir(os.path.join(a_dir, name)) and os.listdir(os.path.join(a_dir, name)) == [])]
+
+def SubDirPath (d):
+    return filter(os.path.isdir, [os.path.join(d,f) for f in os.listdir(d)])
+
+def FindDuplicates(folder, ftype):
+    duplicates = {}
+    redundant = set()
+    # sorting ensures that we discover duplicates in folder that
+    # correspond to later dates
+    fit_files = [f for f in sorted(find_files(folder, ftype))]
+    for i in range(0, len(fit_files)):
+        for j in range(i+1, len(fit_files)):
+            assert(fit_files[i] != fit_files[j])
+            eq = filecmp.cmp(fit_files[i], fit_files[j], False)
+            if eq:
+                if fit_files[i] in redundant: continue
+                if not fit_files[i] in duplicates: duplicates[fit_files[i]]=[]
+                assert(fit_files[j].startswith(devFold))
+                redundant.add(fit_files[j])
+                shorter_name=fit_files[j][len(devFold):]
+                duplicates[fit_files[i]].append(shorter_name)
+    return duplicates, redundant
+    
+
+if __name__=='__main__':
+    # for filename in find_files(db_dir, '*.c'):
+    #     print 'Found C source:', filename
+
+    devices = []
+    devices = SubDirPath(db_dir)
+    print 'Found', len(devices), 'devices:', devices
+
+    for devFold in devices:
+        duplicates_fit, _ = FindDuplicates(devFold, '*.fit')
+        duplicates_gpx, _ = FindDuplicates(devFold, '*.gpx')
+        duplicates = dict(duplicates_fit.items() + duplicates_gpx.items())
+        print '\tFor device', os.path.basename(devFold), 'has', len(duplicates), 'duplicates'
+        #print duplicates
+        for k in sorted(duplicates):
+            print '\t\t', k, 'has', len(duplicates[k]), 'duplicates: ', duplicates[k]
+        
+        if len(sys.argv)>1 and '--really-delete' in sys.argv[1:]:
+            print '\n\n\t\tDELETING DUPLICATES...\n\n'
+            for k in sorted(duplicates):
+                for dupl in duplicates[k]:
+                    print '\t\tRM', dupl
+                    os.remove(devFold+'/'+dupl)
+
+    for devFold in devices:
+        emp_sub_dirs = get_immediate_empty_subdirectories(devFold)
+        print '\t2nd pass cleanup, found', len(emp_sub_dirs), 'empty subfolders'
+        for d in emp_sub_dirs:
+            print '\t\t', d
+        
+        if len(sys.argv)>1 and '--really-delete' in sys.argv[1:]:
+            for d in emp_sub_dirs:
+                os.rmdir(devFold+'/'+d)
+            
