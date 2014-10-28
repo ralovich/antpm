@@ -63,6 +63,12 @@ const uchar USB_ANT_EP_OUT = 0x01;
 
 #define LOG_USB_WARN(func, rv) \
   do { LOG(LOG_WARN) << func << ": " << rv << ": \"" << usb_strerror() << "\"\n"; } while(0)
+#define LOG_USB_WARN2(func, rv)                                       \
+  do {                                                               \
+    LOG(LOG_WARN) << func << ": " << rv                              \
+                  << ": \"" << usb_strerror() << "\"\n"              \
+                  << ": \"" << static_cast<char*>(strerror(rv)) << "\"\n"; \
+  } while(0)
 
 
 
@@ -431,7 +437,7 @@ SerialUsb::write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
   int written = usb_bulk_write(m_p->dev, USB_ANT_EP_OUT, const_cast<char*>(src), size, 3000);
   if(written < 0)
   {
-    LOG_USB_WARN("SerialUsb::write", written);
+    LOG_USB_WARN2("SerialUsb::write", written);
     return false;
   }
 
@@ -471,7 +477,7 @@ SerialUsb::receiveHandler()
     else if(rv==-116) // timeout
     {}
 #else
-    else if(rv==-ETIMEDOUT)
+    else if(rv==-ETIMEDOUT)//-110
     {}
 #endif
     else
