@@ -22,6 +22,7 @@
 * It generally helps to keep the watch close (20-30 cm) to the USB2ANT dongle while communicating.
 
 ** TODO
+* when State=Busy broadcast is sent, maybe adjust timeout in waitForBursts??
 * run fit2gpx after downloads finish
 * capture ant agent log: for downloading all, for erasing, for uploading
 * capture ant agent log: for firmware upload
