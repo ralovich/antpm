@@ -137,7 +137,18 @@ getDateString()
   const boost::posix_time::ptime now=boost::posix_time::second_clock::local_time();
   boost::posix_time::time_facet*const f=new boost::posix_time::time_facet("%Y_%m_%d_%H_%M_%S");
   msg.imbue(std::locale(msg.getloc(),f));
-  msg << now;
+  try
+  {
+    msg << now;
+  }
+  catch(boost::exception &e)
+  {
+    std::cerr << boost::diagnostic_information(e) << std::endl;
+  }
+  catch(std::exception& e)
+  {
+    std::cerr << e.what() << std::endl;
+  }
   return msg.str();
 }
 
