@@ -147,7 +147,11 @@ main(int argc, char** argv)
   uint16_t eraseFileIdx   = 0x0000;
   int      verbosityLevel = antpm::Log::instance()->getLogReportingLevel();
   po::options_description desc("Allowed options");
-  desc.add_options()
+  std::vector<const char*> args(argv, argv+argc);
+  po::variables_map vm;
+  try
+  {
+    desc.add_options()
     ("help,h",                                                                    "produce help message")
     ("pairing,P", po::value<bool>(&pairing)->zero_tokens()->implicit_value(true), "Force pairing first")
     ("dir-only",  po::value<bool>(&dirOnly)->zero_tokens()->implicit_value(true), "Download and list device directory")
@@ -157,10 +161,6 @@ main(int argc, char** argv)
     ("version,V",                                               "Print version information")
     ;
 
-  std::vector<const char*> args(argv, argv+argc);
-  po::variables_map vm;
-  try
-  {
     //po::parsed_options parsed = po::parse_command_line(argc, argv, desc);
     po::parsed_options parsed = po::command_line_parser(argc, argv).options(desc).run();
     po::store(parsed, vm);

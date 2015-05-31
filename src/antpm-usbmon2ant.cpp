@@ -66,7 +66,10 @@ main(int argc, char** argv)
   po::positional_options_description pd;
   pd.add("input-file", 1);
   po::options_description desc("Allowed options");
-  desc.add_options()
+  po::variables_map vm;
+  try
+  {
+    desc.add_options()
     ("help,h",                                                       "produce help message")
     ("op,O", po::value<string>(&op)->default_value("parse"), "possible modes of operation: parse|dump|usbmon|filter|count")
     //("d", po::value<bool>(&dump)->zero_tokens(), "diffable byte dumps + decoded strings")
@@ -76,9 +79,6 @@ main(int argc, char** argv)
     ("version,V",                                               "Print version information")
     ;
 
-  po::variables_map vm;
-  try
-  {
     //po::parsed_options parsed = po::parse_command_line(argc, argv, desc);
     po::parsed_options parsed = po::command_line_parser(argc, argv).options(desc).positional(pd).run();
     po::store(parsed, vm);
