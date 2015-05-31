@@ -366,6 +366,11 @@ SerialTty::open()
 
   if(m_p->m_fd<0)
   {
+    // Ofcourse you don't want to be running as root, so add your user to the group dialout like so:
+    //
+    // sudo usermod -a -G dialout yourUserName
+    //
+    // Log off and log on again for the changes to take effect!
     char se[256];
     char* ss = strerror_r(m_p->m_fd, se, sizeof(se));
     LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and /dev/ttyUSBxxx was created by cp210x!\n"
