@@ -3,3 +3,4 @@
 /tmp.*
 /src/tests/config_tmp.ini
 /DeviceSettings.xml
+CMakeFiles
