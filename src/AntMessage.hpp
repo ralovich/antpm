@@ -374,7 +374,7 @@ struct AntMessage{
 
 
 public:
-  AntMessage() {}
+  AntMessage() : sent(false), idx(0) {}
   AntMessage(uchar mesg, uchar data1) {uchar buf[1] = {data1}; if(!assemble(mesg, buf, sizeof(buf))) throw 0; }
   AntMessage(uchar mesg, uchar data1, uchar data2) {uchar buf[2] = {data1, data2 }; if(!assemble(mesg, buf, sizeof(buf))) throw 0; }
   AntMessage(uchar mesg, uchar data1, uchar data2, uchar data3) {uchar buf[3] = {data1, data2, data3 }; if(!assemble(mesg, buf, sizeof(buf))) throw 0; }

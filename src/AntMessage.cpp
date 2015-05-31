@@ -604,6 +604,9 @@ bool AntMessage::assemble(unsigned char mesg, const unsigned char *inbuf, unsign
     bytes[3+i] = inbuf[i];
   unsigned char chk = getCheckSum();
   bytes[len+3] = chk;
+
+  sent = true;
+  idx = 0;
   return true;
 }
 
