@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
     // The io_service runs in a background thread to perform filtering.
     boost::thread bgthread(boost::bind(run, &io_service));
 
-    for (;;)
+    //for (;;)
     {
       // Collect request from user.
       //std::cout << "Enter a string: ";
@@ -169,7 +169,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
       BOOST_CHECK(reply.size()==6);
       BOOST_CHECK(reply[0]=='A');
 
-      break;
+      //break;
     }
 
     io_service.stop();
