@@ -1182,7 +1182,7 @@ uchar chevent(uchar chan, uchar event)
         bzero(pair.devname, sizeof pair.devname);
         /* if (peerdev <= 9999999) // only allow 7 digits */
         /* sprintf(pair.devname, "%u", peerdev); */
-        strcpy(pair.devname, fname);
+        strncpy(pair.devname, fname, sizeof(pair.devname)-1);
         /* else */
         /*        DEBUG_OUT(1, "Pair dev name too large %08x \"%d\"\n", peerdev, peerdev) */
         pair.u1 = strlen(pair.devname);
