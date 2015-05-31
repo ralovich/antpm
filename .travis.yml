@@ -1,7 +1,7 @@
 # -*- coding: iso-8859-2-unix -*-
 env:
   global:
-   - secure: "dSSIDimGn1EKLmZYntbEFlhFK344PJ16QouugG3gbWW4/fuSnQt7sboJqtD1TKDNJ7/wyzrStkkFFAgh2NqhPzajMg02HCkWF9EVKfEXORkVfr3bKPMSQ5XNFHzGhrQsF4bCrL6ZP+02u3Rm/0OpoK5G7kHCSQmnWRpKdzSZ3vg="
+   - secure: "DmQ3DTsvvKEg30be9kGbbGHkj1xMv5/hQOjXnaP091+lXdtqrHRwN8/Xki2qxyMeaCE3iq8UNVzppd9w/g1z75O63X96K+igVQqdXI5BHtqlKLZonTGMFVqsThjCys2oqRdfxpiZ+ggbImbzFwPqhKCtIeoQTFfDMJSpDpwl9eU="
 
 addons:
   coverity_scan:
