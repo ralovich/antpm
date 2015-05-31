@@ -28,6 +28,8 @@ src/tests/CMakeLists.txt
 src/tests/config.ini
 src/tests/testDateTime.cpp
 src/tests/testDeviceSettings.cpp
+src/tests/lq1.cpp
+src/tests/sm1.cpp
 src/CMakeLists.txt
 src/lqueue.hpp
 src/Log.hpp
