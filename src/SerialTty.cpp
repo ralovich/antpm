@@ -320,10 +320,10 @@ SerialTty::~SerialTty()
 #define ENSURE_OR_RETURN_FALSE(e)                           \
   do                                                        \
   {                                                         \
-    if(-1 == (e))                                           \
+    if((e)<0)                                               \
     {                                                       \
       /*perror(#e);*/                                       \
-      const char* se=strerror(e);                          \
+      const char* se=strerror(errno);                       \
       LOG(antpm::LOG_ERR) << se << "\n";                    \
       return false;                                         \
     }                                                       \
