@@ -651,6 +651,8 @@ FIT::FIT()
     productMap[ManufacturerGarmin][GarminTraningCenter] = "Traning Center";
     productMap[ManufacturerGarmin][GarminConnect] = "Connect";
 
+    manufacturer = 0;
+
     mCreationTimestamp = 0;
     mFirstTimestamp    = 0;
     mLastTimestamp     = 0;
