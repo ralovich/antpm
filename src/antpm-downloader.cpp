@@ -186,6 +186,11 @@ main(int argc, char** argv)
     cerr << desc << "\n";
     return EXIT_FAILURE;
   }
+  catch(boost::exception& e)
+  {
+    cerr << boost::diagnostic_information(e) << std::endl;
+    return EXIT_FAILURE;
+  }
   catch(std::exception& ex)
   {
     cerr << ex.what() << "\n";

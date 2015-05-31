@@ -27,6 +27,7 @@
 #include "Log.hpp"
 
 #include <boost/program_options.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 namespace po = boost::program_options;
 using namespace std;
@@ -88,6 +89,11 @@ main(int argc, char** argv)
   {
     cerr << error.what() << "\n";
     cerr << desc << "\n";
+    return EXIT_FAILURE;
+  }
+  catch(boost::exception& e)
+  {
+    cerr << boost::diagnostic_information(e) << std::endl;
     return EXIT_FAILURE;
   }
   catch(std::exception& ex)
