@@ -196,11 +196,17 @@ uint randno(void)
 
   if (fd >= 0)
   {
-    read(fd, &r, sizeof r);
+    ssize_t rr = read(fd, &r, sizeof r);
     close(fd);
+    if(rr != sizeof r)
+    {
+      r = rand();
+    }
   }
   else
+  {
     r = rand();
+  }
   return r;
 }
 

@@ -173,7 +173,9 @@ SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
   std::ifstream mods("/proc/modules");
   bool cp210x_found=false;
   if(!mods.is_open())
+  {
     LOG(LOG_WARN) << "Could not open /proc/modules!\n";
+  }
   else
   {
     while (mods.good())
@@ -184,9 +186,13 @@ SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
     }
     mods.close();
     if(cp210x_found)
+    {
       LOG(LOG_DBG) << "Found loaded cp210x kernel module, good.\n";
+    }
     else
+    {
       LOG(LOG_WARN) << "cp210x is not listed among loaded kernel modules!\n";
+    }
   }
   // check for usb ids inside /sys/bus/usb/devices/N-N/idProduct|idVendor
 
@@ -195,7 +201,9 @@ SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
   // check /sys/bus/usb/drivers/cp210x/6-2:1.0/interface for "Dynastream ANT2USB"
   const char* driverDir="/sys/bus/usb/drivers/cp210x";
   if(!folderExists(driverDir))
+  {
     LOG(LOG_WARN) << driverDir << " doesn't exist!\n";
+  }
   else
   {
     LOG(LOG_DBG) << "Detecting in " << driverDir << " ...\n";
@@ -320,10 +328,10 @@ SerialTty::~SerialTty()
 #define ENSURE_OR_RETURN_FALSE(e)                           \
   do                                                        \
   {                                                         \
-    if(-1 == (e))                                           \
+    if((e)<0)                                               \
     {                                                       \
       /*perror(#e);*/                                       \
-      const char* se=strerror(e);                          \
+      const char* se=strerror(errno);                       \
       LOG(antpm::LOG_ERR) << se << "\n";                    \
       return false;                                         \
     }                                                       \
