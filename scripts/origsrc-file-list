@@ -12,6 +12,7 @@ scripts/debian/antpm.manpages
 scripts/gentoo/Manifest
 scripts/gentoo/antpm-9999.ebuild
 scripts/80-ant-stick.rules
+scripts/antpm-clean-db
 scripts/conf-for-clang.sh
 scripts/deb
 scripts/make-changelog
@@ -19,6 +20,7 @@ scripts/make-tarball
 scripts/origsrc-file-list
 scripts/vs2008-64.bat
 scripts/vs2008.bat
+scripts/vs2012-64.bat
 src/VERSION
 src/cmake/Findlibusb-1.0.cmake
 src/cmake/FindLIBUSB.cmake
