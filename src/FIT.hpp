@@ -185,7 +185,10 @@ enum MessageFieldTypes
     MessageFieldTypeLanguage,
     MessageFieldTypeSport,
     MessageFieldTypeEvent,
-    MessageFieldTypeEventType
+    MessageFieldTypeEventType,
+    MessageFieldTypeSwimStroke,
+    MessageFieldTypeLengthType,
+    MessageFieldTypePoolLengthUnit
 };
 
 enum Manufacturers
