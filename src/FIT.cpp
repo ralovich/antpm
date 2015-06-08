@@ -691,6 +691,7 @@ FIT::FIT()
     productMap[ManufacturerGarmin][GarminFR310XT4T] = "Forerunner 310XT 4T";
     productMap[ManufacturerGarmin][GarminTraningCenter] = "Traning Center";
     productMap[ManufacturerGarmin][GarminConnect] = "Connect";
+    productMap[ManufacturerGarmin][GarminSwim] = "Swim";
 
     manufacturer = 0;
 
@@ -906,6 +907,8 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
 
 bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
 {
+    ostringstream strstrm;
+    
     LOG(LOG_DBG2) << "Parsing FIT file\n";
 
     FITHeader fitHeader;
@@ -1155,54 +1158,56 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                             }
                             case 101: // Length
                             {
-                                LOG(LOG_DBG2) << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum];
+                                strstrm.clear();
+                                strstrm << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] << " (";
                                 switch (rf.definitionNum)
                                 {
                                     case 2 : // Start Time
                                     {
-                                        LOG(LOG_DBG2) << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
+                                        strstrm << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
                                         break;
                                     }
                                     case 3 : // Total Elapsed Time
                                     {
-                                        LOG(LOG_DBG2) << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
+                                        strstrm << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
                                         break;
                                     }
                                     case 4 : // Total Timer Time
                                     {
-                                        LOG(LOG_DBG2) << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
+                                        strstrm << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
                                         break;
                                     }
                                     case 5: // Total Strokes
                                     {
-                                        LOG(LOG_DBG2) << *(uint16_t*)ptr;
+                                        strstrm << *(uint16_t*)ptr;
                                         break;
                                     }
                                     case 6: // Average Speed
                                     {
                                         // unit: m/s * 1000
                                         double speed = (double)(*(uint16_t*)ptr) / 1000;
-                                        LOG(LOG_DBG2) << speed;
+                                        strstrm << speed;
                                         
                                         break;
                                     }
                                     case 7: // Swimming stroke
                                     {
-                                        LOG(LOG_DBG2) << getDataString(ptr, 0, BT_Enum, rd.rfx.globalNum, rf.definitionNum);
+                                        strstrm << getDataString(ptr, 0, BT_Enum, rd.rfx.globalNum, rf.definitionNum);
                                         break;
                                     }
                                     case 9: // Average Swimming Cadence
                                     {
-                                        LOG(LOG_DBG2) << (int) *(uint8_t*)ptr;
+                                        strstrm << (int) *(uint8_t*)ptr;
                                         break;
                                     }
                                     case 12: // Length Type
                                     {
-                                        LOG(LOG_DBG2) << getDataString(ptr, 0, BT_Enum, rd.rfx.globalNum, rf.definitionNum);
+                                        strstrm << getDataString(ptr, 0, BT_Enum, rd.rfx.globalNum, rf.definitionNum);
                                         break;
                                     }
                                 }
-                                LOG(LOG_DBG2) << "\n";
+                                strstrm << ")\n";
+                                LOG(LOG_DBG2) << strstrm.str();
                                 break;
                             }
                         }

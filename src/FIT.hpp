@@ -270,6 +270,7 @@ enum GarminProducts
     GarminFR70          = 1436,
     GarminFR310XT4T     = 1446,
     GarminAMX           = 1461,
+    GarminSwim          = 1499,
     GarminSDM4          = 10007,
     GarminTraningCenter = 20119,
     GarminConnect       = 65534
