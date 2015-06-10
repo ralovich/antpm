@@ -49,7 +49,9 @@ Serial::instantiate(void*)
   bool usbserial_found=false;
   bool usbs_simple_found=false;
   if(!mods.is_open())
+  {
     LOG(LOG_WARN) << "Could not open /proc/modules!\n";
+  }
   else
   {
     while (mods.good())
@@ -64,17 +66,29 @@ Serial::instantiate(void*)
     }
     mods.close();
     if(cp210x_found)
+    {
       LOG(LOG_DBG) << "Found loaded cp210x kernel module.\n";
+    }
     else
+    {
       LOG(LOG_DBG) << "cp210x is not listed among loaded kernel modules.\n";
+    }
     if(usbserial_found)
+    {
       LOG(LOG_DBG) << "Found loaded usbserial kernel module.\n";
+    }
     else
+    {
       LOG(LOG_DBG) << "usbserial is not listed among loaded kernel modules.\n";
+    }
     if(usbs_simple_found)
+    {
       LOG(LOG_DBG) << "Found loaded usb_serial_simple kernel module.\n";
+    }
     else
+    {
       LOG(LOG_DBG) << "usb_serial_simple is not listed among loaded kernel modules.\n";
+    }
   }
 #endif
 
