@@ -40,6 +40,8 @@ namespace antpm {
 #define LOG_VAR5(x,y, z, w,v) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << ", " #v "= " << v << std::endl; } while(0)
 #define UNUSED(x) (void)(x)
 
+#define ASSURE_EQ_RET_FALSE(a,b) do { if(!((a)==(b))) { lprintf(antpm::LOG_ERR, "%s!=%s\n", #a, #b); LOG(antpm::LOG_ERR) << (char*)(#a) << "=" << a << ", " << (char*)(#b) << "=" << b << std::endl; return false; } } while(0)
+
 //std::ostream& logger();
 #define logger() LOG(antpm::LOG_INF)
 //FILE* loggerc();
