@@ -770,8 +770,8 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
 
   const M_ANTFS_Response* cmdResp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
   sn = cmdResp->detail.authenticateResponse.sn;
-  uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen;
-  CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName==16);
+  uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen; // 16 for 310XT, 14 for 410
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName>0);
 
   devName = std::string(reinterpret_cast<const char*>(&burstData[16]), lenDevName);
 
