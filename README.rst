@@ -18,6 +18,7 @@ ANT+minus is donationware_. If you are using ANT+minus and like it, we
 would be happy if you donate an amount of your choice. A suggestion is
 10 to 20 Euros/USD/GBP. In this way, you encourage the development of
 new versions.
+
 .. image:: https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif
    :alt: Donate to antpm
    :target: https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=B4AWQUT3B3YYN
