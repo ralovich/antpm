@@ -647,7 +647,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     if(dlIter==0) fileSize = resp->fileSize;
     //fprintf(loggerc(), "fileSize = %u = 0x%08x\n", (uint)fileSize, (uint)fileSize);
-    CHECK_RETURN_FALSE(fileSize == resp->fileSize);
+    ASSURE_EQ_RET_FALSE(fileSize, resp->fileSize);
     //fprintf(loggerc(), "nextOffset = %u = 0x%08x\n", (uint)nextOffset, (uint)nextOffset);
     //logger() << std::dec;
     //LOG_VAR(fileSize);
