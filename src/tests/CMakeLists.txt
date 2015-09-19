@@ -37,6 +37,15 @@ TARGET_LINK_LIBRARIES(lq1
   ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
 )
 
+ADD_EXECUTABLE(testReplay
+  testReplay.cpp
+)
+TARGET_LINK_LIBRARIES(testReplay
+  antpm
+  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
 
 IF(VALGRIND_PROGRAM)
   function(add_my_test name binary)
@@ -77,3 +86,5 @@ ADD_MY_TEST(testUsbmon2AntCount  ../antpm-usbmon2ant --op count  ${CMAKE_CURRENT
 
 ADD_MY_TEST(testsm1 sm1)
 ADD_MY_TEST(testlq1 lq1)
+
+ADD_MY_TEST(testReplay1 testReplay)
