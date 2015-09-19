@@ -99,7 +99,6 @@ SET(SRCS
   AntMessenger.hpp AntMessenger.cpp
   SerialUsb.hpp SerialUsb.cpp
   AntFr310XT.hpp AntFr310XT.cpp
-  AntFr405.hpp AntFr405.cpp
   lqueue.hpp
   Serial.hpp Serial.cpp
 
