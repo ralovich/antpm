@@ -52,8 +52,6 @@ src/AntChannel.cpp
 src/AntMessenger.hpp
 src/AntFr310XT.hpp
 src/AntFr310XT.cpp
-src/AntFr405.hpp
-src/AntFr405.cpp
 src/antdefs.hpp
 src/antdefs.cpp
 src/SerialUsb.hpp

@@ -1,3 +1,131 @@
+antpm (1.17-1) experimental; urgency=low
+
+  [ RALOVICH, Kristof ]
+  * open for new development
+  * scripts: tool to catch files missing from orig.tar.gz list
+  * antfs: more work on 405 dialect
+  * AntFr310XT: allow passing the Serial implementation from the outside
+  * tests: w-i-p verification of statemachine
+  * ant: add comments
+  * tests: fix spurious SIGSEGV
+  * tests: indent
+  * ant: better comments
+  * tests: cover more of message sending
+  * gant: convert comments to C style
+  * gant: convert comments to C style
+  * gant: conversion to c99
+  * lqueue: handle spurious wakeups
+  * add comment
+  * remove unused includes
+  * gant: untabify, reindent
+  * lqueue3: add lqueue3_bg
+  * ant: don't allow running AntMessenger event loop in background thread
+  * lqueue: implement logic to wait for lqueue3 even loop to finish
+  * tests: try to fix an other sporadic failure
+  * travis-ci: fix descriptor
+  * lqueue: fix c++ protection level
+  * ant: rename method
+  * ant: debug comment, for exiting event threads
+  * travis-ci: commands are not run in subshells
+  * ant: document state machine teardown
+  * ant: use nicer constants
+  * travis-ci: fix typo
+  * tests: test a few parts of lqueue
+  * try fixing FTBFS under hurd-i386, kfreebsd-amd64, kfreebsd-i386
+  * gant: try fixing FTBFS under hurd-i386
+  * don't use uint
+  * don't use NULL
+  * add missing include
+  * build fix: VS2012 has proper cstdint
+  * build fix: VS2012 has proper smart pointers
+  * cmake: build gant as optional
+  * VS2012 build script
+  * vs strftime doesn't recognize %T
+  * antpm-usbmon2ant: fix crash under win
+  * str2time: boost did not recognize this format
+  * tests: str2time still fails under win, but at least not crashes
+  * make the time conversion a bit more readable/debuggable
+  * win libusb installer: chmod +x
+
+  [ Kristof Ralovich ]
+  * tests: run sm1 under win too
+  * add missing include
+  * scipts: refine VS2008 builders
+
+  [ RALOVICH, Kristof ]
+  * tests: comment unused code
+  * travis-ci: hooking up coverity
+  * travis-ci: fix typo
+  * tests: fix warning
+  * travis-ci: build coverity_scan branch too
+  * travis-ci: new token
+  * realize freebsd build compatibility
+  * docs: update maintainer notes
+  * docs: update maintainer notes
+  * docs: more packaging details
+  * cmake: link against boost_atomic too
+  * debian: libboost-atomic-dev is required
+  * travis-ci: need libboost-atomic-dev
+  * travis-ci: refine coverity setup
+  * travis-ci: add coverity script
+  * travis-ci: doesn't have libboost-atomic-dev
+  * travis-ci: coverity update
+  * docs: fix line endings
+  * travis-ci: refine coverity setup
+  * travis-ci: refining coverity
+  * travis-ci: refining coverity
+  * travis-ci: refine coverity setup
+  * travis-ci: refine coverity setup
+  * gant: fix two bugs
+  * VS2012 build warning fix
+  * fix more static analysis problems
+  * initialize members
+  * linux: look for usb_serial_simple too
+  * tty debugging
+  * kfreebsd build fixes
+  * travis-ci: don't run coverity with gcc
+  * include cstdint
+  * fix ctor init order warning
+  * catch a bunch of exceptions
+  * Revert "include cstdint"
+  * scripts: database cleaner
+  * usb: print errno too
+  * docs: add todo
+  * tty: add documentation
+  * tests: satisfy coverity
+  * gant: replace strcpy with strncpy
+  * cmake: ignore generated files
+  * ant: fix uninitialized members
+  * fit: initialize all members
+  * exception safety
+  * exception safety
+  * tty: call argument only once
+  * tty: clarify intent
+  * antpm: exception safety
+  * gant: check return value
+  * add tests to tarball
+  * scripts: update tarball
+
+  [ jerome-labidurie ]
+  * Add "length message" management & dump
+  * Add Garmin Swim ids Better logging for length message
+
+  [ ralovich ]
+  * Update README.rst
+
+  [ RALOVICH, Kristof ]
+  * serial: clarify intent
+  * add ASSURE_EQ_RET_FALSE macro
+  * ant: relax sanitization of authenticateResponse.authStrLen
+  * ant: provide insight into values if assumption fails
+  * antfs: attempt to recognise FR 410 as well
+  * update readme
+  * fix typo
+  * ant: remove dead code
+  * gant: fix gcc warning
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Wed, 07 Oct 2015 23:10:47 +0200
+
 antpm (1.16-1) experimental; urgency=low
 
   * open for new development
