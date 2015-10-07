@@ -827,8 +827,8 @@ void usage(void)
 
 uchar chevent(uchar chan, uchar event)
 {
-  uchar status;
-  uchar phase;
+  uchar status = 0;
+  uchar phase = 0;
   /*uint newdata;*/
   struct ack_msg ack;
   struct auth_msg auth;
