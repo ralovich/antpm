@@ -307,7 +307,7 @@ getVersionString()
 {
   return std::string("") + APP_NAME
       + " v" + std::string(BOOST_STRINGIZE(ANTPM_VERSION))
-      + " built " __DATE__ " " + __TIME__ + "" //+#ANTPM_SERIAL_IMPL
+      + " built "
       + " under "
 #ifdef __linux__
 # ifdef __LP64__
