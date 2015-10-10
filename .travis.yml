@@ -1,4 +1,7 @@
 # -*- coding: iso-8859-2-unix -*-
+
+# it seems like travis-ci gives a "precise" 12.04 LTS ubuntu env
+
 sudo: false
 env:
   global:
@@ -25,7 +28,12 @@ addons:
     - pkg-config
     - libusb-dev
     - libxml2-dev
-    - libboost1.48-all-dev
+    - libboost-date-time1.48-dev
+    - libboost-filesystem1.48-dev
+    - libboost-program-options1.48-dev
+    - libboost-system1.48-dev
+    - libboost-test1.48-dev
+    - libboost-thread1.48-dev
     - valgrind
 
 language: cpp
