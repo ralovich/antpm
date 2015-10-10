@@ -31,6 +31,7 @@ addons:
     - libusb-dev
     - libxml2-dev
     - libboost1.55-dev
+    - libboost1.55-all-dev
     - libboost-atomic1.55-dev
     - libboost-date-time1.55-dev
     - libboost-exception1.55-dev
