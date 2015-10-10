@@ -17,7 +17,7 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    - boost-latest
+    - debian-sid
     packages:
     - gcc-4.8
     - g++-4.8
