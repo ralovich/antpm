@@ -25,7 +25,7 @@ addons:
     - pkg-config
     - libusb-dev
     - libxml2-dev
-    - libboost-all-dev
+    - libboost1.48-all-dev
     - valgrind
 
 language: cpp
