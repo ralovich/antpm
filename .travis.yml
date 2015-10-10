@@ -17,23 +17,15 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
-    - debian-sid
     packages:
     - gcc-4.8
     - g++-4.8
     - clang
     - cmake
     - pkg-config
-    - libboost-dev
-    - libboost-date-time-dev
-    - libboost-thread-dev
-    - libboost-atomic-dev
-    - libboost-system-dev
-    - libboost-filesystem-dev
-    - libboost-program-options-dev
-    - libboost-test-dev
     - libusb-dev
     - libxml2-dev
+    - libboost-all-dev
     - valgrind
 
 language: cpp
