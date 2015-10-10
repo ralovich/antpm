@@ -37,17 +37,7 @@ using namespace std;
 using namespace antpm;
 
 
-namespace antpm
-{
-
-template<>
-Log*
-ClassInstantiator<Log>::instantiate()
-{
-  return new Log(NULL);
-}
-
-}
+DEFAULT_LOG_INSTANTIATOR
 
 const
 std::vector<fs::path>

@@ -46,12 +46,12 @@ namespace antpm
 {
 
 template<>
-Log*
-ClassInstantiator<Log>::instantiate()
+std::unique_ptr<Log>
+ClassInstantiator<Log>::make_unique()
 {
   mkDirNoLog(getConfigFolder().c_str());
   std::string l=getConfigFolder() + "/antpm_" + getDateString() + ".txt";
-  return new Log(l.c_str());
+  return std::move(std::make_unique<Log>(l.c_str()));
 }
 
 }

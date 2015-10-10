@@ -187,15 +187,10 @@ BOOST_AUTO_TEST_CASE(test_asio)
 //# error Local sockets not available on this platform.
 #endif // defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
 
+DEFAULT_LOG_INSTANTIATOR
+
 namespace antpm
 {
-
-  template<>
-  Log*
-    ClassInstantiator<Log>::instantiate()
-  {
-    return new Log(NULL);
-  }
 
   class SerialTester0 : public Serial
   {

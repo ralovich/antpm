@@ -43,10 +43,7 @@ namespace antpm
     public:
       virtual    ~ClassInstantiator() {}
     protected:
-      static /*inline*/ T* instantiate();
-
-      // template < class P1 >
-      // static inline T* instantiate(P1 p1);
+      static std::unique_ptr<T> make_unique();
 
       template <class T1, class I1> friend class LazySingleton;
   };
@@ -65,11 +62,11 @@ namespace antpm
       LazySingleton(const LazySingleton<T>&); // no copy ctor
       const LazySingleton<T>& operator= (const LazySingleton<T>&); // no copy assignment
     private:
-      static std::auto_ptr<T> theObject;
+      static std::unique_ptr<T> theObject;
   };
 
   template<class T, class I>
-  std::auto_ptr<T> LazySingleton<T, I>::theObject(0);
+  std::unique_ptr<T> LazySingleton<T, I>::theObject;
 
   template<class T, class I>
   inline T&
@@ -93,10 +90,10 @@ namespace antpm
   {
     lazySingletonTrace();
   
-    if(!theObject.get())
+    if(!theObject)
     {
-      //theObject = std::auto_ptr<T>(create<T>());
-      theObject = std::auto_ptr<T>(I::instantiate());
+      // NOTE: not thread safe!
+      theObject = I::make_unique();
     }
 
     return theObject.get();

@@ -44,18 +44,7 @@ using namespace std;
 using namespace antpm;
 namespace fs = boost::filesystem;
 
-namespace antpm
-{
-
-template<>
-Log*
-ClassInstantiator<Log>::instantiate()
-{
-  return new Log(NULL);
-}
-
-}
-
+DEFAULT_LOG_INSTANTIATOR
 
 BOOST_AUTO_TEST_CASE(load_fit_date)
 {

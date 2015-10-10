@@ -43,17 +43,8 @@ using namespace std;
 using namespace antpm;
 
 
-namespace antpm
-{
+DEFAULT_LOG_INSTANTIATOR
 
-template<>
-Log*
-ClassInstantiator<Log>::instantiate()
-{
-  return new Log(NULL);
-}
-
-}
 
 BOOST_AUTO_TEST_CASE( free_test_function )
 {
