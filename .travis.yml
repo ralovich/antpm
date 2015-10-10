@@ -66,8 +66,9 @@ before_script:
   - uname -a
   - free
   - cat /proc/cpuinfo
-  - g++ -v
-  - clang++ -v
+  - $CC -v
+  - $CXX -v
+  - dpkg -l | grep ^ii | grep boost
   - mkdir cmake-build
 script:
   - cd cmake-build
