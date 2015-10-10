@@ -64,11 +64,14 @@ ENDIF()
 
 IF(USE_BOOST_STATIC_LINK)
   set(Boost_USE_STATIC_LIBS        ON)
+  set(Boost_USE_STATIC_RUNTIME    ON)
 ELSE()
   set(Boost_USE_STATIC_LIBS        OFF)
+  set(Boost_USE_STATIC_RUNTIME    OFF)
+  ADD_DEFINITIONS(-DBOOST_TEST_MAIN)
+  ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
 FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
 IF(NOT Boost_FOUND)
   MESSAGE(FATAL_ERROR "Boost not found!")
@@ -123,7 +126,7 @@ IF(NOT WIN32)
   SET(MY_ANTPM_LIBRARIES "stdc++;rt")
 ENDIF()
 
-MESSAGE(STATUS "Boost_LIBRARIES="${Boost_LIBRARIES})
+
 ADD_LIBRARY(antpm
   ${SRCS}
 )
@@ -136,7 +139,6 @@ TARGET_LINK_LIBRARIES(antpm
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${MY_ANTPM_LIBRARIES}
-  ${Boost_LIBRARIES}
 )
 
 ADD_EXECUTABLE(antpm-usbmon2ant
