@@ -20,6 +20,7 @@ addons:
   apt:
     sources:
     - ubuntu-toolchain-r-test
+    - boost-latest
     packages:
     - gcc-4.9
     - g++-4.9
@@ -28,12 +29,12 @@ addons:
     - pkg-config
     - libusb-dev
     - libxml2-dev
-    - libboost-date-time1.48-dev
-    - libboost-filesystem1.48-dev
-    - libboost-program-options1.48-dev
-    - libboost-system1.48-dev
-    - libboost-test1.48-dev
-    - libboost-thread1.48-dev
+    - libboost-date-time1.55-dev
+    - libboost-filesystem1.55-dev
+    - libboost-program-options1.55-dev
+    - libboost-system1.55-dev
+    - libboost-test1.55-dev
+    - libboost-thread1.55-dev
     - valgrind
 
 language: cpp
