@@ -21,16 +21,18 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     - boost-latest
+    - llvm-toolchain-precise-3.6
     packages:
     - gcc-4.9
     - g++-4.9
-    - clang
+    - clang-3.6
     - cmake
     - pkg-config
     - libusb-dev
     - libxml2-dev
     - libboost-atomic1.55-dev
     - libboost-date-time1.55-dev
+    - libboost-exception1.55-dev
     - libboost-filesystem1.55-dev
     - libboost-program-options1.55-dev
     - libboost-system1.55-dev
