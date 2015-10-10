@@ -483,7 +483,7 @@ AntFr310XT::handleEvents()
     // channel status <>
     CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    if(clientDevName=="Forerunner 405" || isAntpm405Override())
+    if(clientDevName=="Forerunner 405" || clientDevName=="Forerunner 410" || isAntpm405Override())
       changeStateSafe(ST_ANTFS_GINTF_DL_CAPS);
     else if(mode==MD_DOWNLOAD_ALL || mode==MD_DIRECTORY_LISTING)
       changeStateSafe(ST_ANTFS_DL_DIRECTORY);
@@ -856,6 +856,9 @@ AntFr310XT::guessDeviceType(const ushort devNum, const uchar devId, const uchar 
     return true;
   }
 
+  // 410
+  // devNum=0xdbfd devId=0x01 transType=0x05
+  // Beacon=1Hz
 
   return false;
 }

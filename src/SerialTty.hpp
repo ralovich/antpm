@@ -59,7 +59,7 @@ private:
   void queueData();
 
 private:
-  std::auto_ptr<SerialTtyPrivate> m_p;
+  std::unique_ptr<SerialTtyPrivate> m_p;
 };
 
 }

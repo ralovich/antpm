@@ -24,7 +24,6 @@
 
 #include "AntMessage.hpp"
 #include "AntFr310XT.hpp"
-#include "AntFr405.hpp"
 #include "common.hpp"
 #include "Log.hpp"
 
@@ -47,12 +46,12 @@ namespace antpm
 {
 
 template<>
-Log*
-ClassInstantiator<Log>::instantiate()
+std::unique_ptr<Log>
+ClassInstantiator<Log>::make_unique()
 {
   mkDirNoLog(getConfigFolder().c_str());
   std::string l=getConfigFolder() + "/antpm_" + getDateString() + ".txt";
-  return new Log(l.c_str());
+  return std::move(std::make_unique<Log>(l.c_str()));
 }
 
 }
@@ -225,25 +224,6 @@ main(int argc, char** argv)
     LOG(antpm::LOG_DBG2) << "\targv[" << i << "]\t\"" << argv[i] << "\"" << endl;
   }
 
-  if(false && isAntpm405Override())
-  {
-    logger() << "\n\nApplying ANTPM_405 override mode!\n\n\n";
-    AntFr405 watch2;
-    stopFunc = boost::bind(&AntFr405::stopAsync, &watch2);
-    {
-      watch2.setModeDownloadAll();
-      if(pairing) watch2.setModeForcePairing();
-      if(dirOnly) watch2.setModeDirectoryListing();
-      else if(dlFileIdx!=0x0000) watch2.setModeDownloadSingleFile(dlFileIdx);
-      else if(eraseFileIdx!=0x000) watch2.setModeEraseSingleFile(eraseFileIdx);
-
-      watch2.start();
-
-
-      watch2.stop();
-    }
-  }
-  else
   {
     AntFr310XT watch2;
     stopFunc = boost::bind(&AntFr310XT::stopAsync, &watch2);

@@ -108,9 +108,8 @@ namespace antpm
     : public ClassInstantiator<Log>
     , public LazySingleton<Log, Log>
   {
-  protected:
-    inline Log(const char* logFileName = NULL);
   public:
+    inline Log(const char* logFileName = nullptr);
     inline virtual ~Log();
 
 #ifdef __GNUC__
@@ -157,9 +156,6 @@ namespace antpm
     std::ofstream _ofs;
     SinkList      _sinks;
     LogLevel      _logReportingLevel;
-
-
-    friend class antpm::ClassInstantiator<Log>;
   };
 
   Log::Log(const char* logFileName)
@@ -370,3 +366,15 @@ namespace antpm
 //#define log(level) psoLog(level)
 
 }
+
+#define DEFAULT_LOG_INSTANTIATOR                \
+  namespace antpm {                             \
+  template<>                                    \
+  std::unique_ptr<Log>                          \
+  ClassInstantiator<Log>::make_unique()         \
+  {                                             \
+    return std::move(std::make_unique<Log>());  \
+  }                                             \
+  }
+    
+

@@ -201,7 +201,7 @@ FIT::FIT()
     messageFieldTypeMap[18][8] = MessageFieldTypeTime;
     messageFieldNameMap[18][9] = "Total Distance";
     messageFieldTypeMap[18][9] = MessageFieldTypeOdometr;
-    messageFieldNameMap[19][10] = "Total Cycles";
+    messageFieldNameMap[18][10] = "Total Cycles";
     messageFieldNameMap[18][11] = "Total Calories";
     messageFieldNameMap[18][13] = "Total Fat Calories";
     messageFieldNameMap[18][14] = "Average Speed";
@@ -229,6 +229,11 @@ FIT::FIT()
     messageFieldTypeMap[18][31] = MessageFieldTypeCoord;
     messageFieldNameMap[18][32] = "SWC Longitude";
     messageFieldTypeMap[18][32] = MessageFieldTypeCoord;
+    messageFieldNameMap[18][43] = "Swimming Stroke";
+    messageFieldTypeMap[18][43] = MessageFieldTypeSwimStroke;
+    messageFieldNameMap[18][44] = "Pool Length";
+    messageFieldNameMap[18][46] = "Pool Length Unit";
+    messageFieldTypeMap[18][46] = MessageFieldTypePoolLengthUnit;
 
     messageTypeMap[19] = "Lap";
     messageFieldNameMap[19][254] = "Index";
@@ -489,6 +494,29 @@ FIT::FIT()
     messageFieldTypeMap[79][3] = MessageFieldTypeWeight;
     
     messageTypeMap[101] = "Length";
+    messageFieldNameMap[101][254] = "Index";
+    messageFieldNameMap[101][253] = "Timestamp";
+    messageFieldTypeMap[101][253] = MessageFieldTypeTimestamp;
+    messageFieldNameMap[101][0] = "Event";
+    messageFieldTypeMap[101][0] = MessageFieldTypeEvent;
+    messageFieldNameMap[101][1] = "Event Type";
+    messageFieldTypeMap[101][0] = MessageFieldTypeEventType;
+    messageFieldNameMap[101][2] = "Start Time";
+    messageFieldTypeMap[101][2] = MessageFieldTypeTimestamp;
+    messageFieldNameMap[101][3] = "Total Elapsed Time";
+    messageFieldTypeMap[101][3] = MessageFieldTypeTime;
+    messageFieldNameMap[101][4] = "Total Timer Time";
+    messageFieldTypeMap[101][4] = MessageFieldTypeTime;
+    messageFieldNameMap[101][5] = "Total Strokes";
+    messageFieldNameMap[101][6] = "Average Speed"; // unit: m/s * 1000
+    messageFieldNameMap[101][7] = "Swimming Stroke";
+    messageFieldTypeMap[101][7] = MessageFieldTypeSwimStroke;
+    messageFieldNameMap[101][9] = "Average Swimming Cadence";
+    messageFieldNameMap[101][12] = "Length Type";
+    messageFieldTypeMap[101][12] = MessageFieldTypeLengthType;
+    messageFieldNameMap[101][13] = "";
+    
+    
     messageTypeMap[103] = "Monitoring Info";
     messageTypeMap[105] = "PAD";
 
@@ -607,6 +635,19 @@ FIT::FIT()
     enumMap[MessageFieldTypeEventType][8] = "Stop Disable";
     enumMap[MessageFieldTypeEventType][9] = "Stop Disable All";
 
+    enumMap[MessageFieldTypeSwimStroke][0] = "Freestyle";
+    enumMap[MessageFieldTypeSwimStroke][1] = "Backstroke";
+    enumMap[MessageFieldTypeSwimStroke][2] = "Breaststroke";
+    enumMap[MessageFieldTypeSwimStroke][3] = "Butterlfy";
+    enumMap[MessageFieldTypeSwimStroke][4] = "Drill";
+    enumMap[MessageFieldTypeSwimStroke][5] = "Mixed";
+    
+    enumMap[MessageFieldTypeLengthType][0] = "Resting";
+    enumMap[MessageFieldTypeLengthType][1] = "Active";
+    
+    enumMap[MessageFieldTypePoolLengthUnit][0] = "meters";
+    enumMap[MessageFieldTypePoolLengthUnit][1] = "yards";
+        
     manufacturerMap[ManufacturerGarmin] = "Garmin";
     manufacturerMap[ManufacturerGarminFR405ANTFS] = "Garmin (FR405 ANTFS)";
     manufacturerMap[ManufacturerZephyr] = "Zephyr";
@@ -650,6 +691,7 @@ FIT::FIT()
     productMap[ManufacturerGarmin][GarminFR310XT4T] = "Forerunner 310XT 4T";
     productMap[ManufacturerGarmin][GarminTraningCenter] = "Traning Center";
     productMap[ManufacturerGarmin][GarminConnect] = "Connect";
+    productMap[ManufacturerGarmin][GarminSwim] = "Swim";
 
     manufacturer = 0;
 
@@ -865,6 +907,8 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
 
 bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
 {
+    ostringstream strstrm;
+    
     LOG(LOG_DBG2) << "Parsing FIT file\n";
 
     FITHeader fitHeader;
@@ -975,8 +1019,8 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                         //BaseType bt;
                         //bt.byte = rf.baseType;
 
-                        //logger() << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] <<
-                        //            " (" << dataTypeMap[bt.bits.baseTypeNum] << ") " << getDataString(ptr, rf.size, bt.bits.baseTypeNum, rd.rfx.globalNum, rf.definitionNum) << "\n";
+//                          LOG(LOG_DBG2) << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] << "\n";
+//                                     " (" << dataTypeMap[bt.bits.baseTypeNum] << ") " << getDataString(ptr, rf.size, bt.bits.baseTypeNum, rd.rfx.globalNum, rf.definitionNum) << "\n";
 
                         switch(rd.rfx.globalNum)
                         {
@@ -1110,6 +1154,60 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                                         break;
                                     }
                                 }
+                                break;
+                            }
+                            case 101: // Length
+                            {
+                                strstrm.clear();
+                                strstrm << rd.rfx.globalNum << "." << (unsigned)rf.definitionNum << ": " << messageFieldNameMap[rd.rfx.globalNum][rf.definitionNum] << " (";
+                                switch (rf.definitionNum)
+                                {
+                                    case 2 : // Start Time
+                                    {
+                                        strstrm << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
+                                        break;
+                                    }
+                                    case 3 : // Total Elapsed Time
+                                    {
+                                        strstrm << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
+                                        break;
+                                    }
+                                    case 4 : // Total Timer Time
+                                    {
+                                        strstrm << getDataString(ptr, 0, BT_UInt32, rd.rfx.globalNum, rf.definitionNum);
+                                        break;
+                                    }
+                                    case 5: // Total Strokes
+                                    {
+                                        strstrm << *(uint16_t*)ptr;
+                                        break;
+                                    }
+                                    case 6: // Average Speed
+                                    {
+                                        // unit: m/s * 1000
+                                        double speed = (double)(*(uint16_t*)ptr) / 1000;
+                                        strstrm << speed;
+                                        
+                                        break;
+                                    }
+                                    case 7: // Swimming stroke
+                                    {
+                                        strstrm << getDataString(ptr, 0, BT_Enum, rd.rfx.globalNum, rf.definitionNum);
+                                        break;
+                                    }
+                                    case 9: // Average Swimming Cadence
+                                    {
+                                        strstrm << (int) *(uint8_t*)ptr;
+                                        break;
+                                    }
+                                    case 12: // Length Type
+                                    {
+                                        strstrm << getDataString(ptr, 0, BT_Enum, rd.rfx.globalNum, rf.definitionNum);
+                                        break;
+                                    }
+                                }
+                                strstrm << ")\n";
+                                LOG(LOG_DBG2) << strstrm.str();
                                 break;
                             }
                         }

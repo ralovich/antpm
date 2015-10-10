@@ -39,25 +39,14 @@ using namespace antpm;
 
 
 
-namespace antpm
-{
-
-template<>
-Log*
-ClassInstantiator<Log>::instantiate()
-{
-  return new Log(NULL);
-}
-
-}
-
+DEFAULT_LOG_INSTANTIATOR
 
 struct Producer
 {
   lqueue2<int> _q;
 
   lqueue3<int> q;
-  std::auto_ptr<boost::thread> q_th;
+  std::unique_ptr<boost::thread> q_th;
 
   lqueue3_bg<double> q_bg;
   volatile bool die;

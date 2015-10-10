@@ -647,7 +647,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     if(dlIter==0) fileSize = resp->fileSize;
     //fprintf(loggerc(), "fileSize = %u = 0x%08x\n", (uint)fileSize, (uint)fileSize);
-    CHECK_RETURN_FALSE(fileSize == resp->fileSize);
+    ASSURE_EQ_RET_FALSE(fileSize, resp->fileSize);
     //fprintf(loggerc(), "nextOffset = %u = 0x%08x\n", (uint)nextOffset, (uint)nextOffset);
     //logger() << std::dec;
     //LOG_VAR(fileSize);
@@ -770,8 +770,8 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
 
   const M_ANTFS_Response* cmdResp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
   sn = cmdResp->detail.authenticateResponse.sn;
-  uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen;
-  CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName==16);
+  uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen; // 16 for 310XT, 14 for 410
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName>0);
 
   devName = std::string(reinterpret_cast<const char*>(&burstData[16]), lenDevName);
 

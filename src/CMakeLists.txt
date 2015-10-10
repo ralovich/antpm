@@ -42,8 +42,8 @@ IF(MSVC)
   ADD_DEFINITIONS(-D_WIN32_WINNT=0x0500)
 ENDIF()
 
-IF(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
+IF(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++1y -Wall")
   SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g")
   SET(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -O2")
   set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -ggdb3")
@@ -64,12 +64,15 @@ ENDIF()
 
 IF(USE_BOOST_STATIC_LINK)
   set(Boost_USE_STATIC_LIBS        ON)
+  set(Boost_USE_STATIC_RUNTIME    ON)
 ELSE()
   set(Boost_USE_STATIC_LIBS        OFF)
+  set(Boost_USE_STATIC_RUNTIME    OFF)
+  ADD_DEFINITIONS(-DBOOST_TEST_MAIN)
+  ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
-FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time REQUIRED)
+FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
 IF(NOT Boost_FOUND)
   MESSAGE(FATAL_ERROR "Boost not found!")
 ENDIF()
@@ -99,7 +102,6 @@ SET(SRCS
   AntMessenger.hpp AntMessenger.cpp
   SerialUsb.hpp SerialUsb.cpp
   AntFr310XT.hpp AntFr310XT.cpp
-  AntFr405.hpp AntFr405.cpp
   lqueue.hpp
   Serial.hpp Serial.cpp
 
@@ -121,7 +123,7 @@ IF(NOT WIN32)
     SerialTty.hpp SerialTty.cpp
 	  )
   SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
-  SET(MY_ANTPM_LIBRARIES "stdc++")
+  SET(MY_ANTPM_LIBRARIES "stdc++;rt")
 ENDIF()
 
 
@@ -132,6 +134,8 @@ TARGET_LINK_LIBRARIES(antpm
   ${Boost_DATE_TIME_LIBRARY}
   ${LIBUSB_LIBRARIES}
   ${Boost_THREAD_LIBRARY}
+  ${Boost_ATOMIC_LIBRARY}
+  ${Boost_EXCEPTION_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${MY_ANTPM_LIBRARIES}

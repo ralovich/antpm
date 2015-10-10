@@ -112,25 +112,24 @@ http://goldencheetah.org/
 
 
 ** git-pbuilder as root
-git-pbuilder create
-
-
-** pbuilder as root
-pbuilder create --debootstrapopts --variant=buildd
-# add ... deb-src http://archive.ubuntu.com/ubuntu <ubuntu_version> main restricted universe multiverse
-apt-get update
-apt-get source bc
-pbuilder build *.dsc
+DIST=unstable ARCH=i386 git-pbuilder create --debootstrapopts --variant=buildd
+DIST=unstable ARCH=i386 git-pbuilder update
+? # add ... deb-src http://archive.ubuntu.com/ubuntu <ubuntu_version> main restricted universe multiverse
+? apt-get update
+? apt-get source bc
+? pbuilder build *.dsc
 
 ** building the actual package
 rm -r cmake-build
 git reset --hard HEAD
 git clean -f -X
 git clean -f -d
-pristine-tar checkout antpm_1.14.orig.tar.gz
-mv antpm_1.14.orig.tar.gz ..
-DIST=sid ARCH=i386 git-pbuilder --update
-DIST=sid ARCH=i386 git-pbuilder -us -uc
+git-dch -R -N 1.17-1
+# review, edit and commit changelog
+#pristine-tar checkout ../antpm_1.17.orig.tar.gz
+DIST=unstable ARCH=i386 git-buildpackage --update
+# --git-ignore-new
+DIST=unstable ARCH=i386 git-buildpackage -us -uc --git-tag
 
 ** managing patches on top of the package with quilt
 * http://pkg-perl.alioth.debian.org/howto/quilt.html

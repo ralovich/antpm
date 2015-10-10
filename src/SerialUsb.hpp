@@ -49,7 +49,7 @@ public:
   virtual bool         setWriteDelay(const size_t ms);
 
 private:
-  std::auto_ptr<SerialUsbPrivate> m_p;
+  std::unique_ptr<SerialUsbPrivate> m_p;
 };
 
 }

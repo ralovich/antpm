@@ -8,8 +8,8 @@ echo 'GIT_VER='$GIT_VER
 
 OUTNAME=antpm_${VER}.orig.tar
 
-FILES=`find . -type f -name \* -print | grep -v .git`
-TMP_LIST=`mktemp`
+#FILES=`find . -type f -name \* -print | grep -v .git`
+#TMP_LIST=`mktemp`
 
 #echo $FILES
 #echo "TMP_LIST=${TMP_LIST}"

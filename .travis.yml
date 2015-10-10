@@ -1,4 +1,8 @@
 # -*- coding: iso-8859-2-unix -*-
+
+# it seems like travis-ci gives a "precise" 12.04 LTS ubuntu env
+
+sudo: false
 env:
   global:
    - secure: "DmQ3DTsvvKEg30be9kGbbGHkj1xMv5/hQOjXnaP091+lXdtqrHRwN8/Xki2qxyMeaCE3iq8UNVzppd9w/g1z75O63X96K+igVQqdXI5BHtqlKLZonTGMFVqsThjCys2oqRdfxpiZ+ggbImbzFwPqhKCtIeoQTFfDMJSpDpwl9eU="
@@ -13,6 +17,30 @@ addons:
     build_command:   "make"
     branch_pattern: coverity_scan
     build_script_url: "https://raw.githubusercontent.com/ralovich/antpm/master/scripts/coverity_scan_script.sh"
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - boost-latest
+    - llvm-toolchain-precise-3.6
+    packages:
+    - gcc-4.9
+    - g++-4.9
+    - clang-3.6
+    - cmake
+    - pkg-config
+    - libusb-dev
+    - libxml2-dev
+    - libboost1.55-dev
+    - libboost1.55-all-dev
+    - libboost-atomic1.55-dev
+    - libboost-date-time1.55-dev
+    - libboost-exception1.55-dev
+    - libboost-filesystem1.55-dev
+    - libboost-program-options1.55-dev
+    - libboost-system1.55-dev
+    - libboost-test1.55-dev
+    - libboost-thread1.55-dev
+    - valgrind
 
 language: cpp
 script: cmake
@@ -29,19 +57,24 @@ branches:
   only:
     - master
     - coverity_scan
+
 before_install:
-  - sudo apt-get update
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.6" CC="clang-3.6"; fi
+
+before_script:
   - uname -a
   - free
   - cat /proc/cpuinfo
-  - g++ -v
-  - clang++ -v
-install: sudo apt-get install libboost-dev libboost-date-time-dev libboost-thread-dev libboost-system-dev libboost-filesystem-dev	libboost-program-options-dev libboost-test-dev libusb-dev libxml2-dev valgrind
-before_script: mkdir cmake-build
+  - $CC -v
+  - $CXX -v
+  - dpkg -l | grep ^ii | grep boost
+  - mkdir cmake-build
 script:
   - cd cmake-build
-  - cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
+  - cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr -DUSE_BOOST_STATIC_LINK=FALSE && VERBOSE=1 make -j4 && make test ARGS=-j99
   - make clean
-  - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
+  - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr -DUSE_BOOST_STATIC_LINK=FALSE && VERBOSE=1 make -j4 && make test ARGS=-j99
   - make clean
 

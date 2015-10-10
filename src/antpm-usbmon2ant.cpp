@@ -33,18 +33,7 @@ namespace po = boost::program_options;
 using namespace std;
 using namespace antpm;
 
-namespace antpm
-{
-
-template<>
-Log*
-ClassInstantiator<Log>::instantiate()
-{
-  return new Log(NULL);
-}
-
-}
-
+DEFAULT_LOG_INSTANTIATOR
 
 int
 main(int argc, char** argv)

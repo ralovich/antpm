@@ -24,7 +24,10 @@ KNOWN_MISSING=`mktemp`
 3rd_party/usbmon-6/usbmon.c
 .gitignore
 scripts/archlinux/PKGBUILD
+scripts/coverity_scan_script.sh
+scripts/do_cov.sh
 scripts/snaphot-deb
+scripts/verify-orig
 .travis.yml
 EOF
 
