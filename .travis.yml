@@ -30,6 +30,7 @@ addons:
     - pkg-config
     - libusb-dev
     - libxml2-dev
+    - libboost1.55-dev
     - libboost-atomic1.55-dev
     - libboost-date-time1.55-dev
     - libboost-exception1.55-dev
@@ -59,6 +60,7 @@ branches:
 before_install:
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.9" CC="gcc-4.9"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.6" CC="clang-3.6"; fi
 
 before_script:
   - uname -a
@@ -69,8 +71,8 @@ before_script:
   - mkdir cmake-build
 script:
   - cd cmake-build
-  - cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
+  - cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && VERBOSE=1 make -j4 && make test ARGS=-j99
   - make clean
-  - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && make -j4 && make test ARGS=-j99
+  - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr && VERBOSE=1 make -j4 && make test ARGS=-j99
   - make clean
 
