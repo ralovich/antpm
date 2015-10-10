@@ -69,7 +69,7 @@ ELSE()
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
 set(Boost_USE_STATIC_RUNTIME    OFF)
-FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic REQUIRED)
+FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
 IF(NOT Boost_FOUND)
   MESSAGE(FATAL_ERROR "Boost not found!")
 ENDIF()
@@ -132,6 +132,7 @@ TARGET_LINK_LIBRARIES(antpm
   ${LIBUSB_LIBRARIES}
   ${Boost_THREAD_LIBRARY}
   ${Boost_ATOMIC_LIBRARY}
+  ${Boost_EXCEPTION_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
   ${MY_ANTPM_LIBRARIES}
