@@ -1,4 +1,5 @@
 # -*- coding: iso-8859-2-unix -*-
+sudo: false
 env:
   global:
    - secure: "I1Jdwk4mbz9YjiYEMeMwWZjrBz1oauuGyW/WNOkdq4FkfyPFQcwvU/VnefIGnXCZ7YBS6tuXY8DNQZC0CSWPusebYCKHDdTiiQlcmQ3+L/UPy5a8jABwASHTXsJtte4S5hUq+KLzzBtMmsBwMT2xWO2zskuOkq6tFIqP4N3hfag="
@@ -13,6 +14,25 @@ addons:
     build_command:   "make"
     branch_pattern: coverity_scan
     build_script_url: "https://raw.githubusercontent.com/ralovich/antpm/master/scripts/coverity_scan_script.sh"
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - boost-latest
+    packages:
+    - gcc-4.8
+    - g++-4.8
+    - clang
+    - libboost-dev
+    - libboost-date-time-dev
+    - libboost-thread-dev
+    - libboost-atomic-dev
+    - libboost-system-dev
+    - libboost-filesystem-dev
+    - libboost-program-options-dev
+    - libboost-test-dev
+    - libusb-dev
+    - libxml2-dev
+    - valgrind
 
 language: cpp
 script: cmake
@@ -30,13 +50,14 @@ branches:
     - master
     - coverity_scan
 before_install:
-  - sudo apt-get update
   - uname -a
   - free
   - cat /proc/cpuinfo
   - g++ -v
   - clang++ -v
-install: sudo apt-get install libboost-dev libboost-date-time-dev libboost-thread-dev libboost-system-dev libboost-filesystem-dev	libboost-program-options-dev libboost-test-dev libusb-dev libxml2-dev valgrind
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
+
 before_script: mkdir cmake-build
 script:
   - cd cmake-build
