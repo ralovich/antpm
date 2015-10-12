@@ -45,7 +45,6 @@ addons:
 language: cpp
 script: cmake
 compiler:
-  - clang
   - gcc
 notifications:
   email:
