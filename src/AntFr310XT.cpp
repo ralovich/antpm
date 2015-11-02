@@ -858,6 +858,10 @@ AntFr310XT::guessDeviceType(const ushort devNum, const uchar devId, const uchar 
     return true;
   }
 
+  // 405
+  // devNum=0x6652 devId=0x01 transType=0x05
+  // devNum=0xce79 devId=0x01 transType=0x05
+
   // 410
   // devNum=0xdbfd devId=0x01 transType=0x05
   // Beacon=1Hz
