@@ -837,7 +837,7 @@ AntFr310XT::guessDeviceType(const ushort devNum, const uchar devId, const uchar 
   if(!prod)
     return false;
 
-  // 310
+  // 310 XT
   // devNum=0x4cd4, devId=0x01, transType=0x05
   // Beacon=8Hz
   if( devNum==0x4cd4 )
@@ -846,6 +846,8 @@ AntFr310XT::guessDeviceType(const ushort devNum, const uchar devId, const uchar 
     return true;
   }
 
+  // 910 XT
+  // devNum=0x6f1d devId=0x01 transType=0x05
 
   // 405
   // devNum=0xc12e, devId=0x01, transType=0x05
