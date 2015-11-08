@@ -243,7 +243,7 @@ SerialUsb::SerialUsb()
   m_p->dev = 0;
   m_p->dev_vid = 0;
   m_p->dev_pid = 0;
-  m_p->m_writeDelay = 0;
+  m_p->m_writeDelay = 3;
 
   usb_init();
 

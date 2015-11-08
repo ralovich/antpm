@@ -317,7 +317,7 @@ SerialTty::SerialTty()
 
   m_p->m_fd = -1;
   m_p->m_recvThKill = 0;
-  m_p->m_writeDelay = 0;
+  m_p->m_writeDelay = 3;
 }
 
 SerialTty::~SerialTty()

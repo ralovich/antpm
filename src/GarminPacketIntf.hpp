@@ -19,7 +19,12 @@
 
 #include "antdefs.hpp"
 #include <vector>
+#include <string>
 #include <boost/static_assert.hpp>
+
+extern "C" {
+#include <garmin.h> // garmin-forerunner-tools
+}
 
 namespace antpm {
 
@@ -40,13 +45,27 @@ struct GarminPacket
   uint8_t  mReserved67[2];
   uint32_t mDataSize;
   uint8_t  mData[1];
+  const std::string toString() const;
+  const std::string toString8() const;
 };
 #pragma pack(pop)
 BOOST_STATIC_ASSERT(sizeof(GarminPacket)==13);
 
 struct GarminPacketIntf
 {
-  bool interpret(std::vector<uint8_t> data);
+  std::vector<uchar> bytes;
+  std::vector<std::string> protos;
+
+  bool interpret(const int lastPid);
+  bool interpret(const int lastPid, std::vector<uint8_t> data);
+
+  bool tryDecodeDirect(const int lastPid, std::vector<uint8_t>& burstData);
+
+  bool saveToFile(const char* fileName = "antfs.bin");
+  bool saveToFile(std::string folder, uint64_t code);
+
+  int interpretPid(std::vector<uint8_t>& data);
+  bool parseStrings(const std::vector<uint8_t> &data, const size_t skip, std::vector<std::string> &out);
 };
 
 }
