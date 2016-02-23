@@ -65,12 +65,15 @@ enum {
 
 
 
-#define LOG_USB_WARN(func, rv)                                          \
-  do { LOG(LOG_WARN) << func << ": " << rv << ": \"" << libusb_strerror(rv) << "\"\n"; } while(0)
+#define LOG_USB_WARN(func, rv)                      \
+  do {                                              \
+    LOG(LOG_WARN) << func << ": " << rv << ": \""   \
+                  << libusb_strerror((libusb_error)rv) << "\"\n"; \
+  } while(0)
 #define LOG_USB_WARN2(func, rv)                                         \
   do {                                                                  \
     LOG(LOG_WARN) << func << ": " << rv                                 \
-                  << ": \"" << libusb_strerror(rv) << "\"\n"            \
+                  << ": \"" << libusb_strerror((libusb_error)rv) << "\"\n"            \
                   << ": \"" << static_cast<char*>(strerror(rv)) << "\"\n"; \
   } while(0)
 
@@ -133,7 +136,7 @@ struct SerialUsbPrivate
     }
     if(irv)
     {
-      LOG_USB_WARN(libusb_control_transfer, irv);
+      LOG_USB_WARN("libusb_control_transfer", irv);
     }
 
     return irv==sz;
