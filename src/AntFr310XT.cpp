@@ -568,7 +568,7 @@ AntFr310XT::handleEvents()
         continue;
       }
       logger() << "Would transfer course file 0x" << toString<ushort>(fileIdx,4,'0')
-               << "@" << DeviceSettings::time2str(t) << " older than "
+               << "@" << DeviceSettings::time2str(t) << " newer than "
                << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
     }
 
@@ -686,7 +686,7 @@ AntFr310XT::handleEvents()
         continue;
       }
       logger() << "Transfer course file 0x" << toString<ushort>(fileIdx,4,'0')
-               << "@" << DeviceSettings::time2str(t) << " older than "
+               << "@" << DeviceSettings::time2str(t) << " newer than "
                << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
 
       std::vector<uchar> data;
