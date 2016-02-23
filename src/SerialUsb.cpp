@@ -47,7 +47,7 @@
 #include "lusb0_usb.h"
 #else
 #include <errno.h>
-#include <usb.h>
+#include <libusb.h>
 #include "SerialTty.hpp"
 #endif
 
@@ -58,15 +58,22 @@ const uchar USB_ANT_CONFIGURATION = 1;
 const uchar USB_ANT_INTERFACE = 0;
 const uchar USB_ANT_EP_IN  = 0x81;
 const uchar USB_ANT_EP_OUT = 0x01;
+enum {
+  BULK_WRITE_TIMEOUT_MS = 3000,
+  BULK_READ_TIMEOUT_MS = 1000
+};
 
 
 
-#define LOG_USB_WARN(func, rv) \
-  do { LOG(LOG_WARN) << func << ": " << rv << ": \"" << usb_strerror() << "\"\n"; } while(0)
-#define LOG_USB_WARN2(func, rv)                                       \
-  do {                                                               \
-    LOG(LOG_WARN) << func << ": " << rv                              \
-                  << ": \"" << usb_strerror() << "\"\n"              \
+#define LOG_USB_WARN(func, rv)                      \
+  do {                                              \
+    LOG(LOG_WARN) << func << ": " << rv << ": \""   \
+                  << libusb_strerror((libusb_error)rv) << "\"\n"; \
+  } while(0)
+#define LOG_USB_WARN2(func, rv)                                         \
+  do {                                                                  \
+    LOG(LOG_WARN) << func << ": " << rv                                 \
+                  << ": \"" << libusb_strerror((libusb_error)rv) << "\"\n"            \
                   << ": \"" << static_cast<char*>(strerror(rv)) << "\"\n"; \
   } while(0)
 
@@ -80,28 +87,28 @@ struct SerialUsbPrivate
   boost::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
   volatile int m_recvThKill;
-  usb_dev_handle* dev;
+  libusb_device_handle* dev;
   unsigned short dev_vid;
   unsigned short dev_pid;
   size_t m_writeDelay;
 
-#define REQTYPE_HOST_TO_INTERFACE	0x41
-#define REQTYPE_INTERFACE_TO_HOST	0xc1
-#define REQTYPE_HOST_TO_DEVICE	0x40
-#define REQTYPE_DEVICE_TO_HOST	0xc0
+#define REQTYPE_HOST_TO_INTERFACE 0x41
+#define REQTYPE_INTERFACE_TO_HOST 0xc1
+#define REQTYPE_HOST_TO_DEVICE  0x40
+#define REQTYPE_DEVICE_TO_HOST  0xc0
 
-#define USB_CTRL_GET_TIMEOUT	5000
-#define USB_CTRL_SET_TIMEOUT	5000
+#define USB_CTRL_GET_TIMEOUT  5000
+#define USB_CTRL_SET_TIMEOUT  5000
 
-#define CP210X_IFC_ENABLE	0x00
-#define CP210X_SET_MHS		0x07
-#define CP210X_SET_BAUDRATE	0x1E
-#define UART_ENABLE		0x0001
+#define CP210X_IFC_ENABLE 0x00
+#define CP210X_SET_MHS    0x07
+#define CP210X_SET_BAUDRATE 0x1E
+#define UART_ENABLE   0x0001
 
-#define CONTROL_DTR		0x0001
-#define CONTROL_RTS		0x0002
-#define CONTROL_WRITE_DTR	0x0100
-#define CONTROL_WRITE_RTS	0x0200
+#define CONTROL_DTR   0x0001
+#define CONTROL_RTS   0x0002
+#define CONTROL_WRITE_DTR 0x0100
+#define CONTROL_WRITE_RTS 0x0200
 
   // size in bytes
   bool
@@ -117,14 +124,20 @@ struct SerialUsbPrivate
     if(size>2)
     {
       sz = size;
-      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, 0, index, data, sz, USB_CTRL_SET_TIMEOUT);
+      irv = libusb_control_transfer(dev, REQTYPE_HOST_TO_INTERFACE, request, 0,
+                                    index, reinterpret_cast<unsigned char*>(data),
+                                    sz, USB_CTRL_SET_TIMEOUT);
     }
     else
     {
       sz = 0;
-      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0], index, NULL, sz, USB_CTRL_SET_TIMEOUT);
+      irv = libusb_control_transfer(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0],
+                                    index, NULL, sz, USB_CTRL_SET_TIMEOUT);
     }
-    if(irv<0) { LOG_VAR(irv); }
+    if(irv)
+    {
+      LOG_USB_WARN("libusb_control_transfer", irv);
+    }
 
     return irv==sz;
   }
@@ -152,81 +165,122 @@ struct SerialUsbPrivate
     return true;
   }
 
-  usb_dev_handle*
+  libusb_device_handle*
   libUSBGetDevice (const unsigned short vid, const unsigned short pid)
   {
-    struct usb_bus *UsbBus = NULL;
-    struct usb_device *UsbDevice = NULL;
-    usb_dev_handle *udev;
+    libusb_device_handle *udev;
 
-    int dBuses, dDevices;
-    dBuses = usb_find_busses ();
-    dDevices = usb_find_devices ();
+    // discover devices
+    libusb_device **list;
+    bool found = false;
 
-    //LOG_VAR2(dBuses, dDevices);
-    //lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
-    UNUSED(dBuses);
-    UNUSED(dDevices);
-
-    for (UsbBus = usb_get_busses(); UsbBus; UsbBus = UsbBus->next)
+    ssize_t cnt = libusb_get_device_list(NULL, &list);
+    if(cnt < 0)
     {
-      bool found = false;
-      for (UsbDevice = UsbBus->devices; UsbDevice; UsbDevice = UsbDevice->next)
-      {
-        //lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", UsbBus->dirname, UsbDevice->filename, UsbDevice->descriptor.idVendor, UsbDevice->descriptor.idProduct);
-        if (UsbDevice->descriptor.idVendor == vid && UsbDevice->descriptor.idProduct== pid)
-        {
-          //lprintf(LOG_INF, "found!\n");
-          found = true;
-          dev_vid = vid;
-          dev_pid = pid;
-          break;
-        }
-      }
-      if(found)
-        break;
-    }
-
-    if (!UsbDevice) return NULL;
-    udev = usb_open (UsbDevice);
-    if(!udev)
-    {
-      LOG_USB_WARN("usb_open", (void*)udev);
+      LOG_USB_WARN("libusb_get_device_list", cnt);
       return NULL;
     }
+    
+    ssize_t i = 0;
+    int err = 0;
+    libusb_device *device = NULL;
+    int rv = -1;
+    for (i = 0; i < cnt; i++) {
+      device = list[i];
 
-    int rv = 0;
-    char string[256];
-    if(0 < usb_get_string_simple(udev, UsbDevice->descriptor.iProduct, string, sizeof(string)))
-    {
-      LOG(LOG_INF) << string << "\n";
-    }
-    if(0 < usb_get_string_simple(udev, UsbDevice->descriptor.iManufacturer, string, sizeof(string)))
-    {
-      LOG(LOG_INF) << string << "\n";
-    }
-    if(0 < usb_get_string_simple(udev, UsbDevice->descriptor.iSerialNumber, string, sizeof(string)))
-    {
-      LOG(LOG_INF) << string << "\n";
+      libusb_device_descriptor desc;
+      rv = libusb_get_device_descriptor(device, &desc);
+      if(rv)
+      {
+        break;
+      }
+
+      //lprintf(LOG_INF, "vid: 0x%04hx, pid: 0x%04hx\n", desc.idVendor, desc.idProduct);
+      if(desc.idVendor == vid && desc.idProduct == pid)
+      {
+        dev_vid = vid;
+        dev_pid = pid;
+        found = true;
+        break;
+      }
     }
 
-    //int cfg = usb_get_configuration(UsbDevice);
-    rv=usb_set_configuration (udev, USB_ANT_CONFIGURATION);
-    if(rv < 0)
+    int bulk_in = -1;
+    int bulk_out = -1;
+    if (found) {
+      err = libusb_open(device, &udev);
+      if (err)
+      {
+        LOG_USB_WARN("libusb_open", err);
+        return NULL;
+      }
+
+      libusb_config_descriptor* config = NULL;
+      rv = libusb_get_config_descriptor_by_value(device,USB_ANT_CONFIGURATION,&config);
+      if ( rv ) {
+        LOG_USB_WARN("libusb_get_config_descriptor_by_value", rv);
+        return NULL;
+      }
+
+      if(config)
+      {
+        for(int i = 0; i < config->interface->altsetting->bNumEndpoints; i++ )
+        {
+          const libusb_endpoint_descriptor* ep = &config->interface->altsetting->endpoint[i];
+          switch ( ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK ) {
+          case LIBUSB_TRANSFER_TYPE_BULK:
+            if ( ep->bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK ) {
+              bulk_in = ep->bEndpointAddress;
+              lprintf(LOG_INF, "bulk IN  = %02x\n", bulk_in);
+            } else {
+               bulk_out = ep->bEndpointAddress;
+              lprintf(LOG_INF, "bulk OUT = %02x\n", bulk_out);
+            }
+            break;
+          case LIBUSB_TRANSFER_TYPE_INTERRUPT:
+            if ( ep->bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK ) {
+              int intr_in = ep->bEndpointAddress;
+              lprintf(LOG_INF, "intr IN  = %02x\n", intr_in);
+            }
+            break;
+          default:
+            break;
+          }
+        }
+        libusb_free_config_descriptor(config);
+      }
+    }
+
+    libusb_free_device_list(list, 1);
+
+    if(!found)
+    {
+      return NULL;
+    }
+    
+
+
+    rv = libusb_set_configuration(udev, USB_ANT_CONFIGURATION);
+    if(rv)
     {
       LOG_USB_WARN("USB_ANT_CONFIGURATION", rv);
-      usb_close (udev);
+      libusb_close (udev);
+      udev = NULL;
       return NULL;
     }
 
 
-    rv=usb_claim_interface (udev, USB_ANT_INTERFACE);
-    if(rv < 0)
+    rv = libusb_claim_interface(udev, USB_ANT_INTERFACE);
+    if(rv)
     {
       LOG_USB_WARN("USB_ANT_INTERFACE", rv);
-      usb_close (udev);
+      libusb_close (udev);
+      udev = NULL;
       return NULL;
     }
+
+
+
 
     return udev;
   }
@@ -243,15 +297,17 @@ SerialUsb::SerialUsb()
   m_p->dev = 0;
   m_p->dev_vid = 0;
   m_p->dev_pid = 0;
-  m_p->m_writeDelay = 0;
+  m_p->m_writeDelay = 3;
 
-  usb_init();
-
+  int err = -1;
+  err = libusb_init(NULL);
+  LOG_USB_WARN("libusb_init", err);
 }
 
 SerialUsb::~SerialUsb()
 {
   close();
+  libusb_exit(NULL);
   lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
@@ -283,15 +339,16 @@ SerialUsb::open()
   if(isOpen())
     return false;
 
+  // FIXME: 3 and 4 are only cp210x based, for the rest the setup should be different to allow them to work
   enum {NUM_DEVS=5};
   uint16_t known[NUM_DEVS][2] =
-  {
-    {0x0fcf, 0x1003},
-    {0x0fcf, 0x1004},
-    {0x0fcf, 0x1006},
-    {0x0fcf, 0x1008},
-    {0x0fcf, 0x1009},
-  };
+    {
+      {0x0fcf, 0x1003},
+      {0x0fcf, 0x1004},
+      {0x0fcf, 0x1006},
+      {0x0fcf, 0x1008},
+      {0x0fcf, 0x1009},
+    };
 
   //bool rv = false;
 
@@ -341,13 +398,13 @@ SerialUsb::close()
       boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
       m_p->m_condQueue.notify_all(); // make sure an other thread calling readBlocking() moves on too
     }
-    m_p->m_recvTh.join();
+    m_p->m_recvTh.join(); // wtf if the thread was never started?
 
     if(m_p->dev)
     {
       //usb_reset(m_p->dev);
-      usb_release_interface(m_p->dev, USB_ANT_INTERFACE);
-      usb_close(m_p->dev);
+      libusb_release_interface(m_p->dev, USB_ANT_INTERFACE);
+      libusb_close(m_p->dev);
     }
     m_p->dev = 0;
     m_p->m_writeDelay = 0;
@@ -417,6 +474,7 @@ SerialUsb::readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead)
       m_p->m_recvQueue.pop();
     }
     bytesRead = s;
+    //lprintf(LOG_RAW, "|q|=%d\n", m_p->m_recvQueue.size());
   }
 
   if(bytesRead==0)
@@ -433,11 +491,14 @@ SerialUsb::write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
     return false;
 
   int size = static_cast<int>(sizeBytes);
-  //int written = usb_interrupt_write(m_p->dev, USB_ANT_EP_OUT, const_cast<char*>(src), size, 3000);
-  int written = usb_bulk_write(m_p->dev, USB_ANT_EP_OUT, const_cast<char*>(src), size, 3000);
-  if(written < 0)
+  int written = -1;
+  int rv = libusb_bulk_transfer(m_p->dev, USB_ANT_EP_OUT,
+                                reinterpret_cast<unsigned char*>(const_cast<char*>(src)),
+                                size, &written, BULK_WRITE_TIMEOUT_MS);
+  //lprintf(LOG_RAW, "W rv=%d written=%d\n", rv, written);
+  if(rv)
   {
-    LOG_USB_WARN2("SerialUsb::write", written);
+    LOG_USB_WARN2("SerialUsb::write", rv);
     return false;
   }
 
@@ -461,28 +522,32 @@ SerialUsb::receiveHandler()
       return NULL;
 
     unsigned char buf[4096];
-    int timeout_ms = 1000;
-    int rv = usb_bulk_read(m_p->dev, USB_ANT_EP_IN, (char*)buf, sizeof(buf), timeout_ms);
+    int actual_length = -1;
+    int rv1 = libusb_bulk_transfer(m_p->dev, USB_ANT_EP_IN, buf,
+                                  sizeof(buf), &actual_length, BULK_READ_TIMEOUT_MS);
 
-    if(rv > 0)
+    //lprintf(LOG_RAW, "R rv=%d, recv=%d\n", rv1, actual_length);
+    if(rv1==LIBUSB_SUCCESS)
     {
-      boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
-      for(int i = 0; i < rv; i++)
-        m_p->m_recvQueue.push(buf[i]);
-      m_p->m_condQueue.notify_one();
+      if(actual_length > 0)
+      {
+        boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+        for(int i = 0; i < actual_length; i++)
+          m_p->m_recvQueue.push(buf[i]);
+        //lprintf(LOG_RAW, "|q|=%d\n", m_p->m_recvQueue.size());
+        m_p->m_condQueue.notify_one();
+      }
     }
-    else if(rv==0)
-    {}
 #ifdef _WIN32
-    else if(rv==-116) // timeout
+    else if(rv1==-116) // timeout
     {}
 #else
-    else if(rv==-ETIMEDOUT)//-110
+    else if(rv1==LIBUSB_ERROR_TIMEOUT)//"Operation timed out" LIBUSB_ERROR_TIMEOUT
     {}
 #endif
     else
     {
-      LOG_USB_WARN("SerialUsb::receiveHandler", rv);
+      LOG_USB_WARN("SerialUsb::receiveHandler", rv1);
     }
   }
 

@@ -870,7 +870,13 @@ bool
 AntMessenger::sendCommand(uchar mesg, uchar *inbuf, uchar len, const size_t timeout_ms)
 {
   AntMessage m;
-  return m.assemble(mesg, inbuf, len) && sendCommand(m, timeout_ms);
+  if(!m.assemble(mesg, inbuf, len))
+  {
+    lprintf(antpm::LOG_ERR, "assembly failed\n");
+    return false;
+  }
+
+  return sendCommand(m, timeout_ms);
 }
 
 
@@ -888,14 +894,17 @@ AntMessenger::sendCommand(AntMessage &m, const size_t timeout_ms)
   const uint8_t chan = m.getPayloadRef()[0];
   AntChannel& pc = chs[chan];
   AntRespListener respList(pc, m.getMsgId());
-  //pc.addRespListener(&respList);
 
+  assert(rv);
   uint8_t respVal;
-  rv = rv&& respList.waitForResponse(respVal, timeout_ms);
+  rv = respList.waitForResponse(respVal, timeout_ms);
+  if(!rv)
+  {
+    lprintf(antpm::LOG_ERR, "waitForResponse failed\n");
+    return false;
+  }
 
-  //pc.rmRespListener(&respList);
-
-  return rv;
+  return true;
 }
 
 // request a message from peer
@@ -1039,7 +1048,7 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     }
 
   }
-  //fprintf(loggerc(), "%d interpreted\n", nInterpreted);
+  //lprintf(LOG_INF, "%d interpreted\n", nInterpreted);
 
   return true;
 }
@@ -1051,7 +1060,7 @@ AntMessenger::onMessage(std::vector<AntMessage> v)
 {
   //TODO: don't presort here, but call onMsg for all incoming packets
 
-  //fprintf(loggerc(), "%d\n", int(v.size()));
+  //lprintf(antpm::LOG_DBG3, "%d\n", int(v.size()));
   for(size_t i = 0; i < v.size(); i++)
   {
     AntMessage& m(v[i]);
@@ -1171,9 +1180,9 @@ AntMessenger::th_messageHandler()
       uchar buf[128];
       size_t bytesRead=0;
       bool rv = m_io->readBlocking(reinterpret_cast<char*>(buf), sizeof(buf), bytesRead);
+      //printf("rv=%d, bytesRead=%d\n", (int)rv, (int)bytesRead); fflush(stdout);
       if(rv)
       {
-        //printf("rv=%d, bytesRead=%d\n", (int)rv, (int)bytesRead); fflush(stdout);
         for(size_t i=0; i<bytesRead; i++)
         {
           q.push_back(buf[i]);
