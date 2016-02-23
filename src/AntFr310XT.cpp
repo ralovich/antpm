@@ -523,6 +523,56 @@ AntFr310XT::handleEvents()
 
     // channel status <>
     //CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+
+    for(size_t i=0; i<zfc.waypointsFiles.size(); i++)
+    {
+      ushort fileIdx = zfc.waypointsFiles[i];
+      time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
+      if(t < m_ds->LastTransferredTime)
+      {
+        logger() << "Skipping waypoints file 0x" << toString<ushort>(fileIdx,4,'0')
+                 << "@" << DeviceSettings::time2str(t) << " older than "
+                 << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
+        continue;
+      }
+      logger() << "Would transfer waypoints file 0x" << toString<ushort>(fileIdx,4,'0')
+               << "@" << DeviceSettings::time2str(t) << " newer than "
+               << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
+    }
+
+    for (size_t i=0; i<zfc.activityFiles.size(); i++)
+    {
+      ushort fileIdx = zfc.activityFiles[i];
+      time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
+      if(t < m_ds->LastTransferredTime)
+      {
+        logger() << "Skipping activity file 0x" << toString<ushort>(fileIdx,4,'0')
+                 << "@" << DeviceSettings::time2str(t) << " older than "
+                 << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
+        continue;
+      }
+      logger() << "Would transfer activity file 0x" << toString<ushort>(fileIdx,4,'0')
+               << "@" << DeviceSettings::time2str(t) << " newer than "
+               << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
+    }
+
+    for (size_t i=0; i<zfc.courseFiles.size(); i++)
+    {
+      ushort fileIdx = zfc.courseFiles[i];
+      time_t t       = GarminConvert::gOffsetTime(zfc.getFitFileTime(fileIdx));
+      if(t < m_ds->LastTransferredTime)
+      {
+        logger() << "Skipping course file 0x" << toString<ushort>(fileIdx,4,'0')
+                 << "@" << DeviceSettings::time2str(t) << " older than "
+                 << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
+        continue;
+      }
+      logger() << "Would transfer course file 0x" << toString<ushort>(fileIdx,4,'0')
+               << "@" << DeviceSettings::time2str(t) << " older than "
+               << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
+    }
+
+
     if(mode==MD_DIRECTORY_LISTING)
       changeStateSafe(ST_ANTFS_LAST);
     else
@@ -535,6 +585,7 @@ AntFr310XT::handleEvents()
     // dl activity files
     // dl course files
     // NOTE: seems like, if a file was downloaded, it's date in the directory file changes to the date of transfer
+
 
     uint fileCnt=0;
     for(size_t i=0; i<zfc.waypointsFiles.size() && fileCnt<m_ds->MaxFileDownloads; i++)
