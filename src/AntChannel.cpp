@@ -104,11 +104,13 @@ AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
   {
     if(m) *m = *m_msgResp;
     m_msgResp.reset();
+    //lprintf(LOG_DBG3, "waitForMsg [0] already arrived\n");
     return true;
   }
   if(!m_cndResp.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms)))
   {
     // false means, timeout was reached
+    //lprintf(LOG_DBG3, "waitForMsg [1] timeout\n");
     return false;
   }
   // true means, either notification OR spurious wakeup!!
@@ -117,8 +119,10 @@ AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
   {
     if(m) *m=*m_msgResp;//copy
     m_msgResp.reset();
+    //lprintf(LOG_DBG3, "waitForMsg [2] received within time\n");
     return true;
   }
+  //lprintf(LOG_DBG3, "waitForMsg [3] spurious wakeup w/o arrival\n");
   return false;
 }
 
@@ -169,7 +173,9 @@ AntRespListener::waitForResponse(uint8_t& respVal, const size_t timeout_ms)
 {
   AntMessage resp;
   if(!waitForMsg(&resp, timeout_ms))
+  {
     return false;
+  }
   respVal = resp.getPayloadRef()[2];
   return true;
 }

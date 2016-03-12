@@ -122,7 +122,7 @@ DeviceSettings::saveToFile(const char *fname)
   pt.put("antpm.MaxFileDownloads", MaxFileDownloads);
   pt.put("antpm.LastUserProfileTime", time2str(LastUserProfileTime));
   pt.put("antpm.LastTransferredTime", time2str(LastTransferredTime));
-  pt.put("antpm.SerialWriteDelayMs", 3);
+  pt.put("antpm.SerialWriteDelayMs", SerialWriteDelayMs);
   try
   {
     boost::property_tree::ini_parser::write_ini(fname, pt);
@@ -151,7 +151,7 @@ bool DeviceSettings::loadFromFile(const char *fname)
   LOG_VAR(pt.get<unsigned int>("antpm.MaxFileDownloads"));
   LOG_VAR(pt.get<std::string>("antpm.LastUserProfileTime"));
   LOG_VAR(pt.get<std::string>("antpm.LastTransferredTime"));
-  LOG_VAR(pt.get<std::string>("antpm.SerialWriteDelayMs"));
+  LOG_VAR(pt.get<size_t>("antpm.SerialWriteDelayMs"));
   MaxFileDownloads    = pt.get<unsigned int>("antpm.MaxFileDownloads");
   LastUserProfileTime = str2time(pt.get<std::string>("antpm.LastUserProfileTime").c_str());
   LastTransferredTime = str2time(pt.get<std::string>("antpm.LastTransferredTime").c_str());

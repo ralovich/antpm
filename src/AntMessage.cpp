@@ -809,6 +809,28 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   return true;
 }
 
+bool
+GFile::saveToFile(const char* fileName /* = "antfs.bin" */)
+{
+  logger() << "Saving '" << fileName << "'...\n";
+  if(bytes.empty()) { LOG(LOG_ERR) << "nothing to save\n"; return false; }
+  FILE *f=fopen(fileName, "wb");
+  if(!f) { LOG(LOG_ERR) << "could not open \"" << fileName << "\"\n"; return false; }
+  if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { LOG(LOG_ERR) << "truncated fwrite\n"; fclose(f); return false; }
+  fclose(f);
+
+  //FIT fit;
+  //std::time_t ct=0;
+  //CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
+  //char tbuf[256];
+  //strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&ct));
+  ////LOG_VAR(tbuf);
+  //boost::filesystem::last_write_time(boost::filesystem::path(fileName), ct);
+
+  return true;
+}
+
+
 
 // explicit template instantiations
 

@@ -435,4 +435,10 @@ struct AntFsFile
   bool saveToFile(const char* fileName = "antfs.bin");
 };
 
+struct GFile
+{
+  std::vector<uchar> bytes;
+  bool saveToFile(const char* fileName = "antfs.bin");
+};
+
 }

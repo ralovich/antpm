@@ -1,3 +1,47 @@
+antpm (1.18-1) experimental; urgency=low
+
+  * open for development
+  * cmake: link boost atomic too
+  * don't use __DATE__ for reproducible builds
+  * docs: document more of the debian packaging procedure
+  * antpm: convert auto_ptr to unique_ptr, start using C++14 (make_unique)
+  * scripts: comment unused code
+  * Revert "cmake: link boost atomic too"
+  * travis-ci: try pulling in more recent boost and c++ compilers
+  * travis-ci: pull in cmake and pkg-config too
+  * travis-ci: do not set CXX explicitly
+  * travis-ci: try using newer boost
+  * travis-ci: try using newer boost v2
+  * travis-ci: require gcc 4.9
+  * travis-ci: require gcc 4.9 v2
+  * travis-ci: try using newer boost v3
+  * travis-ci: try using newer boost v4
+  * travis-ci: try using newer boost v5
+  * travis-ci: try using newer boost v6
+  * Revert "Revert "cmake: link boost atomic too""
+  * travis-ci: try using newer boost v7
+  * cmake: link boost exception too
+  * link rt for e.g. clocl_gettime
+  * travis-ci: try using newer boost v8
+  * travis-ci: try using newer boost v9
+  * travis-ci: try using newer boost v10
+  * travis-ci: try using newer boost v11
+  * cmake: improve boost dynamic linking for travis
+  * cmake: treat clang the same way as gcc
+  * travis-ci: clang build segfaults on travis, no idea why
+  * ant: another device seen
+  * ant: two FR405s seen
+  * document constants
+  * files coming from direct transfers are not ant fs packed
+  * ds: bugfix: do not always write 3 as delay
+  * ant: improve debuggability
+  * port over to libusb1.0
+  * antfs: hint which files would be downloaded based on date
+  * usb: fix warning storm
+  * ant: fix typo
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Tue, 23 Feb 2016 22:30:40 +0100
+
 antpm (1.17-1) experimental; urgency=low
 
   [ RALOVICH, Kristof ]
