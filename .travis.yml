@@ -28,7 +28,7 @@ addons:
     - clang-3.6
     - cmake
     - pkg-config
-    - libusb-dev
+    - libusb-1.0-0-dev
     - libxml2-dev
     - libboost1.55-dev
     - libboost1.55-all-dev
