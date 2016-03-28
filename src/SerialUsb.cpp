@@ -65,6 +65,7 @@ enum {
 
 
 
+#if defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION >= 0x01000103)
 #define LOG_USB_WARN(func, rv)                      \
   do {                                              \
     LOG(LOG_WARN) << func << ": " << rv << ": \""   \
@@ -76,7 +77,19 @@ enum {
                   << ": \"" << libusb_strerror((libusb_error)rv) << "\"\n"            \
                   << ": \"" << static_cast<char*>(strerror(rv)) << "\"\n"; \
   } while(0)
-
+#else
+#define LOG_USB_WARN(func, rv)                      \
+  do {                                              \
+    LOG(LOG_WARN) << func << ": " << rv << ": \""   \
+                  << libusb_error_name(rv) << "\"\n"; \
+  } while(0)
+#define LOG_USB_WARN2(func, rv)                                         \
+  do {                                                                  \
+    LOG(LOG_WARN) << func << ": " << rv                                 \
+                  << ": \"" << libusb_error_name(rv) << "\"\n"            \
+                  << ": \"" << static_cast<char*>(strerror(rv)) << "\"\n"; \
+  } while(0)
+#endif
 
 
 
