@@ -64,7 +64,7 @@ ADD_MY_TEST(testDeviceSettings2 testDeviceSettings --help)
 
 ADD_MY_TEST(testDateTime2 testDateTime --help)
 
-ADD_MY_TEST(testDownload ../antpm-downloader)
+#ADD_MY_TEST(testDownload ../antpm-downloader)
 
 ADD_MY_TEST(testFit2Gpx ../antpm-fit2gpx)
 
