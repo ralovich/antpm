@@ -107,7 +107,7 @@ getVersionString();
 
 enum
 {
-  ANTPM_RETRIES=10,
+  ANTPM_RETRIES=30,
   ANTPM_RETRY_MS=1000,
   ANTPM_MAX_CHANNELS=56
 };
