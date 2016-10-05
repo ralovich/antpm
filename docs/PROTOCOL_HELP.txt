@@ -17,7 +17,7 @@
 6) Under linux host, figure out usb bus address of your USB2ANT stick: "lsusb" (e.g.: "Bus 005 Device 001: ID 1d6b:0001 USB2ANT ..." means our bus number is 5)
 
 7) We need to increase usbmon lower threshold for message truncation to say 100 characters. For this build the usbmon tool:
- # git clone https://code.google.com/p/antpm/
+ # git clone https://github.com/ralovich/antpm.git
  # cd antpm/3rd_party/usbmon-6/
  # make
 
