@@ -44,7 +44,8 @@ AntChannel::onMsg(AntMessage &m)
   boost::unique_lock<boost::mutex> lock(m_mtxListeners);
   for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
   {
-    (*i)->onMsg(m);
+    AntListenerBase* listener = *i;
+    listener->onMsg(m);
   }
 }
 
