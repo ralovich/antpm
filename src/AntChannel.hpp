@@ -49,7 +49,7 @@ public:
 struct AntChannel
 {
   uchar chan;
-protected:
+private:
   boost::mutex m_mtxListeners;
   std::list<AntListenerBase*> listeners;
 public:
