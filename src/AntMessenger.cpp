@@ -925,7 +925,12 @@ AntMessenger::sendRequest(uchar reqMsgId, uchar chan, AntMessage *response, cons
   }
 
 
-  AntMessage dummy;if(!response) response=&dummy;
+  AntMessage dummy;
+  if(!response)
+  {
+    response=&dummy;
+  }
+
   rv = rv&& rl.waitForMsg(response, timeout_ms);
 
   //pc.rmMsgListener(&rl);
