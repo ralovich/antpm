@@ -66,6 +66,32 @@ ZeroFileContent::getFitFileTime(const uint16_t idx)
   return 0;
 }
 
+void ZeroFileContent::cullFitFiles(const std::multimap<uint16_t, std::pair<string, size_t> >& files)
+{
+    for(auto it : files)
+    {
+        cullFitFile(it.first, it.second.second);
+    }
+}
+
+void ZeroFileContent::cullFitFile(const uint16_t idx, const size_t file_size_bytes)
+{
+    auto remover = [this,idx,file_size_bytes](uint16_t file_idx)
+    {
+        ZeroFileRecord& zfRecord(zfRecords[file_idx]);
+        if(idx == file_idx && file_size_bytes == zfRecord.fileSize) {
+            return true;
+        }
+        return false;
+    };
+    waypointsFiles.erase(std::remove_if(waypointsFiles.begin(), waypointsFiles.end(),
+                                        remover), waypointsFiles.end());
+    activityFiles.erase(std::remove_if(activityFiles.begin(), activityFiles.end(),
+                                       remover), activityFiles.end());
+    courseFiles.erase(std::remove_if(courseFiles.begin(), courseFiles.end(),
+                                      remover), courseFiles.end());
+}
+
 
 FIT::FIT()
 {

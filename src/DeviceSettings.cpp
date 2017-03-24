@@ -113,7 +113,7 @@ DeviceSettings::getDatabaseFiles(size_t count) const
         {
           continue;
         }
-        files.insert(DatabaseEntity(static_cast<ushort>(value),
+        files.insert(DatabaseEntity(static_cast<uint16_t>(value),
                                     FITEntity(fit.path().string(), fs::file_size(fit.path()))));
       }
     }

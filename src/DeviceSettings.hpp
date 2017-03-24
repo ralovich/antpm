@@ -33,8 +33,8 @@ namespace antpm {
 
 // <fileIdx, <path, bytes> >
 typedef std::pair<std::string, size_t> FITEntity;
-typedef std::multimap<ushort, FITEntity> Database;
-typedef std::pair<ushort, FITEntity> DatabaseEntity;
+typedef std::multimap<uint16_t, FITEntity> Database;
+typedef std::pair<uint16_t, FITEntity> DatabaseEntity;
 
 class DeviceSettings
 {

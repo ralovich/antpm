@@ -496,6 +496,8 @@ AntFr310XT::handleEvents()
   }
   else if(state == ST_ANTFS_DL_DIRECTORY)
   {
+    Database db = m_ds->getDatabaseFiles();
+
     CHECK_RETURN_FALSE(createDownloadFolder());
 
     //ANTFS_Upload(); //command pipe
@@ -515,6 +517,10 @@ AntFr310XT::handleEvents()
     file0.saveToFile((folder+"0000.fit").c_str());
 
     CHECK_RETURN_FALSE(fit.parseZeroFile(dir, zfc));
+    LOG_VAR(zfc.activityFiles.size());
+    LOG_VAR(zfc.courseFiles.size());
+    LOG_VAR(zfc.waypointsFiles.size());
+    zfc.cullFitFiles(db);
     LOG_VAR(zfc.activityFiles.size());
     LOG_VAR(zfc.courseFiles.size());
     LOG_VAR(zfc.waypointsFiles.size());
