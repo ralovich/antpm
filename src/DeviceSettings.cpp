@@ -113,6 +113,8 @@ DeviceSettings::getDatabaseFiles(size_t count) const
         {
           continue;
         }
+        // std::cout << "\t0x" << toString<uint16_t>(value,4,'0') << " "
+        //           << fs::file_size(fit.path()) << " " << fit.path().string() << std::endl;
         files.insert(DatabaseEntity(static_cast<uint16_t>(value),
                                     FITEntity(fit.path().string(), fs::file_size(fit.path()))));
       }

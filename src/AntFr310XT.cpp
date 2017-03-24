@@ -30,6 +30,7 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <chrono>
 #include <boost/thread/thread_time.hpp>
 #include <iostream>
 #include "stdintfwd.hpp"
@@ -612,13 +613,19 @@ AntFr310XT::handleEvents()
                << "@" << DeviceSettings::time2str(t) << " newer than "
                << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
 
+      auto start = std::chrono::system_clock::now();
+
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
       {
         changeStateSafe(ST_ANTFS_LAST);
         return true;
       }
-      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
+
+      auto end = std::chrono::system_clock::now();
+      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << " (" << elapsed.count() << " ms, "
+                   << static_cast<double>(data.size())/static_cast<double>(elapsed.count())*1000.0 << " bps)\n\n\n";
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
       //LOG_VAR(file0.checkCrc());
 
@@ -650,13 +657,17 @@ AntFr310XT::handleEvents()
                << "@" << DeviceSettings::time2str(t) << " newer than "
                << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
 
+      auto start = std::chrono::system_clock::now();
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
       {
         changeStateSafe(ST_ANTFS_LAST);
         return true;
       }
-      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
+      auto end = std::chrono::system_clock::now();
+      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << " (" << elapsed.count() << " ms, "
+                   << static_cast<double>(data.size())/static_cast<double>(elapsed.count())*1000.0 << " bps)\n\n\n";
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
 
       fit.parse(data, gpx);
@@ -695,13 +706,17 @@ AntFr310XT::handleEvents()
                << "@" << DeviceSettings::time2str(t) << " newer than "
                << DeviceSettings::time2str(m_ds->LastTransferredTime) <<  "\n";
 
+      auto start = std::chrono::system_clock::now();
       std::vector<uchar> data;
       if(!m_antMessenger->ANTFS_Download(chan, fileIdx, data))
       {
         changeStateSafe(ST_ANTFS_LAST);
         return true;
       }
-      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << "\n\n\n";
+      auto end = std::chrono::system_clock::now();
+      auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+      LOG(LOG_RAW) << "\n\nDownloaded file idx=" << toString<ushort>(fileIdx,4,'0') << " (" << elapsed.count() << " ms, "
+                   << static_cast<double>(data.size())/static_cast<double>(elapsed.count())*1000.0 << " bps)\n\n\n";
       AntFsFile file0; file0.bytes=data; file0.saveToFile((folder+toString(fileIdx, 4, '0')+".fit").c_str());
 
       fit.parse(data, gpx);
