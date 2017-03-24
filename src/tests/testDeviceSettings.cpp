@@ -141,9 +141,29 @@ BOOST_AUTO_TEST_CASE(load_save)
   BOOST_CHECK(m_ds->LastUserProfileTime == 946684800);
   BOOST_CHECK(m_ds->LastTransferredTime == 946684800);
   BOOST_CHECK(m_ds->SerialWriteDelayMs  == 3);
-
-
 }
 
+
+BOOST_AUTO_TEST_CASE(load_db)
+{
+  // uint clientSN = 1279010136;
+  // const char* fname = TEST_ROOT"/config.ini";
+  // std::cout << fname << "\n";
+  // const char* fname_tmp = TEST_ROOT"/config_tmp.ini";
+
+  std::vector<std::string> devices = DeviceSettings::getDatabases();
+
+  for(size_t i = 0; i < devices.size(); i++)
+  {
+    boost::scoped_ptr<DeviceSettings> ds;
+    //ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
+    ds.reset(new DeviceSettings(devices[i].c_str()));
+    assert(ds.get());
+    BOOST_CHECK(ds);
+    Database db = ds->getDatabaseFiles();
+    std::cout << "Device: \"" << devices[i] << "\" DB contains " << db.size() << " FIT files.\n";
+  }
+  
+}
 
 

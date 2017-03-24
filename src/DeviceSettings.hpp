@@ -19,8 +19,22 @@
 
 #include <ctime>
 #include <string>
+#include <vector>
+#include <map>
 
 namespace antpm {
+
+// struct DatabaseEntity
+// {
+//   std::string path;
+//   ushort fileIdx;
+//   size_t bytes;
+// };
+
+// <fileIdx, <path, bytes> >
+typedef std::pair<std::string, size_t> FITEntity;
+typedef std::multimap<ushort, FITEntity> Database;
+typedef std::pair<ushort, FITEntity> DatabaseEntity;
 
 class DeviceSettings
 {
@@ -30,6 +44,8 @@ public:
   void loadDefaultValues();
   const std::string getConfigFileName() const;
   const std::string getFolder() const;
+  //std::vector<DatabaseEntity> getDatabaseFiles(size_t count) const;
+  Database getDatabaseFiles(size_t count = 0) const;
   bool saveToFile(const char* fname);
   bool saveToFile(const std::string& fname) { return saveToFile(fname.c_str()); }
   bool loadFromFile(const char* fname);
@@ -39,6 +55,7 @@ public:
 
   static std::time_t str2time(const char* from);
   static const std::string time2str(const std::time_t t);
+  static std::vector<std::string> getDatabases(const char* root = nullptr);
 
   unsigned int MaxFileDownloads;
   std::time_t  LastUserProfileTime; // date of the latest activity successfully downloaded fromt the device, represented as GMT/UTC

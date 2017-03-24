@@ -26,6 +26,11 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include "Log.hpp"
 
+#include <boost/filesystem.hpp>
+#include <boost/range/iterator_range.hpp>
+#include <boost/algorithm/string/predicate.hpp>
+
+namespace fs=boost::filesystem;
 
 namespace antpm {
 
@@ -62,7 +67,62 @@ DeviceSettings::getFolder() const
   return getConfigFolder() + "/" + mDevId + "/";
 }
 
-/// Both inpout and output are represented in GMT/UTC.
+// std::vector<DatabaseEntity>
+// DeviceSettings::getDatabaseFiles(size_t count) const
+// {
+//   std::vector<DatabaseEntity> files;
+//   std::string root = getFolder();
+//   // for all folders
+//   //   for all fit files
+//   //
+//   return files;
+// }
+
+Database
+DeviceSettings::getDatabaseFiles(size_t count) const
+{
+  Database files;
+  std::string root = getFolder();
+  // for all folders
+  //   for all fit files
+  //
+
+  fs::path p(root);
+
+  if(!fs::is_directory(p))
+  {
+    return files;
+  }
+  //std::cout << p << " is a directory containing:\n";
+
+  for(auto& entry : boost::make_iterator_range(fs::directory_iterator(p), {}))
+  {
+    if(!fs::is_directory(entry))
+    {
+      continue;
+    }
+    //std::cout << entry << "\n";
+    for(auto& fit : boost::make_iterator_range(fs::directory_iterator(entry), {}))
+    {
+      if(boost::algorithm::ends_with(fit.path().string(), ".fit"))
+      {
+        int value=0;
+        sscanf(fit.path().stem().c_str(), "%x", &value);
+        //std::cout << "\t" << fit.path().stem() << std::endl;
+        if(value == 0) // skip directory file
+        {
+          continue;
+        }
+        files.insert(DatabaseEntity(static_cast<ushort>(value),
+                                    FITEntity(fit.path().string(), fs::file_size(fit.path()))));
+      }
+    }
+  }
+  
+  return files;
+}
+
+/// Both input and output are represented in GMT/UTC.
 std::time_t
 DeviceSettings::str2time(const char* from)
 {
@@ -113,6 +173,42 @@ DeviceSettings::time2str(const std::time_t t)
     return "";
 #endif
   return outstr;
+}
+
+
+bool is_number(const std::string& s)
+{
+  return !s.empty() && std::find_if(s.begin(), 
+                                    s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
+}
+
+
+std::vector<std::string>
+DeviceSettings::getDatabases(const char* root)
+{
+  std::string root_folder = root ? root : getConfigFolder();
+  std::vector<std::string> devices;
+
+  fs::path p(root_folder);
+
+  if(!fs::is_directory(p))
+  {
+    return devices;
+  }
+
+  for(auto& entry : boost::make_iterator_range(fs::directory_iterator(p), {}))
+  {
+    entry.path();
+    
+    if(!fs::is_directory(entry) || !is_number(entry.path().stem().string()))
+    {
+      continue;
+    }
+    //std::cout << entry.path().stem() << "\n";
+    devices.push_back(entry.path().stem().string());
+  }
+  
+  return devices;
 }
 
 bool
