@@ -43,13 +43,15 @@ protected:
   virtual bool match(AntMessage& other) const = 0;
 public:
   // whether there was a response before timeout
-  virtual bool waitForMsg(AntMessage* m, const size_t timeout_ms);
+  bool waitForMsg(AntMessage* m, const size_t timeout_ms);
 };
 
 struct AntChannel
 {
-  uchar chan;
+  AntChannel() = default;
+  AntChannel(const uchar ch);
 private:
+  const uchar chan;
   boost::mutex m_mtxListeners;
   std::list<AntListenerBase*> listeners;
 public:
@@ -57,6 +59,9 @@ public:
   void rmMsgListener2(AntListenerBase* lb);
   void onMsg(AntMessage &m);
   void interruptWait();
+  void sanityCheck();
+  const uchar getChan() const { return chan; }
+  
 };
 
 
@@ -64,7 +69,7 @@ struct AntEvListener : public AntListenerBase
 {
   AntEvListener(AntChannel& o) : AntListenerBase(o) {}
   virtual ~AntEvListener() {}
-  virtual bool match(AntMessage& other) const;
+  virtual bool match(AntMessage& other) const override;
   // whether there was a response before timeout
   bool waitForEvent(uint8_t& msgCode, const size_t timeout_ms);
 };
@@ -75,7 +80,7 @@ struct AntRespListener : public AntListenerBase
 
   AntRespListener(AntChannel& o, const uint8_t msgId_) : AntListenerBase(o), msgId(msgId_) {}
   virtual ~AntRespListener() {}
-  virtual bool match(AntMessage& other) const;
+  virtual bool match(AntMessage& other) const override;
   // whether there was a response before timeout
   bool waitForResponse(uint8_t& respVal, const size_t timeout_ms);
 };
@@ -87,7 +92,7 @@ struct AntReqListener : public AntListenerBase
 
   AntReqListener(AntChannel& o, uint8_t m, uint8_t c) : AntListenerBase(o), msgId(m), chan(c) {}
   virtual ~AntReqListener() {}
-  virtual bool match(AntMessage& other) const;
+  virtual bool match(AntMessage& other) const override;
 };
 
 struct AntBCastListener : public AntListenerBase
@@ -96,18 +101,19 @@ struct AntBCastListener : public AntListenerBase
 
   AntBCastListener(AntChannel& o, uint8_t f) : AntListenerBase(o), first(f) {}
   virtual ~AntBCastListener() {}
-  virtual bool match(AntMessage& other) const;
+  virtual bool match(AntMessage& other) const override;
   bool waitForBCast(AntMessage& bcast, const size_t timeout_ms);
 };
 
 struct AntBurstListener : public AntListenerBase
 {
-  std::list<AntMessage> bursts;
+  std::list<AntMessage> m_bursts;
 
   AntBurstListener(AntChannel& o) : AntListenerBase(o) {}
   virtual ~AntBurstListener() {}
   virtual void onMsg(AntMessage& m);
-  virtual bool match(AntMessage& other) const;
+  virtual void interruptWait();
+  virtual bool match(AntMessage& other) const override;
   virtual bool waitForBursts(std::list<AntMessage>& bs, const size_t timeout_ms);
   bool collectBurst(std::vector<uint8_t>& burstData, const size_t timeout_ms);
 };

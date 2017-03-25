@@ -24,6 +24,11 @@
 
 namespace antpm{
 
+AntChannel::AntChannel(const uchar ch)
+  : chan(ch)
+{
+}
+
 void
 AntChannel::addMsgListener2(AntListenerBase* lb)
 {
@@ -55,10 +60,20 @@ AntChannel::interruptWait()
   boost::unique_lock<boost::mutex> lock(m_mtxListeners);
   for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
   {
-    (*i)->interruptWait();
+    AntListenerBase* listener = *i;
+    listener->interruptWait();
   }
 }
 
+void
+AntChannel::sanityCheck()
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  if(!listeners.empty())
+  {
+    lprintf(LOG_DBG3, "sanityCheck[ch=%d] found %d leftover listeners\n", static_cast<int>(chan), static_cast<int>(listeners.size()));
+  }
+}
 
 
 
@@ -73,6 +88,8 @@ AntListenerBase::AntListenerBase(AntChannel& o)
 
 AntListenerBase::~AntListenerBase()
 {
+  //FIXME: what happens if this dtor is called while an other thread is still executing waitForMsg() ?
+  //boost::unique_lock<boost::mutex> lock(m_mtxResp);
   owner.rmMsgListener2(this);
 }
 
@@ -138,7 +155,7 @@ bool
 AntEvListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_RESPONSE_EVENT_ID
-      && owner.chan == other.getPayloadRef()[0]
+      && owner.getChan() == other.getPayloadRef()[0]
       && other.getPayloadRef()[1]==MESG_EVENT_ID
       && other.getPayloadRef()[2]!=EVENT_TRANSFER_TX_START; // let us not consider EVENT_TRANSFER_TX_START events
 }
@@ -164,7 +181,7 @@ bool
 AntRespListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_RESPONSE_EVENT_ID
-      && owner.chan == other.getPayloadRef()[0]
+      && owner.getChan() == other.getPayloadRef()[0]
       && other.getPayloadRef()[1]==msgId;
 }
 
@@ -206,7 +223,7 @@ bool
 AntBCastListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_BROADCAST_DATA_ID
-      && other.getPayloadRef()[0]==owner.chan
+      && other.getPayloadRef()[0]==owner.getChan()
       && other.getPayloadRef()[1]==first;
 }
 
@@ -236,10 +253,19 @@ AntBurstListener::onMsg(AntMessage& m)
   boost::unique_lock<boost::mutex> lock(m_mtxResp);
   if(match(m))
   {
-    bursts.push_back(m);
+    m_bursts.push_back(m);
     m_cndResp.notify_all();
   }
 }
+
+void
+AntBurstListener::interruptWait()
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  m_bursts.clear();
+  m_cndResp.notify_all(); // intentionally generate a "spurious" wakeup
+}
+
 
 
 bool
@@ -247,7 +273,7 @@ AntBurstListener::match(AntMessage& other) const
 {
   const M_ANT_Burst* burst(reinterpret_cast<const M_ANT_Burst*>(other.getPayloadRef()));
   return other.getMsgId()==MESG_BURST_DATA_ID
-    && burst->chan==owner.chan;
+    && burst->chan==owner.getChan();
 }
 
 
@@ -256,9 +282,9 @@ AntBurstListener::waitForBursts(std::list<AntMessage>& bs, const size_t timeout_
 {
   bs.clear();
   boost::unique_lock<boost::mutex> lock(m_mtxResp);
-  if(!bursts.empty()) // some had already arrived
+  if(!m_bursts.empty()) // some had already arrived
   {
-    std::swap(bs, bursts);
+    std::swap(bs, m_bursts);
     return true;
   }
   // TODO: handle arrival of event:EVENT_RX_FAIL
@@ -268,10 +294,10 @@ AntBurstListener::waitForBursts(std::list<AntMessage>& bs, const size_t timeout_
     return false;
   }
   // true means, either notification OR spurious wakeup!!
-  //assert(!bursts.empty()); // this might fail for spurious wakeups!!
-  if(!bursts.empty())
+  //assert(!m_bursts.empty()); // this might fail for spurious wakeups!!
+  if(!m_bursts.empty())
   {
-    std::swap(bs, bursts);
+    std::swap(bs, m_bursts);
     return true;
   }
   return false;

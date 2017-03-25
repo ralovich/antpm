@@ -159,6 +159,8 @@ private:
 
   bool onMessage(std::vector<AntMessage> v);
 
+  void sanityCheck();
+  
 public:
   bool waitForBurst(const uchar chan, std::vector<uchar>& burstData, const size_t timeout_ms = 30000);
   bool waitForBroadcast(const uchar chan, AntMessage* reply = NULL, const size_t timeout_ms = 2000);
@@ -175,7 +177,8 @@ private:
   lqueue3<AntMessage> m_rpackQueue2;
   volatile size_t packetIdx;
 private:
-  AntChannel chs[ANTPM_MAX_CHANNELS];
+  std::vector<std::unique_ptr<AntChannel>> chs;
+  //AntChannel chs[ANTPM_MAX_CHANNELS];
   friend struct AntMessenger_Recevier;
   void* th_messageHandler(); // PUBLIC on purpose
 };

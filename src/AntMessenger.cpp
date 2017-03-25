@@ -27,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <chrono>
 #include "common.hpp"
 #include <boost/thread/thread_time.hpp>
 #include <boost/foreach.hpp>
@@ -70,7 +71,10 @@ AntMessenger::AntMessenger()
   m_rpackQueue2.setOnDataArrivedCallback(std::bind1st(std::mem_fun(&AntMessenger::onMessage), this));
 
   for(int i=0; i < ANTPM_MAX_CHANNELS; i++)
-    chs[i].chan = i;
+  {
+    chs.push_back(std::make_unique<AntChannel>(i));
+    //chs[i].chan = i;
+  }
 
   packetIdx=0;
 }
@@ -176,7 +180,7 @@ AntMessenger::ANT_CloseChannel(uchar chan, const size_t timeout_ms)
   bool rv = sendCommand(m, timeout_ms/2);
   // TODO: read R[ 7] a4_03_40_00_01_07_e1                   MESG_RESPONSE_EVENT_ID chan=0x00 mId=MESG_EVENT_ID mCode=EVENT_CHANNEL_CLOSED
 
-  AntChannel& pc = chs[chan];
+  AntChannel& pc = *chs[chan].get();
   AntEvListener el(pc);
   //pc.addEvListener(&el);
 
@@ -344,7 +348,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
   cmd.detail.authenticate.sn      = hostSN;
   memcpy(cmd.name, &name[0], 8);
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
   AntBurstListener bl(pc);
   //pc.addMsgListener(&bl);
 
@@ -362,7 +366,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
     //AntMessage reply0;
     //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
 
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntEvListener el(pc);
     //pc.addEvListener(&el);
 
@@ -445,7 +449,7 @@ AntMessenger::ANTFS_Authenticate(const uchar chan, const uint hostSN, const uint
     //AntMessage reply0;
     //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
 
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntEvListener el(pc);
     //pc.addEvListener(&el);
 
@@ -562,6 +566,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
   //R   3.109 52 MESG_CHANNEL_STATUS_ID chan=00 chanSt=Tracking
   CHECK_RETURN_FALSE(data.empty());
 
+  
   int errorCnt=0;
 
   //uint bytesReceived = 0;
@@ -583,12 +588,17 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
     dl.crcSeed = crc;
     dl.maxBlockSize = 0;
 
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
+
+    std::vector<uchar> burstData;
+    {
     AntBurstListener bl(pc);
 
+    bool sentReqDl = false;
+
+    {
     AntEvListener el(pc);
 
-    bool sentReqDl = false;
     sentReqDl = false;
     //if(dlIter==0)
     //  CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
@@ -604,6 +614,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
     sentReqDl = sentReqDl && el.waitForEvent(responseVal, 600);
     //pc.rmEvListener(&el);
     sentReqDl = sentReqDl && (responseVal==EVENT_TRANSFER_TX_COMPLETED);
+    }
 
     // TODO: handle event:EVENT_RX_FAIL and continue
 
@@ -615,13 +626,13 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     // TODO: read bcast here?
 
-    std::vector<uchar> burstData;
     if(!bl.collectBurst(burstData, 10000) && (++errorCnt<ANTPM_RETRIES))
     {
       //pc.rmMsgListener(&bl);
       continue;
     }
     //pc.rmMsgListener(&bl);
+    }
 
     //// ANTFS_RespDownload
     CHECK_RETURN_FALSE(burstData.size()>=3*8); // header and footer eats up 32 bytes already, but in case of error2 we only get 24 bytes
@@ -701,7 +712,7 @@ AntMessenger::ANTFS_Erase(const uchar chan, const ushort file)
 
   for(int itry=0; itry < ANTPM_RETRIES; itry++)
   {
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntBurstListener bl(pc);
     //pc.addMsgListener(&bl);
 
@@ -748,7 +759,7 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   cmd.detail.authenticate.authStrLen = 0;
   cmd.detail.authenticate.sn = hostSN;
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
   AntBurstListener bl(pc);
   //pc.addMsgListener(&bl);
 
@@ -808,7 +819,7 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<ui
     //AntMessage reply0;
     //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
 
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntEvListener el(pc);
     //pc.addEvListener(&el);
 
@@ -892,7 +903,8 @@ AntMessenger::sendCommand(AntMessage &m, const size_t timeout_ms)
   }
 
   const uint8_t chan = m.getPayloadRef()[0];
-  AntChannel& pc = chs[chan];
+  AntChannel& pc = *chs[chan].get();
+  {
   AntRespListener respList(pc, m.getMsgId());
 
   assert(rv);
@@ -903,6 +915,9 @@ AntMessenger::sendCommand(AntMessage &m, const size_t timeout_ms)
     lprintf(antpm::LOG_ERR, "waitForResponse failed\n");
     return false;
   }
+  }
+
+  sanityCheck();
 
   return true;
 }
@@ -913,11 +928,13 @@ AntMessenger::sendRequest(uchar reqMsgId, uchar chan, AntMessage *response, cons
 {
   AntMessage reqMsg(MESG_REQUEST_ID, chan, reqMsgId); // the request we're sending
 
-  AntChannel& pc = chs[chan];
+  AntChannel& pc = *chs[chan].get();
+  bool rv = false;
+  {
   AntReqListener rl(pc, reqMsgId, chan);
   //pc.addMsgListener(&rl);
 
-  bool rv = writeMessage(reqMsg);
+  rv = writeMessage(reqMsg);
   if(!rv)
   {
     lprintf(antpm::LOG_ERR, "writeMessage failed\n");
@@ -934,6 +951,8 @@ AntMessenger::sendRequest(uchar reqMsgId, uchar chan, AntMessage *response, cons
   rv = rv&& rl.waitForMsg(response, timeout_ms);
 
   //pc.rmMsgListener(&rl);
+  }
+  sanityCheck();
 
   return rv;
 }
@@ -984,11 +1003,13 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
   if(!m.assemble(mesg, buf, sizeof(buf)))
     return false;
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
+  bool rv = false;
+  {
   AntEvListener el(pc);
   //pc.addEvListener(&el);
 
-  bool rv = writeMessage(m);
+  rv = writeMessage(m);
   if(!rv)
   {
     lprintf(antpm::LOG_ERR, "writeMessage failed\n");
@@ -1008,6 +1029,8 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
       //lprintf(antpm::LOG_ERR, "no matching data ack before timeout\n"); fflush(stdout);
     }
     rv = rv && found;
+  }
+  sanityCheck();
 
   return rv;
 }
@@ -1077,7 +1100,7 @@ AntMessenger::onMessage(std::vector<AntMessage> v)
        || m.getMsgId()==MESG_CHANNEL_STATUS_ID)
     {
       uint8_t chan=m.getPayloadRef()[0];
-      AntChannel& pc=chs[chan];
+      AntChannel& pc = *chs[chan].get();
       pc.onMsg(m);
     }
     else if(m.getMsgId()==MESG_BURST_DATA_ID)
@@ -1088,7 +1111,7 @@ AntMessenger::onMessage(std::vector<AntMessage> v)
       uint8_t chan=burst->chan;
       //chan = 0; // FIXME!!!
       //printf("burst? 0x%0x chan=%d\n", (int)m.getMsgId(), int(chan));
-      AntChannel& pc=chs[chan];
+      AntChannel& pc = *chs[chan].get();
       pc.onMsg(m);
     }
     else if(m.getMsgId()==MESG_STARTUP_MSG_ID)
@@ -1109,6 +1132,16 @@ AntMessenger::onMessage(std::vector<AntMessage> v)
 }
 
 
+void AntMessenger::sanityCheck()
+{
+  for(int i=0; i < ANTPM_MAX_CHANNELS; i++)
+  {
+    chs[i]->sanityCheck();
+  }
+
+}
+
+
 bool
 AntMessenger::waitForBurst(const uchar chan,
                            std::vector<uchar>& burstData,
@@ -1122,7 +1155,8 @@ AntMessenger::waitForBurst(const uchar chan,
   bool found=false;
   bool lastFound=false;
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
+  {
   AntBurstListener bl(pc);
   //pc.addMsgListener(&bl);
   bool rv = bl.collectBurst(burstData, timeout_ms);
@@ -1133,6 +1167,9 @@ AntMessenger::waitForBurst(const uchar chan,
     lprintf(antpm::LOG_ERR, "couldn't reconstruct burst data transmission before timeout\n"); fflush(stdout);
     return false;
   }
+  }
+
+  sanityCheck();
 
   return true;
 }
@@ -1144,7 +1181,8 @@ AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t
   const uchar first=ANTFS_BeaconId;
   bool found=false;
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
+  {
   AntBCastListener bcl(pc, first);
   //pc.addBCastListener(&bcl);
 
@@ -1156,6 +1194,10 @@ AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t
   {
     lprintf(antpm::LOG_ERR, "no matching bcast before timeout\n"); fflush(stdout);
   }
+  }
+
+  sanityCheck();
+  
   return found;
 }
 
@@ -1165,8 +1207,10 @@ AntMessenger::interruptWait()
 {
   for(size_t i = 0; i < ANTPM_MAX_CHANNELS; i++)
   {
-    chs[i].interruptWait();
+    chs[i]->interruptWait();
   }
+
+  sanityCheck();
 }
 
 
