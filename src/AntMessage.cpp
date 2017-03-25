@@ -801,9 +801,9 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   FIT fit;
   std::time_t ct=0;
   CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
-  char tbuf[256];
-  strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&ct));
-  //LOG_VAR(tbuf);
+  char fit_timestamp[256];
+  strftime(fit_timestamp, sizeof(fit_timestamp), "%d-%m-%Y %H:%M:%S", localtime(&ct));
+  LOG_VAR(fit_timestamp);
   boost::filesystem::last_write_time(boost::filesystem::path(fileName), ct);
 
   return true;
