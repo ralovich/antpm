@@ -111,8 +111,8 @@ struct AntBurstListener : public AntListenerBase
 
   AntBurstListener(AntChannel& o) : AntListenerBase(o) {}
   virtual ~AntBurstListener() {}
-  virtual void onMsg(AntMessage& m);
-  virtual void interruptWait();
+  virtual void onMsg(AntMessage& m) override;
+  virtual void interruptWait() override;
   virtual bool match(AntMessage& other) const override;
   virtual bool waitForBursts(std::list<AntMessage>& bs, const size_t timeout_ms);
   bool collectBurst(std::vector<uint8_t>& burstData, const size_t timeout_ms);
