@@ -207,14 +207,14 @@ SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
   else
   {
     LOG(LOG_DBG) << "Detecting in " << driverDir << " ...\n";
-    for(fs::recursive_directory_iterator end, iter(driverDir, fs::symlink_option::recurse); iter != end; ++iter)
+    for(fs::recursive_directory_iterator end, iter(driverDir, fs::symlink_option::recurse); iter != end; )
     {
       if(iter.level()>=2)
       {
         iter.pop();
         continue;
       }
-      //cout << dir.level() << ", " << *dir << std::endl;
+      //cout << iter.level() << ", " << *iter << std::endl;
       fs::path p = iter->path();
       //cout << p.parent_path() << "\n";
       if(iter.level()==1 && p.leaf()=="interface" && find_file_starts_with(p.parent_path(), "ttyUSB")!="")
@@ -230,6 +230,7 @@ SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
         LOG(LOG_DBG) << "Found: \"" << iface << "\" as " << ttyUSB << " in " << p << "\n";
         guessedNames.push_back("/dev/"+ttyUSB);
       }
+      ++iter;
     }
   }
 //  // check for /sys/bus/usb-serial/drivers/cp210x/ttyUSBxxx
