@@ -373,7 +373,7 @@ namespace antpm
   std::unique_ptr<Log>                          \
   ClassInstantiator<Log>::make_unique()         \
   {                                             \
-    return std::move(std::make_unique<Log>());  \
+    return std::make_unique<Log>();             \
   }                                             \
   }
     

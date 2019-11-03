@@ -51,7 +51,7 @@ ClassInstantiator<Log>::make_unique()
 {
   mkDirNoLog(getConfigFolder().c_str());
   std::string l=getConfigFolder() + "/antpm_" + getDateString() + ".txt";
-  return std::move(std::make_unique<Log>(l.c_str()));
+  return std::make_unique<Log>(l.c_str());
 }
 
 }
