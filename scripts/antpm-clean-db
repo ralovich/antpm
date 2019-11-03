@@ -22,7 +22,7 @@ import fnmatch
 import filecmp
 import sys
 
-db_dir=os.getenv('XDG_CONFIG_HOME')+'/antpm/'
+db_dir=os.getenv('XDG_CONFIG_HOME', os.getenv('HOME')+'/.config/' )+'/antpm/'
 
 def find_files(directory, pattern):
     for root, dirs, files in os.walk(directory):
