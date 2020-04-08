@@ -1,9 +1,16 @@
 # -*- coding: iso-8859-2-unix -*-
 
-# it seems like travis-ci gives a "trusty" 14.04 LTS ubuntu env
 
 sudo: required
-dist: trusty
+
+jobs:
+  include:
+    - os: linux
+      dist: trusty
+    - os: osx
+  allow_failures:
+    -os: osx
+
 env:
   global:
    - secure: "DmQ3DTsvvKEg30be9kGbbGHkj1xMv5/hQOjXnaP091+lXdtqrHRwN8/Xki2qxyMeaCE3iq8UNVzppd9w/g1z75O63X96K+igVQqdXI5BHtqlKLZonTGMFVqsThjCys2oqRdfxpiZ+ggbImbzFwPqhKCtIeoQTFfDMJSpDpwl9eU="
@@ -13,7 +20,7 @@ addons:
     project:
       name: "ralovich/antpm"
       description: "ANT+minus Build submitted via Travis CI"
-    notification_email: ralovich@in.tum.de
+    notification_email: kristof@ralovich.hu
     build_command_prepend: "pwd && cd cmake-build && pwd && cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE"
     build_command:   "make"
     branch_pattern: coverity_scan
@@ -51,7 +58,7 @@ compiler:
 notifications:
   email:
     recipients:
-      - ralovich@in.tum.de
+      - kristof@ralovich.hu
     on_success: always
     on_failure: always
 branches:
@@ -60,6 +67,8 @@ branches:
     - coverity_scan
 
 before_install:
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install cmake valgrind; fi
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
