@@ -16,6 +16,9 @@
 //////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
+#undef _GNU_SOURCE
+#define _POSIX_C_SOURCE 200809L
+
 #include "SerialTty.hpp"
 #include "antdefs.hpp"
 #include <unistd.h>
@@ -380,10 +383,10 @@ SerialTty::open()
     //
     // Log off and log on again for the changes to take effect!
     char se[256];
-    char* ss = strerror_r(m_p->m_fd, se, sizeof(se));
+    strerror_r(m_p->m_fd, se, sizeof(se));
     LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and /dev/ttyUSBxxx was created by cp210x!\n"
                         << "\tAlso make sure that /dev/ttyUSBxxx is R+W accessible by your user (usually enabled through udev.rules)!\n";
-    LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << ss << "\n";
+    LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << se << "\n";
     return rv;
   }
 
