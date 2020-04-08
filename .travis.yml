@@ -69,7 +69,7 @@ branches:
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install cmake valgrind; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install valgrind boost@1.55; fi
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
@@ -77,10 +77,8 @@ install:
 before_script:
   - uname -a
   - free
-  - cat /proc/cpuinfo
   - $CC -v
   - $CXX -v
-  - dpkg -l | grep ^ii | grep boost
   - mkdir cmake-build
 script:
   - cd cmake-build
