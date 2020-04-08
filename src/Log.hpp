@@ -29,7 +29,7 @@
 # include <crtdbg.h>
 # include <io.h>
 #endif
-#if defined(__linux__) || defined(__GNU__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+#if defined(__linux__) || defined(__GNU__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__APPLE__)
 # include <unistd.h>
 #endif
 #include <iostream>
