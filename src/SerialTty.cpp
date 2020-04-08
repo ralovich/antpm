@@ -16,9 +16,6 @@
 //////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
-#undef _GNU_SOURCE
-#define _POSIX_C_SOURCE 200809L
-
 #include "SerialTty.hpp"
 #include "antdefs.hpp"
 #include <unistd.h>
