@@ -29,7 +29,6 @@
 #include <signal.h>
 
 #include <functional>
-#include <tr1/functional>
 #include <algorithm>
 #include <vector>
 #include <string>
