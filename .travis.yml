@@ -74,8 +74,12 @@ before_script:
   - mkdir cmake-build
 script:
   - cd cmake-build
-  - cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr -DUSE_BOOST_STATIC_LINK=FALSE && VERBOSE=1 make -j4 && make test ARGS=-j99
+  - cmake ../src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr -DUSE_BOOST_STATIC_LINK=FALSE
+  - VERBOSE=1 make -j4
+  - make test ARGS=-j99
   - make clean
-  - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr -DUSE_BOOST_STATIC_LINK=FALSE && VERBOSE=1 make -j4 && make test ARGS=-j99
+  - cmake ../src -DCMAKE_BUILD_TYPE=Debug -DUSE_BOOST_TEST=TRUE -DCMAKE_INSTALL_PREFIX=/usr -DUSE_BOOST_STATIC_LINK=FALSE
+  - VERBOSE=1 make -j4
+  - make test ARGS=-j99
   - make clean
 
