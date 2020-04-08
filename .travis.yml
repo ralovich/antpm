@@ -10,6 +10,7 @@ jobs:
     - os: osx
   allow_failures:
     -os: osx
+dist: trusty
 
 env:
   global:
