@@ -68,15 +68,14 @@ branches:
     - coverity_scan
 
 before_install:
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew install valgrind boost@1.55; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx1" ]; then brew update; fi
+  - if [ "$TRAVIS_OS_NAME" == "osx1" ]; then brew install valgrind boost@1.55; fi
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
 
 before_script:
   - uname -a
-  - free
   - $CC -v
   - $CXX -v
   - mkdir cmake-build
