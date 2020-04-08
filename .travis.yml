@@ -79,6 +79,6 @@ before_script:
   - mkdir cmake-build
 script:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then ./scripts/travis_osx.sh; fi
-  - travis_wait if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./scripts/travis_trusty.sh; fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then ./scripts/travis_trusty.sh; fi
   - if [ "$TRAVIS_OS_NAME" == "windows" ]; then echo "asd"; fi
 
