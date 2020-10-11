@@ -57,7 +57,7 @@ DeviceSettings::loadDefaultValues()
 const std::string
 DeviceSettings::getConfigFileName() const
 {
-  return getFolder()  + "/config.ini";
+  return getFolder() + "/config.ini";
 }
 
 
