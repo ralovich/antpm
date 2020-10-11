@@ -66,13 +66,55 @@ ZeroFileContent::getFitFileTime(const uint16_t idx)
   return 0;
 }
 
-void ZeroFileContent::cullFitFiles(const std::multimap<uint16_t, std::pair<string, size_t> >& files)
+// \param files list of files already downloaded to the host and discovered in ~/.config/antpm/.../
+void ZeroFileContent::cullFitFiles(const std::multimap<uint16_t, std::pair<string, size_t> >& db_files)
 {
-  LOG_VAR(files.size());
-  for(auto it : files)
+  LOG_VAR(db_files.size());
+  for(auto it : db_files)
   {
     cullFitFile(it.first, it.second.second);
   }
+}
+
+void ZeroFileContent::cullFitFilesDate()
+{
+  // sort file in ZFC based on date (for now activity only)
+  // detect file dates with fixed date offsets in between
+  // only download files with later date
+
+  unsigned threshold = 20;
+
+  std::multimap<uint32_t, uint16_t> date_sorted_activities;
+
+  for(size_t i = 0; i < zfRecords.size(); i++)
+  {
+    ZeroFileRecord& zfRecord(zfRecords[i]);
+
+    if(zfRecord.recordType != 4) continue; // skip if not activity
+
+//    if(date_sorted_activities.count(zfRecord.timeStamp))
+//    {
+//      // problem: record exists with this date
+//      logger() << "problem: record exists with this date\n";
+//    }
+    date_sorted_activities.insert(std::make_pair(zfRecord.timeStamp, zfRecord.index));
+  }
+
+  auto remover = [&](uint16_t file_idx)
+  {
+    auto it = date_sorted_activities.begin();
+    for(; it != date_sorted_activities.end(); it++)
+    {
+      if(it->second != file_idx) continue;
+
+      uint32_t relative_age = it==date_sorted_activities.begin() ? 10000 : (it->first - std::prev(it)->first);
+      //logger() << "0x" << toString<uint16_t>(it->first,4,'0') << ": relative_age=" << relative_age << "\n";
+      return relative_age <= threshold;
+    }
+  };
+
+  activityFiles.erase(std::remove_if(activityFiles.begin(), activityFiles.end(),
+                                     remover), activityFiles.end());
 }
 
 void ZeroFileContent::cullFitFile(const uint16_t idx, const size_t file_size_bytes)
@@ -84,23 +126,32 @@ void ZeroFileContent::cullFitFile(const uint16_t idx, const size_t file_size_byt
 
       uint16_t index = zfRecord.index;
       
-      // if(index == idx)
-      // {
-      //   logger() << "0x" << toString<uint16_t>(idx,4,'0') << " 0x" << toString<uint16_t>(index,4,'0')
-      //            << " " << zfRecord.fileSize << " " << file_size_bytes << " bytes"  << "\n";
-      // }
-      if(index == idx && file_size_bytes == zfRecord.fileSize) {
-        return true;
-      }
+      //if(index == idx)
+      //{
+        //logger() << "0x" << toString<uint16_t>(idx,4,'0') << " 0x" << toString<uint16_t>(index,4,'0')
+        //         << " " << zfRecord.fileSize << " " << file_size_bytes << " bytes"  << "\n";
+        if(file_size_bytes == zfRecord.fileSize)
+        {
+          //logger() << "CULL " << toString<uint16_t>(idx,4,'0') << "\n";
+          return true;
+        }
+      //}
+      //logger() << "KEEP\n";
       return false;
     };
   
+  size_t nw = waypointsFiles.size();
+  size_t na = activityFiles.size();
+  size_t nc = courseFiles.size();
+
   waypointsFiles.erase(std::remove_if(waypointsFiles.begin(), waypointsFiles.end(),
                                       remover), waypointsFiles.end());
   activityFiles.erase(std::remove_if(activityFiles.begin(), activityFiles.end(),
                                      remover), activityFiles.end());
   courseFiles.erase(std::remove_if(courseFiles.begin(), courseFiles.end(),
                                    remover), courseFiles.end());
+  //logger() << "w:" << nw << "->" << waypointsFiles.size() << ", a:" << na << "->" << activityFiles.size()
+  //         << ", c:" << nc << "->" << courseFiles.size() << "\n";
 }
 
 
@@ -1331,6 +1382,8 @@ bool FIT::parseZeroFile(vector<uint8_t> &data, ZeroFileContent &zeroFileContent)
   logger() << "Directory version: " << hex << setw(2) << (unsigned)directoryHeader.version << "\n";
   logger() << "Structure length: " << dec << (unsigned)directoryHeader.structureLength << "\n";
   logger() << "Time format: " << dec << (unsigned)directoryHeader.timeFormat << "\n";
+  logger() << (unsigned)directoryHeader.reserved[0] << " " << (unsigned)directoryHeader.reserved[1] << " " << (unsigned)directoryHeader.reserved[2] << " "
+           << (unsigned)directoryHeader.reserved[3] << " " << (unsigned)directoryHeader.reserved[4] << "\n";
   logger() << "Current system time: " << GarminConvert::localTime(directoryHeader.currentSystemTime) << "\n";
   logger() << "Directory modified time: " << GarminConvert::localTime(directoryHeader.directoryModifiedTime) << "\n";
 

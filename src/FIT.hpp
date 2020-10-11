@@ -284,7 +284,10 @@ public:
     std::vector<uint16_t> waypointsFiles;
     std::vector<uint16_t> courseFiles;
     std::time_t getFitFileTime(const uint16_t idx); // represented in garmintime
-    void cullFitFiles(const std::multimap<uint16_t, std::pair<std::string, size_t>>& files);
+    // \param files list of files already downloaded to the host and discovered in ~/.config/antpm/.../
+    void cullFitFiles(const std::multimap<uint16_t, std::pair<std::string, size_t>>& db_files);
+    void cullFitFilesDate();
+private:
     void cullFitFile(const uint16_t idx, const size_t file_size_bytes);
 };
 

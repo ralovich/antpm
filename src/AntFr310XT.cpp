@@ -521,7 +521,8 @@ AntFr310XT::handleEvents()
     LOG_VAR(zfc.activityFiles.size());
     LOG_VAR(zfc.courseFiles.size());
     LOG_VAR(zfc.waypointsFiles.size());
-    zfc.cullFitFiles(db);
+    // zfc.cullFitFiles(db); // this culling strategy does not work well, because fit files are given new indices on the device after a download
+    zfc.cullFitFilesDate();
     LOG_VAR(zfc.activityFiles.size());
     LOG_VAR(zfc.courseFiles.size());
     LOG_VAR(zfc.waypointsFiles.size());
