@@ -382,7 +382,7 @@ SerialUsb::open()
   }
   if(!m_p->dev)
   {
-    LOG(antpm::LOG_ERR) << "Opening any known usb VID/PID failed!\n";
+    LOG(antpm::LOG_WARN) << "Opening any known usb VID/PID failed!\n";
     return false;
   }
 
