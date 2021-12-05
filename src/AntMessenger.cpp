@@ -917,7 +917,7 @@ AntMessenger::sendCommand(AntMessage &m, const size_t timeout_ms)
   }
   }
 
-  sanityCheck();
+  sanityCheck(__FUNCTION__);
 
   return true;
 }
@@ -952,7 +952,7 @@ AntMessenger::sendRequest(uchar reqMsgId, uchar chan, AntMessage *response, cons
 
   //pc.rmMsgListener(&rl);
   }
-  sanityCheck();
+  sanityCheck(__FUNCTION__);
 
   return rv;
 }
@@ -1030,7 +1030,7 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
     }
     rv = rv && found;
   }
-  sanityCheck();
+  sanityCheck(__FUNCTION__);
 
   return rv;
 }
@@ -1132,11 +1132,11 @@ AntMessenger::onMessage(std::vector<AntMessage> v)
 }
 
 
-void AntMessenger::sanityCheck()
+void AntMessenger::sanityCheck(const char *caller)
 {
   for(int i=0; i < ANTPM_MAX_CHANNELS; i++)
   {
-    chs[i]->sanityCheck();
+    chs[i]->sanityCheck(caller);
   }
 
 }
@@ -1169,7 +1169,7 @@ AntMessenger::waitForBurst(const uchar chan,
   }
   }
 
-  sanityCheck();
+  sanityCheck(__FUNCTION__);
 
   return true;
 }
@@ -1196,7 +1196,7 @@ AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t
   }
   }
 
-  sanityCheck();
+  sanityCheck(__FUNCTION__);
   
   return found;
 }
@@ -1210,7 +1210,7 @@ AntMessenger::interruptWait()
     chs[i]->interruptWait();
   }
 
-  sanityCheck();
+  sanityCheck(__FUNCTION__);
 }
 
 

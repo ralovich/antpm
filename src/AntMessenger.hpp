@@ -159,7 +159,7 @@ private:
 
   bool onMessage(std::vector<AntMessage> v);
 
-  void sanityCheck();
+  void sanityCheck(const char* caller);
   
 public:
   bool waitForBurst(const uchar chan, std::vector<uchar>& burstData, const size_t timeout_ms = 30000);
