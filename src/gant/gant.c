@@ -1378,6 +1378,7 @@ int main(int ac, char *av[])
       break;
     case 'h':
       usage();
+      break;
     default:
       ERROR_OUT("unknown option %s", optarg);
       usage();
