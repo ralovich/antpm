@@ -323,12 +323,18 @@ getVersionString()
   "win64"
 #elif defined(_WIN32)
   "win32"
+#elif defined(__APPLE__)
+  "macos"
 #else
   "unknown_os"
 #endif
       + " with "
 #ifdef __GNUC__
+# if defined(__clang__)
+  "CLANG " __VERSION__
+# else
   "GCC " __VERSION__
+# endif
 #elif defined(_MSC_VER)
 # define STRINGIFY( L )       #L
 # define MAKESTRING( M, L )   M(L)
