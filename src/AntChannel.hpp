@@ -101,9 +101,7 @@ struct AntReqListener : public AntListenerBase
 
 struct AntBCastListener : public AntListenerBase
 {
-  uint8_t first;//
-
-  AntBCastListener(AntChannel& o, uint8_t f) : AntListenerBase(o), first(f) {}
+  AntBCastListener(AntChannel& o) : AntListenerBase(o) {}
   virtual ~AntBCastListener() {}
   virtual bool match(AntMessage& other) const override;
   virtual const char* name() const override { return "AntBCastListener"; }

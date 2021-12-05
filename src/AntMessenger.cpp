@@ -1189,12 +1189,11 @@ AntMessenger::waitForBurst(const uchar chan,
 bool
 AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t timeout_ms)
 {
-  const uchar first=ANTFS_BeaconId;
   bool found=false;
 
   AntChannel& pc = *chs[chan].get();
   {
-  AntBCastListener bcl(pc, first);
+  AntBCastListener bcl(pc);
   //pc.addBCastListener(&bcl);
 
   AntMessage dummy;if(!reply) reply=&dummy;
@@ -1203,8 +1202,9 @@ AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t
   //M_ANTFS_Beacon* beacon(reinterpret_cast<M_ANTFS_Beacon*>(&reply->getPayloadRef()[1]));
   if(!found)
   {
-    lprintf(antpm::LOG_ERR, "no matching bcast before timeout\n"); fflush(stdout);
+    lprintf(antpm::LOG_ERR, "no matching bcast before timeout ch=%d\n", static_cast<int>(chan)); fflush(stdout);
   }
+
   }
 
   sanityCheck(__FUNCTION__);
