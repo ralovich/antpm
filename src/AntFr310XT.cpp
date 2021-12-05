@@ -471,6 +471,7 @@ AntFr310XT::handleEvents()
   }
   else if(state == ST_ANTFS_AUTH1_PASS)
   {
+    bool is_fr405 = clientDevName=="Forerunner 405" || clientDevName=="Forerunner 410" || isAntpm405Override();
     CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
     if(!m_antMessenger->ANTFS_Authenticate(chan, hostSN, pairedKey))
@@ -484,7 +485,7 @@ AntFr310XT::handleEvents()
     // channel status <>
     CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    if(clientDevName=="Forerunner 405" || clientDevName=="Forerunner 410" || isAntpm405Override())
+    if(is_fr405)
       changeStateSafe(ST_ANTFS_GINTF_DL_CAPS);
     else if(mode==MD_DOWNLOAD_ALL || mode==MD_DIRECTORY_LISTING)
       changeStateSafe(ST_ANTFS_DL_DIRECTORY);
