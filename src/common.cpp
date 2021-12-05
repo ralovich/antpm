@@ -305,6 +305,10 @@ folderExists(const char* dirName)
 const std::string
 getVersionString()
 {
+  unsigned char arr[2] = {0x01, 0x00};
+  unsigned short int x = *(unsigned short int *) arr;
+  bool little_endian = x == 1;
+
   return std::string("") + APP_NAME
       + " v" + std::string(BOOST_STRINGIZE(ANTPM_VERSION))
       + " built "
@@ -336,7 +340,7 @@ getVersionString()
 #else
   "unknow_compiler"
 #endif
-      + std::string("");
+      + (little_endian ? std::string(" LE") : std::string(" BE"));
 }
 
 

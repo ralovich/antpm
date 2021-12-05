@@ -54,6 +54,7 @@
 
 namespace antpm {
 
+//!  USB is little-endian. See section 7.1 of the USB 3.0 Specification https://www.usb.org/documents
 const uchar USB_ANT_CONFIGURATION = 1;
 const uchar USB_ANT_INTERFACE = 0;
 const uchar USB_ANT_EP_IN  = 0x81;
