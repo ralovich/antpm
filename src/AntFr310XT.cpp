@@ -487,7 +487,7 @@ AntFr310XT::handleEvents()
     CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
     if(is_fr405)
-      changeStateSafe(ST_ANTFS_GINTF_DL_CAPS);
+      changeStateSafe(ST_ANTFS_GINTF_A000_A001);
     else if(mode==MD_DOWNLOAD_ALL || mode==MD_DIRECTORY_LISTING)
       changeStateSafe(ST_ANTFS_DL_DIRECTORY);
     else if(mode==MD_DOWNLOAD_SINGLE_FILE)
@@ -772,7 +772,7 @@ AntFr310XT::handleEvents()
 
     changeStateSafe(ST_ANTFS_LAST);
   }
-  else if(state==ST_ANTFS_GINTF_DL_CAPS)
+  else if(state==ST_ANTFS_GINTF_A000_A001)
   {
     // when authentication succeeds, State=Transport beacon arrives
     //R  96.026 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
