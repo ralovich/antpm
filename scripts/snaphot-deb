@@ -1,0 +1,51 @@
+#!/bin/bash
+
+
+VER=`cat src/VERSION | head -n 1`
+
+echo 'VER='$VER
+
+(
+    cp -r scripts/debian .
+
+cp debian/changelog.2 debian/changelog.3
+cp debian/changelog.1 debian/changelog.2
+cp debian/changelog debian/changelog.1
+#git-dch --git-author -vaN $VER-$DEB_VER_MINOR --distribution=experimental --debian-tag=experimental/%\(version\)s
+git-dch --git-author -vaSN $VER --distribution=experimental --debian-tag=experimental/%\(version\)s
+
+    cp debian/changelog* scripts/debian
+    rm -rv ./debian
+)
+
+
+
+
+CHGLOG_VER=`head -1 scripts/debian/changelog | awk -F "[()]" '{ for (i=2; i<NF; i+=2) print $i }'`
+OUTNAME=antpm_${CHGLOG_VER}.orig.tar
+#OUTNAME=antpm_${VER}.orig.tar
+
+
+rm -fv ${OUTNAME}.gz
+tar -czvf ${OUTNAME}.gz -T scripts/origsrc-file-list
+#tar --xz -cf ${OUTNAME}.xz -T scripts/origsrc-file-list
+
+echo 'OK: ' ${OUTNAME}.gz
+
+
+ROOT=`mktemp -d --tmp=.`
+eval ROOT=$ROOT
+
+echo $ROOT
+echo
+mv ${OUTNAME}.gz $ROOT/
+
+( cd $ROOT;
+    mkdir build;
+    cd build
+    tar -xzf ../${OUTNAME}.gz
+    mv scripts/debian .
+    echo -e "\nStarting to build...\n"
+    debuild -us -uc && echo -e "\nBuild OK\ndeb package in '${ROOT}' \n";
+)
+

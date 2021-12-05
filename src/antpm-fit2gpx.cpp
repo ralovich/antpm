@@ -1,13 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 #include <cstdio>
@@ -23,6 +29,7 @@
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/exception/diagnostic_information.hpp>
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
@@ -30,17 +37,7 @@ using namespace std;
 using namespace antpm;
 
 
-namespace antpm
-{
-
-template<>
-Log*
-ClassInstantiator<Log>::instantiate()
-{
-  return new Log(NULL);
-}
-
-}
+DEFAULT_LOG_INSTANTIATOR
 
 const
 std::vector<fs::path>
@@ -85,7 +82,11 @@ main(int argc, char** argv)
   bool        fixLastWrt = false;
   int         verbosityLevel = antpm::Log::instance()->getLogReportingLevel();
   po::options_description desc("Allowed options");
-  desc.add_options()
+  std::vector<const char*> args(argv, argv+argc);
+  po::variables_map vm;
+  try
+  {
+    desc.add_options()
     ("help,h",                                                  "produce help message")
     ("fitFolder,F",      po::value<std::string>(&fitFolder),    "Folder with FIT files")
     ("decode-fit-root,D", po::value<std::string>(&fitRootFile), "FIT file, encoding the root directory contents on a device, e.g. /tmp/0000.fit")
@@ -94,10 +95,6 @@ main(int argc, char** argv)
     ("version,V",                                               "Print version information")
     ;
 
-  std::vector<const char*> args(argv, argv+argc);
-  po::variables_map vm;
-  try
-  {
     //po::parsed_options parsed = po::parse_command_line(argc, argv, desc);
     po::parsed_options parsed = po::command_line_parser(argc, argv).options(desc).run();
     po::store(parsed, vm);
@@ -106,6 +103,17 @@ main(int argc, char** argv)
   catch(po::error& error)
   {
     cerr << error.what() << "\n";
+    cerr << desc << "\n";
+    return EXIT_FAILURE;
+  }
+  catch(boost::exception& e)
+  {
+    cerr << boost::diagnostic_information(e) << std::endl;
+    return EXIT_FAILURE;
+  }
+  catch(std::exception& ex)
+  {
+    cerr << ex.what() << "\n";
     cerr << desc << "\n";
     return EXIT_FAILURE;
   }

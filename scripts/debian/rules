@@ -21,10 +21,18 @@ override_dh_auto_configure:
 	# echo -e "\n\n\nCMAKE\n\n\n"
 	# echo $(NUMCPUS)
 	mkdir cmake-build
-	cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} $(CFLAGS)" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} $(CXXFLAGS)"
+	cd cmake-build && cmake ../src -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_C_FLAGS="${CMAKE_C_FLAGS} $(CFLAGS)" -DCMAKE_CXX_FLAGS="${CMAKE_CXX_FLAGS} $(CXXFLAGS)"
 
 override_dh_auto_build:
 	cd cmake-build && $(MAKE) -j$(NUMCPUS)
+
+override_dh_strip:
+	#dh_strip -pantpm-downloader --dbg-package=antpm-dbg
+	#dh_strip -pantpm-fit2gpx --dbg-package=antpm-dbg
+	#dh_strip -pantpm-usbmon2ant --dbg-package=antpm-dbg
+	#dh_strip -pgant --dbg-package=antpm-dbg
+	dh_strip --dbg-package=antpm-dbg
+	dh_strip -s --remaining-packages
 
 DESTDIR=../debian/antpm/
 override_dh_install:

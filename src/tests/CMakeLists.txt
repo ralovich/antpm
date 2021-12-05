@@ -21,6 +21,22 @@ TARGET_LINK_LIBRARIES(testDateTime
 )
 
 
+ADD_EXECUTABLE(sm1
+  sm1.cpp
+)
+TARGET_LINK_LIBRARIES(sm1
+  antpm
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
+ADD_EXECUTABLE(lq1
+  lq1.cpp
+)
+TARGET_LINK_LIBRARIES(lq1
+  antpm
+  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+)
+
 
 IF(VALGRIND_PROGRAM)
   function(add_my_test name binary)
@@ -48,7 +64,7 @@ ADD_MY_TEST(testDeviceSettings2 testDeviceSettings --help)
 
 ADD_MY_TEST(testDateTime2 testDateTime --help)
 
-ADD_MY_TEST(testDownload ../antpm-downloader)
+#ADD_MY_TEST(testDownload ../antpm-downloader)
 
 ADD_MY_TEST(testFit2Gpx ../antpm-fit2gpx)
 
@@ -57,3 +73,7 @@ ADD_MY_TEST(testUsbmon2AntDump   ../antpm-usbmon2ant --op dump   ${CMAKE_CURRENT
 ADD_MY_TEST(testUsbmon2AntUsbmon ../antpm-usbmon2ant --op usbmon ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 ADD_MY_TEST(testUsbmon2AntFilter ../antpm-usbmon2ant --op filter ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 ADD_MY_TEST(testUsbmon2AntCount  ../antpm-usbmon2ant --op count  ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
+
+
+#ADD_MY_TEST(testsm1 sm1)
+ADD_MY_TEST(testlq1 lq1)

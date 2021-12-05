@@ -1,13 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 #pragma once
 
@@ -103,7 +109,7 @@ struct AntMessenger_Recevier;
 class AntMessenger
 {
 public:
-  AntMessenger(bool eventLoopInBgTh = true);
+  AntMessenger();
   ~AntMessenger();
   void setHandler(Serial* io){m_io=io;}
   void setCallback(AntCallback* cb){m_cb=cb;}
@@ -137,7 +143,7 @@ public:
   bool ANTFS_Erase(const uchar chan, const ushort file);
   bool ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint hostSN, uint& sn, std::string& devName);
 
-  bool ANTFS_Direct(const uchar chan, const uint64_t code);
+  bool ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<uint8_t> &bytes);
 
   void eventLoop();
   void kill();
@@ -153,9 +159,12 @@ private:
 
   bool onMessage(std::vector<AntMessage> v);
 
+  void sanityCheck(const char* caller);
+  
 public:
   bool waitForBurst(const uchar chan, std::vector<uchar>& burstData, const size_t timeout_ms = 30000);
   bool waitForBroadcast(const uchar chan, AntMessage* reply = NULL, const size_t timeout_ms = 2000);
+  void interruptWait();
 //public:
 private:
   Serial* m_io;
@@ -168,7 +177,8 @@ private:
   lqueue3<AntMessage> m_rpackQueue2;
   volatile size_t packetIdx;
 private:
-  AntChannel chs[ANTPM_MAX_CHANNELS];
+  std::vector<std::unique_ptr<AntChannel>> chs;
+  //AntChannel chs[ANTPM_MAX_CHANNELS];
   friend struct AntMessenger_Recevier;
   void* th_messageHandler(); // PUBLIC on purpose
 };

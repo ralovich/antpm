@@ -1,13 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 #include "AntMessenger.hpp"
@@ -21,6 +27,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <chrono>
 #include "common.hpp"
 #include <boost/thread/thread_time.hpp>
 #include <boost/foreach.hpp>
@@ -50,11 +57,11 @@ struct AntMessenger_Recevier
 };
 
 
-AntMessenger::AntMessenger(bool eventLoopInBgTh)
+AntMessenger::AntMessenger()
   : m_io(0)
   , m_cb(0)
   , m_packerThKill(0)
-  , m_rpackQueue2(eventLoopInBgTh)
+  , m_rpackQueue2()
 {
   m_packerThKill = 0;
   AntMessenger_Recevier msgTh;
@@ -64,17 +71,22 @@ AntMessenger::AntMessenger(bool eventLoopInBgTh)
   m_rpackQueue2.setOnDataArrivedCallback(std::bind1st(std::mem_fun(&AntMessenger::onMessage), this));
 
   for(int i=0; i < ANTPM_MAX_CHANNELS; i++)
-    chs[i].chan = i;
+  {
+    chs.push_back(std::make_unique<AntChannel>(i));
+    //chs[i].chan = i;
+  }
 
   packetIdx=0;
 }
 
 AntMessenger::~AntMessenger()
 {
+  m_rpackQueue2.setOnDataArrivedCallback(0);
   m_packerThKill = 1;
   m_packerTh.join();
   m_io=0;
   m_cb=0;
+  lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
 size_t AntMessenger::getQueueLength() const
@@ -168,13 +180,15 @@ AntMessenger::ANT_CloseChannel(uchar chan, const size_t timeout_ms)
   bool rv = sendCommand(m, timeout_ms/2);
   // TODO: read R[ 7] a4_03_40_00_01_07_e1                   MESG_RESPONSE_EVENT_ID chan=0x00 mId=MESG_EVENT_ID mCode=EVENT_CHANNEL_CLOSED
 
-  AntChannel& pc = chs[chan];
+  AntChannel& pc = *chs[chan].get();
   AntEvListener el(pc);
   //pc.addEvListener(&el);
 
   uint8_t msgCode;
   rv = rv && el.waitForEvent(msgCode, timeout_ms/2);
-  rv = rv && (msgCode==EVENT_CHANNEL_CLOSED);
+  rv = rv && (msgCode==EVENT_CHANNEL_CLOSED
+              || msgCode==CHANNEL_IN_WRONG_STATE
+              || msgCode==CHANNEL_NOT_OPENED);
 
   //pc.rmEvListener(&el);
 
@@ -314,7 +328,7 @@ AntMessenger::ANTFS_Disconnect(const uchar chan)
   cmd.command   = ANTFS_CmdDisconnect;
   cmd.detail.disconnect.cmdType = M_ANTFS_Command::ReturnToLinkLayer;
 
-  /*CHECK_RETURN_FALSE_LOG_OK(*/ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 400)/*)*/;
+  /*CHECK_RETURN_FALSE_LOG_OK(*/ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 0)/*)*/;
 
   return true;
 }
@@ -334,7 +348,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
   cmd.detail.authenticate.sn      = hostSN;
   memcpy(cmd.name, &name[0], 8);
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
   AntBurstListener bl(pc);
   //pc.addMsgListener(&bl);
 
@@ -343,7 +357,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
   {
     sentPairing = false;
 
-    LOG_VAR(waitForBroadcast(chan));
+    LOG_VAR_DBG2(waitForBroadcast(chan));
 
     //CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
     sentPairing = ANT_SendBurstData2(chan, reinterpret_cast<uchar*>(&cmd), sizeof(cmd));
@@ -352,7 +366,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
     //AntMessage reply0;
     //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
 
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntEvListener el(pc);
     //pc.addEvListener(&el);
 
@@ -366,7 +380,7 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
     else
       sleepms(ANTPM_RETRY_MS);
   }
-  CHECK_RETURN_FALSE_LOG_OK(sentPairing);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(sentPairing);
 
   // FIXME: look for, and handle event:EVENT_RX_FAIL; event:EVENT_TRANSFER_RX_FAILED
 
@@ -375,13 +389,13 @@ AntMessenger::ANTFS_Pairing(const uchar chan, const uint hostSN, const std::stri
   /*bool rv =*/ bl.collectBurst(burstData, 30*1000); // 30s to allow user confirmation
   //pc.rmMsgListener(&bl);
 
-  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==3*8);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==3*8);
   const M_ANTFS_Response_Pairing* resp(reinterpret_cast<const M_ANTFS_Response_Pairing*>(&burstData[8]));
-  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
-  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
-  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
-  LOG_VAR((int)resp->detail.authenticateResponse.authStrLen);
-  CHECK_RETURN_FALSE(resp->detail.authenticateResponse.authStrLen==8);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->responseId==ANTFS_CommandResponseId);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->response==ANTFS_RespAuthenticate);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->detail.authenticateResponse.respType==1); // accept
+  LOG_VAR_DBG2((int)resp->detail.authenticateResponse.authStrLen);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->detail.authenticateResponse.authStrLen==8);
 
   unitId = resp->detail.authenticateResponse.sn;
   key    = resp->pairedKey;
@@ -426,7 +440,7 @@ AntMessenger::ANTFS_Authenticate(const uchar chan, const uint hostSN, const uint
   {
     sentReqAuth = false;
 
-    LOG_VAR(waitForBroadcast(chan));
+    LOG_VAR_DBG2(waitForBroadcast(chan));
 
     //CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
     sentReqAuth = ANT_SendBurstData2(chan, reinterpret_cast<uchar*>(&cmd), sizeof(cmd));
@@ -435,7 +449,7 @@ AntMessenger::ANTFS_Authenticate(const uchar chan, const uint hostSN, const uint
     //AntMessage reply0;
     //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
 
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntEvListener el(pc);
     //pc.addEvListener(&el);
 
@@ -449,18 +463,18 @@ AntMessenger::ANTFS_Authenticate(const uchar chan, const uint hostSN, const uint
     else
       sleepms(ANTPM_RETRY_MS);
   }
-  CHECK_RETURN_FALSE_LOG_OK(sentReqAuth);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(sentReqAuth);
 
 
 
   // ANTFS_RespAuthenticate
   std::vector<uchar> burstData;
-  CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 10*1000));
-  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==2*8);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(waitForBurst(chan, burstData, 10*1000));
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==2*8);
   const M_ANTFS_Response* resp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
-  CHECK_RETURN_FALSE_LOG_OK(resp->responseId==ANTFS_CommandResponseId);
-  CHECK_RETURN_FALSE_LOG_OK(resp->response==ANTFS_RespAuthenticate);
-  CHECK_RETURN_FALSE_LOG_OK(resp->detail.authenticateResponse.respType==1); // accept
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->responseId==ANTFS_CommandResponseId);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->response==ANTFS_RespAuthenticate);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(resp->detail.authenticateResponse.respType==1); // accept
 
   // TODO: read bcast here?
 
@@ -475,6 +489,9 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
   //S   1.221 50 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_ReqDownload file=0x0000, dataOffset=0x00000000
   //R 118.782 4e MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=8Hz, pairing=enabled, upload=disabled, dataAvail=yes, State=Transport, Auth=PasskeyAndPairingOnly
   //S   1.258 50 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes 0001000000000000 ........
+
+  // 310XT 4.50 sends EVENT_TRANSFER_TX_START here too
+
   //R  10.728 40 MESG_RESPONSE_EVENT_ID chan=0x00 mId=MESG_EVENT_ID mCode=EVENT_TRANSFER_TX_COMPLETED
   //R 112.995 4e MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=8Hz, pairing=enabled, upload=disabled, dataAvail=yes, State=Busy, Auth=PasskeyAndPairingOnly
   //R 125.019 50 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_BEACON(0x43) Beacon=8Hz, pairing=enabled, upload=disabled, dataAvail=yes, State=Busy, Auth=PasskeyAndPairingOnly
@@ -549,6 +566,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
   //R   3.109 52 MESG_CHANNEL_STATUS_ID chan=00 chanSt=Tracking
   CHECK_RETURN_FALSE(data.empty());
 
+  
   int errorCnt=0;
 
   //uint bytesReceived = 0;
@@ -570,14 +588,17 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
     dl.crcSeed = crc;
     dl.maxBlockSize = 0;
 
-    AntChannel& pc(chs[chan]);
-    AntBurstListener bl(pc);
-    //pc.addMsgListener(&bl); // FIXME: remove this on return paths, IN DTOR!!!
+    AntChannel& pc = *chs[chan].get();
 
-    AntEvListener el(pc);
-    //pc.addEvListener(&el); // FIXME: remove this on return paths, IN DTOR!!!
+    std::vector<uchar> burstData;
+    {
+    AntBurstListener bl(pc);
 
     bool sentReqDl = false;
+
+    {
+    AntEvListener el(pc);
+
     sentReqDl = false;
     //if(dlIter==0)
     //  CHECK_RETURN_FALSE_LOG_OK(collectBroadcasts(chan));
@@ -593,6 +614,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
     sentReqDl = sentReqDl && el.waitForEvent(responseVal, 600);
     //pc.rmEvListener(&el);
     sentReqDl = sentReqDl && (responseVal==EVENT_TRANSFER_TX_COMPLETED);
+    }
 
     // TODO: handle event:EVENT_RX_FAIL and continue
 
@@ -604,13 +626,13 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     // TODO: read bcast here?
 
-    std::vector<uchar> burstData;
     if(!bl.collectBurst(burstData, 10000) && (++errorCnt<ANTPM_RETRIES))
     {
       //pc.rmMsgListener(&bl);
       continue;
     }
     //pc.rmMsgListener(&bl);
+    }
 
     //// ANTFS_RespDownload
     CHECK_RETURN_FALSE(burstData.size()>=3*8); // header and footer eats up 32 bytes already, but in case of error2 we only get 24 bytes
@@ -636,7 +658,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     if(dlIter==0) fileSize = resp->fileSize;
     //fprintf(loggerc(), "fileSize = %u = 0x%08x\n", (uint)fileSize, (uint)fileSize);
-    CHECK_RETURN_FALSE(fileSize == resp->fileSize);
+    ASSURE_EQ_RET_FALSE(fileSize, resp->fileSize);
     //fprintf(loggerc(), "nextOffset = %u = 0x%08x\n", (uint)nextOffset, (uint)nextOffset);
     //logger() << std::dec;
     //LOG_VAR(fileSize);
@@ -664,7 +686,7 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
     ushort crcCalculated=crcData.crc16Calc(crc);
     //LOG_VAR(toString(crcCalculated,4,'0'));
     bool crcCheckOk=(footer->crc==crcCalculated);
-    CHECK_RETURN_FALSE_LOG_OK(crcCheckOk);
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(crcCheckOk);
     crc = footer->crc;     //TODO: crc check
 
     CHECK_RETURN_FALSE(waitForBroadcast(chan, NULL, 1000));
@@ -690,7 +712,7 @@ AntMessenger::ANTFS_Erase(const uchar chan, const ushort file)
 
   for(int itry=0; itry < ANTPM_RETRIES; itry++)
   {
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntBurstListener bl(pc);
     //pc.addMsgListener(&bl);
 
@@ -737,12 +759,14 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   cmd.detail.authenticate.authStrLen = 0;
   cmd.detail.authenticate.sn = hostSN;
 
-  AntChannel& pc(chs[chan]);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 2000));
+
+  {
+  AntChannel& pc = *chs[chan].get();
   AntBurstListener bl(pc);
   //pc.addMsgListener(&bl);
 
 
-  CHECK_RETURN_FALSE_LOG_OK(ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 2000));
 
   std::vector<uchar> burstData;
   /*bool rv =*/ bl.collectBurst(burstData, 5000);
@@ -754,26 +778,35 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   //CHECK_RETURN_FALSE_LOG_OK(waitForBroadcast(chan));
   //
   //CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 30000));
-  LOG_VAR(burstData.size());
-  CHECK_RETURN_FALSE_LOG_OK(burstData.size()==4*8);
+  LOG_VAR_DBG2(burstData.size());
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==4*8 || burstData.size()==2*8);
 
   const M_ANTFS_Response* cmdResp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
   sn = cmdResp->detail.authenticateResponse.sn;
-  uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen;
-  CHECK_RETURN_FALSE_LOG_OK(lenDevName==16);
+  uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen; // 16 for 310XT, 14 for 410
+  LOG_VAR_DBG2(static_cast<int>(lenDevName));
+  if(burstData.size()==32)
+  {
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName>0);
 
-  devName = std::string(reinterpret_cast<const char*>(&burstData[16]), lenDevName);
+    devName = std::string(reinterpret_cast<const char*>(&burstData[16]), lenDevName);
+  }
+  else
+  {
+    devName = "Forerunner 405";
+  }
+  }
 
   logger() << "devName = \"" << devName << "\"\n";
 
-  CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
   return true;
 }
 
 
 bool
-AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
+AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<uint8_t>& bytes)
 {
   M_ANTFS_Command_Direct cmd;
   cmd.commandId = ANTFS_CommandResponseId;
@@ -797,7 +830,7 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
     //AntMessage reply0;
     //waitForMessage(MESG_RESPONSE_EVENT_ID, &reply0, 2000);
 
-    AntChannel& pc(chs[chan]);
+    AntChannel& pc = *chs[chan].get();
     AntEvListener el(pc);
     //pc.addEvListener(&el);
 
@@ -831,6 +864,8 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
 
   logger() << "got back = \"" << burstData.size() << "\" bytes\n";
 
+  bytes = burstData;
+
   CHECK_RETURN_FALSE_LOG_OK(burstData.size()==size_t((2+resp->detail.directResponse.data)*8));
 
   CHECK_RETURN_FALSE_LOG_OK(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
@@ -842,6 +877,7 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code)
 void AntMessenger::eventLoop()
 {
   m_rpackQueue2.eventLoop();
+  lprintf(LOG_DBG2, "~%s\n", __FUNCTION__);
 }
 
 void AntMessenger::kill()
@@ -857,7 +893,13 @@ bool
 AntMessenger::sendCommand(uchar mesg, uchar *inbuf, uchar len, const size_t timeout_ms)
 {
   AntMessage m;
-  return m.assemble(mesg, inbuf, len) && sendCommand(m, timeout_ms);
+  if(!m.assemble(mesg, inbuf, len))
+  {
+    lprintf(antpm::LOG_ERR, "assembly failed\n");
+    return false;
+  }
+
+  return sendCommand(m, timeout_ms);
 }
 
 
@@ -873,16 +915,23 @@ AntMessenger::sendCommand(AntMessage &m, const size_t timeout_ms)
   }
 
   const uint8_t chan = m.getPayloadRef()[0];
-  AntChannel& pc = chs[chan];
+  AntChannel& pc = *chs[chan].get();
+  {
   AntRespListener respList(pc, m.getMsgId());
-  //pc.addRespListener(&respList);
 
+  assert(rv);
   uint8_t respVal;
-  rv = rv&& respList.waitForResponse(respVal, timeout_ms);
+  rv = respList.waitForResponse(respVal, timeout_ms);
+  if(!rv)
+  {
+    lprintf(antpm::LOG_ERR, "waitForResponse failed\n");
+    return false;
+  }
+  }
 
-  //pc.rmRespListener(&respList);
+  sanityCheck(__FUNCTION__);
 
-  return rv;
+  return true;
 }
 
 // request a message from peer
@@ -891,11 +940,13 @@ AntMessenger::sendRequest(uchar reqMsgId, uchar chan, AntMessage *response, cons
 {
   AntMessage reqMsg(MESG_REQUEST_ID, chan, reqMsgId); // the request we're sending
 
-  AntChannel& pc = chs[chan];
+  AntChannel& pc = *chs[chan].get();
+  bool rv = false;
+  {
   AntReqListener rl(pc, reqMsgId, chan);
   //pc.addMsgListener(&rl);
 
-  bool rv = writeMessage(reqMsg);
+  rv = writeMessage(reqMsg);
   if(!rv)
   {
     lprintf(antpm::LOG_ERR, "writeMessage failed\n");
@@ -903,10 +954,17 @@ AntMessenger::sendRequest(uchar reqMsgId, uchar chan, AntMessage *response, cons
   }
 
 
-  AntMessage dummy;if(!response) response=&dummy;
+  AntMessage dummy;
+  if(!response)
+  {
+    response=&dummy;
+  }
+
   rv = rv&& rl.waitForMsg(response, timeout_ms);
 
   //pc.rmMsgListener(&rl);
+  }
+  sanityCheck(__FUNCTION__);
 
   return rv;
 }
@@ -957,11 +1015,13 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
   if(!m.assemble(mesg, buf, sizeof(buf)))
     return false;
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
+  bool rv = false;
+  {
   AntEvListener el(pc);
   //pc.addEvListener(&el);
 
-  bool rv = writeMessage(m);
+  rv = writeMessage(m);
   if(!rv)
   {
     lprintf(antpm::LOG_ERR, "writeMessage failed\n");
@@ -981,12 +1041,15 @@ AntMessenger::sendAckData(const uchar chan, const uchar data[8], const size_t ti
       //lprintf(antpm::LOG_ERR, "no matching data ack before timeout\n"); fflush(stdout);
     }
     rv = rv && found;
+  }
+  sanityCheck(__FUNCTION__);
 
   return rv;
 }
 
 
-// interpret byte stream, assemble packets and store results in \a m_rpackQueue
+/// interpret byte stream, assemble packets and store results in \a m_rpackQueue
+/// Also, forward messages with onAntReceived()
 bool
 AntMessenger::assemblePackets(std::list<uchar>& q)
 {
@@ -1018,10 +1081,6 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     }
     m.timestamp = boost::get_system_time();
     m.idx = packetIdx++;
-    //{
-    //  boost::unique_lock<boost::mutex> lock(m_rpackMutex);
-    //  m_rpackQueue.push_back(m);
-    //}
     m_rpackQueue2.push(m);
     if(m_cb)
     {
@@ -1029,16 +1088,19 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     }
 
   }
-  //fprintf(loggerc(), "%d interpreted\n", nInterpreted);
+  //lprintf(LOG_INF, "%d interpreted\n", nInterpreted);
 
   return true;
 }
 
-bool AntMessenger::onMessage(std::vector<AntMessage> v)
+
+/// Called from m_rpackQueue2.eventLoop()
+bool
+AntMessenger::onMessage(std::vector<AntMessage> v)
 {
   //TODO: don't presort here, but call onMsg for all incoming packets
 
-  //fprintf(loggerc(), "%d\n", int(v.size()));
+  //lprintf(antpm::LOG_DBG3, "%d\n", int(v.size()));
   for(size_t i = 0; i < v.size(); i++)
   {
     AntMessage& m(v[i]);
@@ -1050,7 +1112,7 @@ bool AntMessenger::onMessage(std::vector<AntMessage> v)
        || m.getMsgId()==MESG_CHANNEL_STATUS_ID)
     {
       uint8_t chan=m.getPayloadRef()[0];
-      AntChannel& pc=chs[chan];
+      AntChannel& pc = *chs[chan].get();
       pc.onMsg(m);
     }
     else if(m.getMsgId()==MESG_BURST_DATA_ID)
@@ -1061,8 +1123,16 @@ bool AntMessenger::onMessage(std::vector<AntMessage> v)
       uint8_t chan=burst->chan;
       //chan = 0; // FIXME!!!
       //printf("burst? 0x%0x chan=%d\n", (int)m.getMsgId(), int(chan));
-      AntChannel& pc=chs[chan];
+      AntChannel& pc = *chs[chan].get();
       pc.onMsg(m);
+    }
+    else if(m.getMsgId()==MESG_STARTUP_MSG_ID)
+    {
+      if(m.getLenPayload()>=1)
+      {
+        uint8_t startup=m.getPayloadRef()[0];
+        lprintf(antpm::LOG_DBG2, "startup 0x%02x\n", startup);
+      }
     }
     else
     {
@@ -1071,6 +1141,16 @@ bool AntMessenger::onMessage(std::vector<AntMessage> v)
 
   }
   return true;
+}
+
+
+void AntMessenger::sanityCheck(const char *caller)
+{
+  for(int i=0; i < ANTPM_MAX_CHANNELS; i++)
+  {
+    chs[i]->sanityCheck(caller);
+  }
+
 }
 
 
@@ -1087,7 +1167,8 @@ AntMessenger::waitForBurst(const uchar chan,
   bool found=false;
   bool lastFound=false;
 
-  AntChannel& pc(chs[chan]);
+  AntChannel& pc = *chs[chan].get();
+  {
   AntBurstListener bl(pc);
   //pc.addMsgListener(&bl);
   bool rv = bl.collectBurst(burstData, timeout_ms);
@@ -1098,6 +1179,9 @@ AntMessenger::waitForBurst(const uchar chan,
     lprintf(antpm::LOG_ERR, "couldn't reconstruct burst data transmission before timeout\n"); fflush(stdout);
     return false;
   }
+  }
+
+  sanityCheck(__FUNCTION__);
 
   return true;
 }
@@ -1106,11 +1190,11 @@ AntMessenger::waitForBurst(const uchar chan,
 bool
 AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t timeout_ms)
 {
-  const uchar first=ANTFS_BeaconId;
   bool found=false;
 
-  AntChannel& pc(chs[chan]);
-  AntBCastListener bcl(pc, first);
+  AntChannel& pc = *chs[chan].get();
+  {
+  AntBCastListener bcl(pc);
   //pc.addBCastListener(&bcl);
 
   AntMessage dummy;if(!reply) reply=&dummy;
@@ -1119,13 +1203,31 @@ AntMessenger::waitForBroadcast(const uchar chan, AntMessage* reply, const size_t
   //M_ANTFS_Beacon* beacon(reinterpret_cast<M_ANTFS_Beacon*>(&reply->getPayloadRef()[1]));
   if(!found)
   {
-    lprintf(antpm::LOG_ERR, "no matching bcast before timeout\n"); fflush(stdout);
+    lprintf(antpm::LOG_ERR, "no matching bcast before timeout ch=%d\n", static_cast<int>(chan)); fflush(stdout);
   }
+
+  }
+
+  sanityCheck(__FUNCTION__);
+  
   return found;
 }
 
 
-// receive bytes from the serial interface
+void
+AntMessenger::interruptWait()
+{
+  for(size_t i = 0; i < ANTPM_MAX_CHANNELS; i++)
+  {
+    chs[i]->interruptWait();
+  }
+
+  sanityCheck(__FUNCTION__);
+}
+
+
+/// Receive bytes from the serial interface, assemble ANT packets,
+/// forward the ANT packets.
 void*
 AntMessenger::th_messageHandler()
 {
@@ -1139,9 +1241,9 @@ AntMessenger::th_messageHandler()
       uchar buf[128];
       size_t bytesRead=0;
       bool rv = m_io->readBlocking(reinterpret_cast<char*>(buf), sizeof(buf), bytesRead);
+      //printf("rv=%d, bytesRead=%d\n", (int)rv, (int)bytesRead); fflush(stdout);
       if(rv)
       {
-        //printf("rv=%d, bytesRead=%d\n", (int)rv, (int)bytesRead); fflush(stdout);
         for(size_t i=0; i<bytesRead; i++)
         {
           q.push_back(buf[i]);
@@ -1158,6 +1260,7 @@ AntMessenger::th_messageHandler()
   {
     lprintf(antpm::LOG_WARN, "%d remaining uninterpreted bytes\n", (int)q.size());
   }
+  lprintf(LOG_DBG2, "~%s\n", __FUNCTION__);
   return NULL;
 }
 

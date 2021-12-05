@@ -1,11 +1,13 @@
 
-set BOOST_ROOT=d:\work\deps-vs2008\boost_1_43_0\
+set BOOST_ROOT=J:\src\boost_1_43_0\
 set BUILD=..\build-vs2008\
+::set CMAKE=cmake.exe
+set CMAKE="c:\Program Files (x86)\CMake 2.8\bin\cmake.exe"
 
 mkdir %BUILD%
 
 pushd %BUILD%
-cmake.exe -G "Visual Studio 9 2008" -DBOOST_ROOT=%BOOST_ROOT% ..\src\
+%CMAKE% -G "Visual Studio 9 2008" -DBOOST_ROOT=%BOOST_ROOT% ..\src\
 popd
 
 set PATH=%CD%\..\3rd_party\libusb-win32-bin-1.2.6.0\bin\x86\;%PATH%

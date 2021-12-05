@@ -2,18 +2,44 @@ Source: antpm
 Maintainer: Kristof Ralovich <tade60@freemail.hu>
 Section: misc
 Priority: optional
-Standards-Version: 3.9.2
-Build-Depends: debhelper (>= 8), devscripts (>= 2.10), g++ (>= 4.4) | clang (>= 3.0), libboost-dev (>= 1.41) | libboost1.41-dev, cmake (>= 2.8), libusb-dev, libxml2-dev
+Standards-Version: 3.9.7
+Build-Depends: debhelper (>= 9~), devscripts (>= 2.10), g++ (>= 4.4) | clang (>= 3.0), libboost-dev (>= 1.41), cmake (>= 2.8), libusb-1.0-0-dev, libxml2-dev, pkg-config (>= 0.25), libboost-thread-dev,libboost-filesystem-dev,libboost-system-dev,libboost-date-time-dev,libboost-program-options-dev,libboost-test-dev,libboost-atomic-dev
 Homepage: https://code.google.com/p/antpm/
 Vcs-Git: https://code.google.com/p/antpm/
 Vcs-Browser: https://code.google.com/p/antpm/source/browse/
 
 Package: antpm
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, libstdc++6 (>=4.4.0)
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libstdc++6 (>=4.4.0),
 Description: ANT+minus implements the ANT/ANT+/ANT-FS protocols and provides tools.
- Userspace implementation of a wire protocol similar to the ANT/ANT+/ANT-FS protocols. The
- goal is to be able to communicate with the Forerunner 310XT watch in order to retrieve
- sports tracks. The c++ implementation is currently available under both linux and win.
- Communication with watches other than the 310XT might work, but are untested. Please report
- your experience to help improving the software.
+ Userspace implementation of a wire protocol similar to the
+ ANT/ANT+/ANT-FS protocols. The goal is to be able to communicate with
+ the Forerunner 310XT (or any other ANT/ANT+/ANT-FS capable device)
+ watch in order to retrieve sports tracks.
+ The C++ implementation is currently available under both Linux and
+ win. Communication with watches other than the 310XT might (610XT and
+ 910XT are likely) work, but are untested. This project currently does
+ not yet support Forerunner 405, but work is underway for 405
+ support. Please report your experience to help improving the software.
+
+Package: antpm-dbg
+Section: debug
+Priority: extra
+Architecture: any
+Depends:
+ antpm (= ${binary:Version}),
+ ${misc:Depends},
+Description: ANT+minus implements the ANT/ANT+/ANT-FS protocols and provides tools.
+ Userspace implementation of a wire protocol similar to the
+ ANT/ANT+/ANT-FS protocols. The goal is to be able to communicate with
+ the Forerunner 310XT (or any other ANT/ANT+/ANT-FS capable device)
+ watch in order to retrieve sports tracks.
+ The C++ implementation is currently available under both Linux and
+ win. Communication with watches other than the 310XT might (610XT and
+ 910XT are likely) work, but are untested. This project currently does
+ not yet support Forerunner 405, but work is underway for 405
+ support. Please report your experience to help improving the software.
+ This package provides debugging symbols for the antpm package.

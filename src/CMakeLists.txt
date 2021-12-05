@@ -10,14 +10,24 @@ PROJECT(antpm C CXX)
 OPTION(USE_COVERAGE "use gcov" FALSE)
 OPTION(USE_BOOST_TEST "use boost::test" FALSE)
 OPTION(USE_BOOST_STATIC_LINK "link statically against boost" TRUE)
+IF(MSVC OR APPLE)
+  OPTION(USE_GANT "build gant" FALSE)
+ELSE()
+  OPTION(USE_GANT "build gant" TRUE)
+ENDIF()
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-set(CMAKE_CXX_FLAGS_RELEASE        "-DNDEBUG")
-#set(CMAKE_CXX_FLAGS_DEBUGFULL      "-g -Ob0 -noalign")
-#set(CMAKE_C_FLAGS_RELWITHDEBINFO   "-O2 -g")
-#set(CMAKE_C_FLAGS_RELEASE          "-O2")
-set(CMAKE_C_FLAGS_RELEASE          "-DNDEBUG")
+# Set a default build type for single-configuration
+# CMake generators if no build type is set.
+IF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+   SET(CMAKE_BUILD_TYPE Debug)
+ENDIF(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+MESSAGE(STATUS "CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+MESSAGE(STATUS "CMAKE_CONFIGURATION_TYPES=${CMAKE_CONFIGURATION_TYPES}")
+
+set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG=1")
+set(CMAKE_C_FLAGS_RELEASE          "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG=1")
 
 IF(MSVC)
 	IF(NOT DEP_ROOT)
@@ -29,13 +39,16 @@ IF(MSVC)
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
   ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
+  ADD_DEFINITIONS(-D_WIN32_WINNT=0x0500)
 ENDIF()
 
-IF(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++0x -Wall")
-  set(CMAKE_CXX_FLAGS_DEBUG          "-g3 -ggdb3")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -pedantic -Wextra -Wall")
-  set(CMAKE_C_FLAGS_DEBUG            "-g3 -ggdb3")
+IF(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++1y -Wall")
+  SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g")
+  SET(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -O2")
+  set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -ggdb3")
+  set(CMAKE_C_FLAGS                  "${CMAKE_C_FLAGS} -std=c99 -pedantic -Wextra -Wall")
+  set(CMAKE_C_FLAGS_DEBUG            "${CMAKE_C_FLAGS_DEBUG} -g3 -ggdb3")
 
   IF(USE_COVERAGE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
@@ -44,19 +57,27 @@ IF(CMAKE_COMPILER_IS_GNUCXX)
   ENDIF()
 ENDIF()
 
-INCLUDE(FindLIBUSB)
-IF(NOT LIBUSB_FOUND)
-  MESSAGE(FATAL_ERROR "Could not find LIBUSB")
+IF(MSVC)
+  INCLUDE(Findlibusb-1.0)
+  IF(NOT LIBUSB_1_FOUND)
+    MESSAGE(FATAL_ERROR "Could not find libusb-1.0")
+  ENDIF()
+ELSE()
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(LIBUSB_1 REQUIRED libusb-1.0)
 ENDIF()
 
 IF(USE_BOOST_STATIC_LINK)
   set(Boost_USE_STATIC_LIBS        ON)
+  set(Boost_USE_STATIC_RUNTIME    ON)
 ELSE()
   set(Boost_USE_STATIC_LIBS        OFF)
+  set(Boost_USE_STATIC_RUNTIME    OFF)
+  ADD_DEFINITIONS(-DBOOST_TEST_MAIN)
+  ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
-set(Boost_USE_STATIC_RUNTIME    OFF)
-FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time REQUIRED)
+FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
 IF(NOT Boost_FOUND)
   MESSAGE(FATAL_ERROR "Boost not found!")
 ENDIF()
@@ -64,7 +85,7 @@ ENDIF()
 
 INCLUDE_DIRECTORIES(.)
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${LIBUSB_INCLUDE_DIRS})
+INCLUDE_DIRECTORIES(${LIBUSB_1_INCLUDE_DIRS})
 
 LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
@@ -78,7 +99,7 @@ MESSAGE(STATUS "ANTPM_VERSION=\\\"${ANTPM_VERSION}\\\"")
 ADD_DEFINITIONS(-DANTPM_VERSION=${ANTPM_VERSION})
 
 SET(SRCS
-  antdefs.hpp
+  antdefs.hpp antdefs.cpp
   SmartPtrFwd.hpp   w_inttypes.h w_stdint.h stdintfwd.hpp
   common.hpp common.cpp
   AntMessage.hpp AntMessage.cpp
@@ -86,9 +107,8 @@ SET(SRCS
   AntMessenger.hpp AntMessenger.cpp
   SerialUsb.hpp SerialUsb.cpp
   AntFr310XT.hpp AntFr310XT.cpp
-  AntFr405.hpp AntFr405.cpp
   lqueue.hpp
-  Serial.hpp
+  Serial.hpp Serial.cpp
 
   FIT.hpp FIT.cpp
   GPX.hpp GPX.cpp
@@ -108,6 +128,10 @@ IF(NOT WIN32)
     SerialTty.hpp SerialTty.cpp
 	  )
   SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
+  SET(MY_ANTPM_LIBRARIES "stdc++")
+  IF(NOT APPLE)
+    SET(MY_ANTPM_LIBRARIES "${MY_ANTPM_LIBRARIES};rt")
+  ENDIF()
 ENDIF()
 
 
@@ -116,11 +140,13 @@ ADD_LIBRARY(antpm
 )
 TARGET_LINK_LIBRARIES(antpm
   ${Boost_DATE_TIME_LIBRARY}
-  ${LIBUSB_LIBRARIES}
+  ${LIBUSB_1_LIBRARIES}
   ${Boost_THREAD_LIBRARY}
+  ${Boost_ATOMIC_LIBRARY}
+  ${Boost_EXCEPTION_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
   ${Boost_FILESYSTEM_LIBRARY}
-  stdc++
+  ${MY_ANTPM_LIBRARIES}
 )
 
 ADD_EXECUTABLE(antpm-usbmon2ant
@@ -154,25 +180,26 @@ INSTALL(TARGETS antpm-fit2gpx RUNTIME DESTINATION bin)
 
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
-ADD_SUBDIRECTORY(gant)
-ADD_SUBDIRECTORY(garmintools)
+IF(USE_GANT)
+  ADD_SUBDIRECTORY(gant)
+ENDIF()
 
-set(CPACK_PACKAGE_VERSION_MAJOR "1")
-set(CPACK_PACKAGE_VERSION_MINOR "0")
-set(CPACK_SOURCE_GENERATOR "TGZ")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-src")
-MESSAGE(STATUS "${CPACK_SOURCE_IGNORE_FILES}")
-set(CPACK_SOURCE_IGNORE_FILES
-  "/build/;/.bzr/;~$;${CPACK_SOURCE_IGNORE_FILES};/CMakeLists.txt.user;/gpsbabel/;/gtest-1.6.0/")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kristof Ralovich <tade60@freemail.hu>")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANT+minus")
-set(CPACK_PACKAGE_DESCRIPTION "Userspace implementation of a wire protocol similar to the ANT/ANT+ protocols. The goal is to be able to communicate with the Forerunner 310XT watch, in order to retrieve sports tracks. Communication with other watches might work, please report your experiences to improve the software.")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0)")
-#set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0), cmake, debhelper (>= 7), libboost-filesystem, libboost-system")
-#set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA 	This variable allow advanced user to add custom script to the control.tar.gz (inside the .deb archive) 	${CMAKE_CURRENT_SOURCE_DIR}/postinst
-#set(CPACK_DEBIAN_PACKAGE_SECTION 	Package section (see http://packages.debian.org/stable/) 	Network
-#set(CPACK_DEBIAN_PACKAGE_VERSION 	Package version 	${CPACK_PACKAGE_VERSION}+lenny1
-INCLUDE(CPack)
+# set(CPACK_PACKAGE_VERSION_MAJOR "1")
+# set(CPACK_PACKAGE_VERSION_MINOR "0")
+# set(CPACK_SOURCE_GENERATOR "TGZ")
+# set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}-src")
+# MESSAGE(STATUS "${CPACK_SOURCE_IGNORE_FILES}")
+# set(CPACK_SOURCE_IGNORE_FILES
+#   "/build/;/.bzr/;~$;${CPACK_SOURCE_IGNORE_FILES};/CMakeLists.txt.user;/gpsbabel/;/gtest-1.6.0/")
+# set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Kristof Ralovich <tade60@freemail.hu>")
+# set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "ANT+minus")
+# set(CPACK_PACKAGE_DESCRIPTION "Userspace implementation of a wire protocol similar to the ANT/ANT+ protocols. The goal is to be able to communicate with the Forerunner 310XT watch, in order to retrieve sports tracks. Communication with other watches might work, please report your experiences to improve the software.")
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0)")
+# #set(CPACK_DEBIAN_PACKAGE_DEPENDS "libstdc++6 (>=4.6.0), cmake, debhelper (>= 7), libboost-filesystem, libboost-system")
+# #set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA 	This variable allow advanced user to add custom script to the control.tar.gz (inside the .deb archive) 	${CMAKE_CURRENT_SOURCE_DIR}/postinst
+# #set(CPACK_DEBIAN_PACKAGE_SECTION 	Package section (see http://packages.debian.org/stable/) 	Network
+# #set(CPACK_DEBIAN_PACKAGE_VERSION 	Package version 	${CPACK_PACKAGE_VERSION}+lenny1
+# INCLUDE(CPack)
 
 IF(USE_BOOST_TEST)
 

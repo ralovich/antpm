@@ -1,13 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 #pragma once
 
@@ -27,7 +33,7 @@ struct AntFr310XT_EventLoop;
 class AntFr310XT: public AntCallback
 {
 public:
-  AntFr310XT(bool eventLoopInBgTh = true);
+  AntFr310XT(Serial* s = NULL);
   virtual ~AntFr310XT();
 
   void setModeForcePairing() { doPairing=true; }
@@ -40,8 +46,10 @@ public:
   virtual void onAntReceived(const AntMessage m);
   virtual void onAntSent(const AntMessage m);
 
-  void start();
+  void run();
+protected:
   void stop();
+public:
   void stopAsync();
 
   const int getSMState() const;
@@ -58,6 +66,7 @@ protected:
   int state;
   boost::mutex stateMtx;
   volatile int m_eventThKill;
+  int m_restartCount;
   boost::thread m_eventTh;
   lqueue4<AntMessage> m_evQue;
   AntParsedLoggerCallback aplc;
@@ -70,8 +79,6 @@ protected:
   uint        clientSN;
   std::string clientDevName;
   uint64_t    pairedKey;
-
-  bool m_eventLoopInBgTh;
 
   bool        doPairing;
   std::string folder;

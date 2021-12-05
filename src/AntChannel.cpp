@@ -1,14 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-//                                                                //
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 
@@ -18,6 +23,11 @@
 
 
 namespace antpm{
+
+AntChannel::AntChannel(const uchar ch)
+  : chan(ch)
+{
+}
 
 void
 AntChannel::addMsgListener2(AntListenerBase* lb)
@@ -39,10 +49,39 @@ AntChannel::onMsg(AntMessage &m)
   boost::unique_lock<boost::mutex> lock(m_mtxListeners);
   for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
   {
-    (*i)->onMsg(m);
+    AntListenerBase* listener = *i;
+    listener->onMsg(m);
   }
 }
 
+void
+AntChannel::interruptWait()
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
+  {
+    AntListenerBase* listener = *i;
+    listener->interruptWait();
+  }
+}
+
+void
+AntChannel::sanityCheck(const char* caller)
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  if(!listeners.empty())
+  {
+    lprintf(LOG_DBG3, "sanityCheck[ch=%d] found %d leftover listeners (caller=%s)\n", static_cast<int>(chan), static_cast<int>(listeners.size()), caller);
+    for(size_t i = 0; i < listeners.size(); i++)
+    {
+      std::list<AntListenerBase*>::iterator iter = listeners.begin();
+      std::advance(iter, i);
+      AntListenerBase* listener = *iter;
+      std::string s = listener->name();
+      lprintf(LOG_DBG3, "sanityCheck[ch=%d] found i=%zu %s\n", static_cast<int>(chan), i, s.c_str());
+    }
+  }
+}
 
 
 
@@ -57,6 +96,8 @@ AntListenerBase::AntListenerBase(AntChannel& o)
 
 AntListenerBase::~AntListenerBase()
 {
+  //FIXME: what happens if this dtor is called while an other thread is still executing waitForMsg() ?
+  //boost::unique_lock<boost::mutex> lock(m_mtxResp);
   owner.rmMsgListener2(this);
 }
 
@@ -73,24 +114,42 @@ AntListenerBase::onMsg(AntMessage& m)
   }
 }
 
+void
+AntListenerBase::interruptWait()
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  m_msgResp.reset();
+  m_cndResp.notify_all(); // intentionally generate a "spurious" wakeup
+}
+
 bool
 AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
 {
   boost::unique_lock<boost::mutex> lock(m_mtxResp);
-  if(m_msgResp)
+  if(m_msgResp) // it had already arrived
   {
-    if(m) *m = *m_msgResp; // it had already arrived
+    if(m) *m = *m_msgResp;
     m_msgResp.reset();
+    //lprintf(LOG_DBG3, "waitForMsg [0] already arrived\n");
     return true;
   }
   if(!m_cndResp.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms)))
   {
+    // false means, timeout was reached
+    //lprintf(LOG_DBG3, "waitForMsg [1] timeout\n");
     return false;
   }
-  assert(m_msgResp);
-  if(m) *m=*m_msgResp;//copy
-  m_msgResp.reset();
-  return true;
+  // true means, either notification OR spurious wakeup!!
+  //assert(m_msgResp); // this might fail for spurious wakeups!!
+  if(m_msgResp)
+  {
+    if(m) *m=*m_msgResp;//copy
+    m_msgResp.reset();
+    //lprintf(LOG_DBG3, "waitForMsg [2] received within time\n");
+    return true;
+  }
+  //lprintf(LOG_DBG3, "waitForMsg [3] spurious wakeup w/o arrival\n");
+  return false;
 }
 
 
@@ -104,8 +163,9 @@ bool
 AntEvListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_RESPONSE_EVENT_ID
-      && owner.chan == other.getPayloadRef()[0]
-      && other.getPayloadRef()[1]==MESG_EVENT_ID;
+      && owner.getChan() == other.getPayloadRef()[0]
+      && other.getPayloadRef()[1]==MESG_EVENT_ID
+      && other.getPayloadRef()[2]!=EVENT_TRANSFER_TX_START; // let us not consider EVENT_TRANSFER_TX_START events
 }
 // whether there was a response before timeout
 bool
@@ -129,7 +189,7 @@ bool
 AntRespListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_RESPONSE_EVENT_ID
-      && owner.chan == other.getPayloadRef()[0]
+      && owner.getChan() == other.getPayloadRef()[0]
       && other.getPayloadRef()[1]==msgId;
 }
 
@@ -139,7 +199,9 @@ AntRespListener::waitForResponse(uint8_t& respVal, const size_t timeout_ms)
 {
   AntMessage resp;
   if(!waitForMsg(&resp, timeout_ms))
+  {
     return false;
+  }
   respVal = resp.getPayloadRef()[2];
   return true;
 }
@@ -169,8 +231,8 @@ bool
 AntBCastListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_BROADCAST_DATA_ID
-      && other.getPayloadRef()[0]==owner.chan
-      && other.getPayloadRef()[1]==first;
+      && other.getPayloadRef()[0]==owner.getChan()
+      && (other.getPayloadRef()[1]==ANTFS_BeaconId || other.getPayloadRef()[1]==ANTFS_CommandResponseId);
 }
 
 bool
@@ -199,10 +261,19 @@ AntBurstListener::onMsg(AntMessage& m)
   boost::unique_lock<boost::mutex> lock(m_mtxResp);
   if(match(m))
   {
-    bursts.push_back(m);
+    m_bursts.push_back(m);
     m_cndResp.notify_all();
   }
 }
+
+void
+AntBurstListener::interruptWait()
+{
+  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  m_bursts.clear();
+  m_cndResp.notify_all(); // intentionally generate a "spurious" wakeup
+}
+
 
 
 bool
@@ -210,7 +281,7 @@ AntBurstListener::match(AntMessage& other) const
 {
   const M_ANT_Burst* burst(reinterpret_cast<const M_ANT_Burst*>(other.getPayloadRef()));
   return other.getMsgId()==MESG_BURST_DATA_ID
-    && burst->chan==owner.chan;
+    && burst->chan==owner.getChan();
 }
 
 
@@ -219,17 +290,25 @@ AntBurstListener::waitForBursts(std::list<AntMessage>& bs, const size_t timeout_
 {
   bs.clear();
   boost::unique_lock<boost::mutex> lock(m_mtxResp);
-  if(!bursts.empty()) // some had already arrived
+  if(!m_bursts.empty()) // some had already arrived
   {
-    std::swap(bs, bursts);
+    std::swap(bs, m_bursts);
     return true;
   }
   // TODO: handle arrival of event:EVENT_RX_FAIL
   if(!m_cndResp.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms)))
+  {
+    // // false means, timeout was reached
     return false;
-  assert(!bursts.empty());
-  std::swap(bs, bursts);
-  return true;
+  }
+  // true means, either notification OR spurious wakeup!!
+  //assert(!m_bursts.empty()); // this might fail for spurious wakeups!!
+  if(!m_bursts.empty())
+  {
+    std::swap(bs, m_bursts);
+    return true;
+  }
+  return false;
 }
 
 
@@ -293,7 +372,7 @@ AntBurstListener::collectBurst(std::vector<uint8_t>& burstData, const size_t tim
     lprintf(LOG_ERR, "couldn't reconstruct burst data transmission before timeout\n"); fflush(stdout);
     return false;
   }
-  lprintf(LOG_INF, "collectBurst: %d bytes\n", int(burstData.size()));
+  lprintf(LOG_DBG, "collectBurst: %d bytes\n", int(burstData.size()));
   return true;
 }
 

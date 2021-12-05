@@ -1,13 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 #pragma once
 
@@ -22,13 +28,19 @@ namespace antpm {
 
 #define CHECK_RETURN_FALSE(x)         do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
 #define CHECK_RETURN_FALSE_LOG_OK(x)  do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } else { printf("ok: %s\n", #x); } } while(0)
+#define CHECK_RETURN_FALSE_LOG_OK_DBG2(x)  do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return false; } else { lprintf(antpm::LOG_DBG2, "ok: %s\n", #x); } } while(0)
 #define CHECK_RETURN_RV(x, rv)        do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return rv; } /*else { printf("ok: %s\n", #x); }*/ } while(0)
 #define CHECK_RETURN_RV_LOG_OK(x, rv) do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return rv; } else { printf("ok: %s\n", #x); } } while(0)
 #define CHECK_RETURN(x)               do { if(!(x)) { lprintf(antpm::LOG_ERR, "%s\n", #x); return; } else { printf("ok: %s\n", #x); } fflush(stdout); } while(0)
 #define LOG_VAR(x) do { LOG(antpm::LOG_INF) << #x << "= " << x << std::endl; } while(0)
+#define LOG_VAR_DBG2(x) do { LOG(antpm::LOG_DBG2) << #x << "= " << x << std::endl; } while(0)
 #define LOG_VAR2(x,y) do { LOG(antpm::LOG_INF) << #x << "= " << x << ", " #y << "= " << y << std::endl; } while(0)
 #define LOG_VAR3(x,y, z) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << std::endl; } while(0)
 #define LOG_VAR4(x,y, z, w) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << std::endl; } while(0)
+#define LOG_VAR5(x,y, z, w,v) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << ", " #v "= " << v << std::endl; } while(0)
+#define UNUSED(x) (void)(x)
+
+#define ASSURE_EQ_RET_FALSE(a,b) do { if(!((a)==(b))) { lprintf(antpm::LOG_ERR, "%s!=%s\n", #a, #b); LOG(antpm::LOG_ERR) << (char*)(#a) << "=" << a << ", " << (char*)(#b) << "=" << b << std::endl; return false; } } while(0)
 
 //std::ostream& logger();
 #define logger() LOG(antpm::LOG_INF)
@@ -95,7 +107,7 @@ getVersionString();
 
 enum
 {
-  ANTPM_RETRIES=10,
+  ANTPM_RETRIES=30,
   ANTPM_RETRY_MS=1000,
   ANTPM_MAX_CHANNELS=56
 };
@@ -106,5 +118,8 @@ enum
 #else
 # define ANTPM_SERIAL_IMPL SerialUsb
 #endif
+
+bool
+isAntpm405Override();
 
 }

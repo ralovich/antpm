@@ -22,6 +22,7 @@
 * It generally helps to keep the watch close (20-30 cm) to the USB2ANT dongle while communicating.
 
 ** TODO
+* when State=Busy broadcast is sent, maybe adjust timeout in waitForBursts??
 * run fit2gpx after downloads finish
 * capture ant agent log: for downloading all, for erasing, for uploading
 * capture ant agent log: for firmware upload
@@ -111,13 +112,62 @@ http://goldencheetah.org/
 
 
 ** git-pbuilder as root
-git-pbuilder create
+DIST=unstable ARCH=i386 git-pbuilder create --debootstrapopts --variant=buildd
+DIST=unstable ARCH=i386 git-pbuilder update
+? # add ... deb-src http://archive.ubuntu.com/ubuntu <ubuntu_version> main restricted universe multiverse
+? apt-get update
+? apt-get source bc
+? pbuilder build *.dsc
 
+** building the actual package
+rm -r cmake-build
+git reset --hard HEAD
+git clean -f -X
+git clean -f -d
+git-dch -R -N 1.17-1
+# review, edit and commit changelog
+#pristine-tar checkout ../antpm_1.17.orig.tar.gz
+DIST=unstable ARCH=i386 git-buildpackage --update
+# --git-ignore-new
+DIST=unstable ARCH=i386 git-buildpackage -us -uc --git-tag
 
-** pbuilder as root
-pbuilder create --debootstrapopts --variant=buildd
-# add ... deb-src http://archive.ubuntu.com/ubuntu <ubuntu_version> main restricted universe multiverse
-apt-get update
-apt-get source bc
-pbuilder build *.dsc
+** managing patches on top of the package with quilt
+* http://pkg-perl.alioth.debian.org/howto/quilt.html
+*** Creating a Patch
+To create a patch, run quilt new $patch_name. If you want .patch
+extension, you need to give it explicitly.
+This creates a new patch entry in debian/patches. This patch also
+becomes the topmost or current patch. This is the patch that is at the
+top of the stack.
+Now choose what file you want to change in that patch and run quilt
+edit $file. quilt notes the current state of the file and launches
+your $EDITOR so you can edit the file.
+Repeat the quilt edit command for every file you want to be changed by
+that patch.
+When you're finished, run quilt refresh. This compares the noted state
+of the edited files with their present state, and produces a patch in
+debian/patches.
+Note that this patch is currently applied. Check it with quilt
+applied.
+If the package is already being maintained in the pkg-perl Git
+repository, it is necessary to tell Git that you have added new
+files. You can do this with git add debian/patches ; git commit.
 
+***Applying and Unapplying Patches
+Now that we have the patch applied, let's play with it. quilt pop
+unapplies the topmost patch. quilt push applies the next patch in the
+series. You may see the list of unapplied patches with quilt
+unapplied.
+
+***Editing Patches
+To edit a patch, you have to first make it current (be on the top of
+the stack of applied patches). If the patch is already applied (but
+not the top), run quilt pop $patch_name; if it is not, run quilt push
+$patch_name. Now that the patch is on the top of the stack, run quilt
+edit $file as before. You can edit files that were already in the
+patch and you can edit new files. When you're done, remember to tell
+this to quilt by running quilt refresh.
+
+***Other Commands
+quilt delete deletes, quilt rename renames a patch. There are a lot
+more. See the manual page.

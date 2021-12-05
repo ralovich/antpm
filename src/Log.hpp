@@ -1,14 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-//                                                                //
-// Copyright (c) 2003-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 #pragma once
@@ -24,7 +29,7 @@
 # include <crtdbg.h>
 # include <io.h>
 #endif
-#ifdef __linux__
+#if defined(__linux__) || defined(__GNU__) || defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__APPLE__)
 # include <unistd.h>
 #endif
 #include <iostream>
@@ -103,9 +108,8 @@ namespace antpm
     : public ClassInstantiator<Log>
     , public LazySingleton<Log, Log>
   {
-  protected:
-    inline Log(const char* logFileName = NULL);
   public:
+    inline Log(const char* logFileName = nullptr);
     inline virtual ~Log();
 
 #ifdef __GNUC__
@@ -152,9 +156,6 @@ namespace antpm
     std::ofstream _ofs;
     SinkList      _sinks;
     LogLevel      _logReportingLevel;
-
-
-    friend class antpm::ClassInstantiator<Log>;
   };
 
   Log::Log(const char* logFileName)
@@ -195,6 +196,7 @@ namespace antpm
       this->lprintf2(LOG_INF,
                      "%s\n",
                      v.c_str());
+      this->lprintf2(LOG_RAW, "logging level: %d\n", this->_logReportingLevel);
     }
   }
 
@@ -280,6 +282,7 @@ namespace antpm
   Log::setLogReportingLevel(const LogLevel& logReportingLevel)
   {
     _logReportingLevel = logReportingLevel;
+    this->lprintf2(LOG_RAW, "logging level: %d\n", this->_logReportingLevel);
   }
 
   int
@@ -363,3 +366,15 @@ namespace antpm
 //#define log(level) psoLog(level)
 
 }
+
+#define DEFAULT_LOG_INSTANTIATOR                \
+  namespace antpm {                             \
+  template<>                                    \
+  std::unique_ptr<Log>                          \
+  ClassInstantiator<Log>::make_unique()         \
+  {                                             \
+    return std::make_unique<Log>();             \
+  }                                             \
+  }
+    
+

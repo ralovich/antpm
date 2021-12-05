@@ -22,7 +22,8 @@
 
 
 #include <stdio.h>
-#include <usb.h>
+//#include <usb.h>
+typedef struct usb_dev_handle usb_dev_handle;
 #include <math.h>
 
 

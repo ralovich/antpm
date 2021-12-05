@@ -1,13 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 #pragma once
 
@@ -17,9 +23,6 @@
 #include <boost/thread.hpp>
 #include <boost/scoped_ptr.hpp>
 #include <list>
-
-
-
 
 
 template <typename DataType>
@@ -79,7 +82,7 @@ protected:
 
 
 
-// implements push consumer
+/// implements push consumer
 template < class DataType>
 class lqueue3 : public lqueue2<DataType>
 {
@@ -88,33 +91,29 @@ public:
   typedef boost::function<bool (std::vector<DataType>&)> Listener2;
   typedef lqueue2<DataType>                              Super;
 
-  struct ListenerProc
-  {
-    void operator() (lqueue3* This)
-    {
-      This->eventLoop();
-    }
-  };
-
-
-  lqueue3(bool eventLoopInBgTh = true)
+  lqueue3()
     : stop(false)
+    , started(false)
+    , stopped(false)
   {
-    if(eventLoopInBgTh)
-      th_listener.reset( new boost::thread(lp, this) );
   }
 
   ~lqueue3()
   {
-    stop = true;
-    if(th_listener.get())
-      th_listener->join();
+    kill();
   }
 
   void
   kill()
   {
     stop = true;
+    if(started)
+    {
+      while(!stopped)
+      {
+        boost::thread::yield();
+      }
+    }
   }
 
   void
@@ -126,6 +125,8 @@ public:
 public:
   void eventLoop()
   {
+    assert(!started);
+    started = true;
     while(!stop)
     {
       boost::unique_lock<boost::mutex> lock(Super::m_mtx);
@@ -137,7 +138,8 @@ public:
         continue;
       }
 
-      assert(!Super::m_q.empty());
+      if(Super::m_q.empty())
+        continue; // spurious wakeup
       size_t s = Super::m_q.size();
       std::vector<DataType> v(s);
       for(size_t i = 0; i < s; i++)
@@ -148,17 +150,18 @@ public:
       if(mCallback)
         /*bool rv =*/ mCallback(v);
     }
+    stopped = true;
   }
 
 protected:
-  ListenerProc lp;
-  boost::scoped_ptr<boost::thread> th_listener;
   volatile bool stop;
+  volatile bool started;
+  volatile bool stopped;
   Listener2 mCallback;
 };
 
 
-// implements poll-able pop consumer
+/// implements poll-able pop consumer
 template < class DataType>
 class lqueue4 : public lqueue2<DataType>
 {
@@ -187,14 +190,15 @@ public:
   {
     boost::mutex::scoped_lock lock(Super::m_mtx);
 
-    /// if queue empty, wait untile timeout if there was anything pushed
+    /// if queue empty, wait until timeout if there was anything pushed
     if(Super::m_q.empty() && timeout > 0)
     {
       boost::posix_time::time_duration td = boost::posix_time::milliseconds(timeout);
       if(!Super::m_pushEvent.timed_wait(lock, td))
         return false;
     }
-    assert(!Super::m_q.empty());
+    if(Super::m_q.empty()) // spurious wakeup
+      return false;
 
     data = Super::m_q.front();
     Super::m_q.pop_front();
@@ -219,7 +223,8 @@ public:
         return false;
       }
     }
-    assert(!Super::m_q.empty());
+    if(Super::m_q.empty()) // spurious wakeup
+      return false;
 
     size_t s = Super::m_q.size();
     s = std::min(s, sizeBytes);
@@ -235,3 +240,80 @@ public:
 };
 
 
+/// implements push consumer, with event dispatch in background thread
+template < class DataType>
+class lqueue3_bg : public lqueue2<DataType>
+{
+public:
+  typedef boost::function<bool (DataType&)>     Listener;
+  typedef boost::function<bool (std::vector<DataType>&)> Listener2;
+  typedef lqueue2<DataType>                              Super;
+
+  struct ListenerProc
+  {
+    void operator() (lqueue3_bg* This)
+    {
+      This->eventLoop();
+    }
+  };
+
+
+  lqueue3_bg()
+    : stop(false)
+  {
+    th_listener.reset( new boost::thread(lp, this) );
+  }
+
+  ~lqueue3_bg()
+  {
+    kill();
+  }
+
+  void
+  kill()
+  {
+    stop = true;
+    if(th_listener.get())
+      th_listener->join();
+  }
+
+  void
+  setOnDataArrivedCallback(Listener2 l)
+  {
+    mCallback = l;
+  }
+
+protected:
+  void eventLoop()
+  {
+    while(!stop)
+    {
+      boost::unique_lock<boost::mutex> lock(Super::m_mtx);
+
+      boost::posix_time::time_duration td = boost::posix_time::milliseconds(2000);
+      if(!Super::m_pushEvent.timed_wait(lock, td)) // will automatically and atomically unlock mutex while it waits
+      {
+        //std::cout << "no event before timeout\n";
+        continue;
+      }
+
+      if(Super::m_q.empty())
+        continue; // spurious wakeup
+      size_t s = Super::m_q.size();
+      std::vector<DataType> v(s);
+      for(size_t i = 0; i < s; i++)
+      {
+        v[i] = Super::m_q.front();
+        Super::m_q.pop_front();
+      }
+      if(mCallback)
+        /*bool rv =*/ mCallback(v);
+    }
+  }
+
+protected:
+  ListenerProc lp;
+  boost::scoped_ptr<boost::thread> th_listener;
+  volatile bool stop;
+  Listener2 mCallback;
+};

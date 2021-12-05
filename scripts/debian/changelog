@@ -1,4 +1,315 @@
-antpm (1.12-1) UNRELEASED; urgency=low
+antpm (1.18-1) experimental; urgency=low
+
+  * open for development
+  * cmake: link boost atomic too
+  * don't use __DATE__ for reproducible builds
+  * docs: document more of the debian packaging procedure
+  * antpm: convert auto_ptr to unique_ptr, start using C++14 (make_unique)
+  * scripts: comment unused code
+  * Revert "cmake: link boost atomic too"
+  * travis-ci: try pulling in more recent boost and c++ compilers
+  * travis-ci: pull in cmake and pkg-config too
+  * travis-ci: do not set CXX explicitly
+  * travis-ci: try using newer boost
+  * travis-ci: try using newer boost v2
+  * travis-ci: require gcc 4.9
+  * travis-ci: require gcc 4.9 v2
+  * travis-ci: try using newer boost v3
+  * travis-ci: try using newer boost v4
+  * travis-ci: try using newer boost v5
+  * travis-ci: try using newer boost v6
+  * Revert "Revert "cmake: link boost atomic too""
+  * travis-ci: try using newer boost v7
+  * cmake: link boost exception too
+  * link rt for e.g. clocl_gettime
+  * travis-ci: try using newer boost v8
+  * travis-ci: try using newer boost v9
+  * travis-ci: try using newer boost v10
+  * travis-ci: try using newer boost v11
+  * cmake: improve boost dynamic linking for travis
+  * cmake: treat clang the same way as gcc
+  * travis-ci: clang build segfaults on travis, no idea why
+  * ant: another device seen
+  * ant: two FR405s seen
+  * document constants
+  * files coming from direct transfers are not ant fs packed
+  * ds: bugfix: do not always write 3 as delay
+  * ant: improve debuggability
+  * port over to libusb1.0
+  * antfs: hint which files would be downloaded based on date
+  * usb: fix warning storm
+  * ant: fix typo
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Tue, 23 Feb 2016 22:30:40 +0100
+
+antpm (1.17-1) experimental; urgency=low
+
+  [ RALOVICH, Kristof ]
+  * open for new development
+  * scripts: tool to catch files missing from orig.tar.gz list
+  * antfs: more work on 405 dialect
+  * AntFr310XT: allow passing the Serial implementation from the outside
+  * tests: w-i-p verification of statemachine
+  * ant: add comments
+  * tests: fix spurious SIGSEGV
+  * tests: indent
+  * ant: better comments
+  * tests: cover more of message sending
+  * gant: convert comments to C style
+  * gant: convert comments to C style
+  * gant: conversion to c99
+  * lqueue: handle spurious wakeups
+  * add comment
+  * remove unused includes
+  * gant: untabify, reindent
+  * lqueue3: add lqueue3_bg
+  * ant: don't allow running AntMessenger event loop in background thread
+  * lqueue: implement logic to wait for lqueue3 even loop to finish
+  * tests: try to fix an other sporadic failure
+  * travis-ci: fix descriptor
+  * lqueue: fix c++ protection level
+  * ant: rename method
+  * ant: debug comment, for exiting event threads
+  * travis-ci: commands are not run in subshells
+  * ant: document state machine teardown
+  * ant: use nicer constants
+  * travis-ci: fix typo
+  * tests: test a few parts of lqueue
+  * try fixing FTBFS under hurd-i386, kfreebsd-amd64, kfreebsd-i386
+  * gant: try fixing FTBFS under hurd-i386
+  * don't use uint
+  * don't use NULL
+  * add missing include
+  * build fix: VS2012 has proper cstdint
+  * build fix: VS2012 has proper smart pointers
+  * cmake: build gant as optional
+  * VS2012 build script
+  * vs strftime doesn't recognize %T
+  * antpm-usbmon2ant: fix crash under win
+  * str2time: boost did not recognize this format
+  * tests: str2time still fails under win, but at least not crashes
+  * make the time conversion a bit more readable/debuggable
+  * win libusb installer: chmod +x
+
+  [ Kristof Ralovich ]
+  * tests: run sm1 under win too
+  * add missing include
+  * scipts: refine VS2008 builders
+
+  [ RALOVICH, Kristof ]
+  * tests: comment unused code
+  * travis-ci: hooking up coverity
+  * travis-ci: fix typo
+  * tests: fix warning
+  * travis-ci: build coverity_scan branch too
+  * travis-ci: new token
+  * realize freebsd build compatibility
+  * docs: update maintainer notes
+  * docs: update maintainer notes
+  * docs: more packaging details
+  * cmake: link against boost_atomic too
+  * debian: libboost-atomic-dev is required
+  * travis-ci: need libboost-atomic-dev
+  * travis-ci: refine coverity setup
+  * travis-ci: add coverity script
+  * travis-ci: doesn't have libboost-atomic-dev
+  * travis-ci: coverity update
+  * docs: fix line endings
+  * travis-ci: refine coverity setup
+  * travis-ci: refining coverity
+  * travis-ci: refining coverity
+  * travis-ci: refine coverity setup
+  * travis-ci: refine coverity setup
+  * gant: fix two bugs
+  * VS2012 build warning fix
+  * fix more static analysis problems
+  * initialize members
+  * linux: look for usb_serial_simple too
+  * tty debugging
+  * kfreebsd build fixes
+  * travis-ci: don't run coverity with gcc
+  * include cstdint
+  * fix ctor init order warning
+  * catch a bunch of exceptions
+  * Revert "include cstdint"
+  * scripts: database cleaner
+  * usb: print errno too
+  * docs: add todo
+  * tty: add documentation
+  * tests: satisfy coverity
+  * gant: replace strcpy with strncpy
+  * cmake: ignore generated files
+  * ant: fix uninitialized members
+  * fit: initialize all members
+  * exception safety
+  * exception safety
+  * tty: call argument only once
+  * tty: clarify intent
+  * antpm: exception safety
+  * gant: check return value
+  * add tests to tarball
+  * scripts: update tarball
+
+  [ jerome-labidurie ]
+  * Add "length message" management & dump
+  * Add Garmin Swim ids Better logging for length message
+
+  [ ralovich ]
+  * Update README.rst
+
+  [ RALOVICH, Kristof ]
+  * serial: clarify intent
+  * add ASSURE_EQ_RET_FALSE macro
+  * ant: relax sanitization of authenticateResponse.authStrLen
+  * ant: provide insight into values if assumption fails
+  * antfs: attempt to recognise FR 410 as well
+  * update readme
+  * fix typo
+  * ant: remove dead code
+  * gant: fix gcc warning
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Wed, 07 Oct 2015 23:10:47 +0200
+
+antpm (1.16-1) experimental; urgency=low
+
+  * open for new development
+  * ant: try logging MESG_STARTUP_MSG_ID
+  * more verbose debug
+  * more verbose debug
+  * SerialUsb.cpp: more VID/PID pairs to be recognised
+  * Serial: implement central factory method
+  * use central factory to create serial interface
+  * tell apart 32/64 bit linux
+  * scripts: create snapshot .deb package
+  * output formatting fixes
+  * decode: MESG_STARTUP_MSG_ID
+  * SerialUsb: print only on error path
+  * remove stale comment
+  * do skip already downloaded files
+  * let us not consider EVENT_TRANSFER_TX_START events
+  * log sent messages too
+  * create antpm-dbg package too
+  * Log: make sure current log level threshold is logged
+  * fix comments
+  * usb: win and linux have different errno values
+  * ANT_CloseChannel: accept more responses are success
+  * catch spurious wakeups of condition variables
+  * infrastructure to interrupt waiting message listeners
+  * extra statement
+  * disable device guessing
+  * give up restarting sooner
+  * Quit quicker.
+  * SerialUsb: reduce verbosity
+  * AntChannel: bugfix
+  * build packages with RelWithDebInfo
+  * cmake: default to Debug build
+  * move method from header to .cpp
+  * fix warning about unused variable
+  * move methods from header to .cpp
+  * add comment
+  * log the dtors
+  * include timstamp in version string
+  * FIT: omit extra printing
+  * debug macros
+  * reduce chattiness in release
+  * make ANTFS_Disconnect not wait for reply
+  * SerialUsb: overhaul
+  * reduce chattiness in release
+  * reduce chattiness in release
+  * reduce chattiness in release
+  * move messy definitions
+  * AntMessage::str2(): decode MESG_STARTUP_MSG_ID
+  * log when state machine destructs
+  * AntFr310XT: stop() is not thread safe, or reentrant
+  * state machine for GarminIntf
+  * provide some end user messages
+  * fold in the GarminIntf states
+  * cmake: inherit compiler flags
+  * check return value of strerror_r
+  * Serial: list linux kernel modules
+  * downloader: more debugging info
+  * UNUSED() macro
+  * gant: fix a bunch of warnings
+  * SerialUsb: bugfix, what a typo
+  * fix warnings about unused variables
+  * use gnu variant of strerror_r
+  * serial: unify unblocking readBlocking()
+  * serial: more info to help remote debugging
+  * add readme file
+  * usb: remove GPLv2 code
+  * update copyright info
+  * serial: try to actually open a device under win too
+  * scripts: arch build file
+  * make lintian happier
+  * tar README.rst too
+  * make lintian happier 2
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Sun, 02 Mar 2014 10:42:06 +0100
+
+antpm (1.15-1) experimental; urgency=low
+
+  * open for new development
+  * docs: document release testing
+  * extend build time dependencies
+  * make sure this file is treated as utf-8
+  * SerialUsb.cpp is GPLv2 hard
+  * tests: tests are under regular GPLv3
+  * tests: fix typo
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Wed, 08 Jan 2014 16:21:51 +0100
+
+antpm (1.14-1) experimental; urgency=low
+
+  * housekeeping
+  * Blind implementation of messages seen in 405 traces.
+  * udev: add rule for 0fcf:1009
+  * improve src documentation
+  * remove unused AntMessage::lookupInVector
+  * remove unused code
+  * docs: note on pbuilder
+  * working on decoding garmin direct packets
+  * add BSWAP_64 macro
+  * working on decoding garmin direct packets 2.
+  * ant: base class for message contents
+  * antfs: more thorough decoding of direct responses
+  * Finish relicensing to GPLv3
+  * open for new development
+  * implement Serial::setWriteDelay() interface
+  * DeviceSettings: I/O for SerialWriteDelayMs from .ini
+  * It helps to delay the host from writing to device too fast.
+  * make orig tarball as .gz
+  * scripts: deb from .gz
+  * fix test case
+  * changelog: change distribution
+  * changelog: missing v1.13 notes
+  * changelog: remove duplicate entries
+  * add sources to orig tarball
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Tue, 07 Jan 2014 00:35:05 +0100
+
+antpm (1.13-1) experimental; urgency=low
+
+  [ RALOVICH, Kristof ]
+  * 3rd_party: import usbmon tool
+  * docs: clarify capture notes
+  * docs: further clarify capture notes
+  * should build on any architecture
+
+  [ Noël Köthe ]
+  * Additional a small patch for PROTOCOL_HELP.txt which would have helped me and might make it easier for other.;)
+
+  [ RALOVICH, Kristof ]
+  * upon Ctrl+C give a hint that we gonna stop
+  * let's have M_ANT_Channel_Id in the header
+  * fix decoding in ANT_GetChannelId()
+  * initial work on guessing the client device type
+  * checkForExit() after downloading each file
+  * scripts: sinitize what goes into orig.tar.gz
+  * new version 1.13
+
+ -- RALOVICH, Kristof <tade60@freemail.hu>  Tue, 07 Jan 2014 00:06:04 +0100
+
+antpm (1.12-1) experimental; urgency=low
 
   [ RALOVICH, Kristof ]
   * travis: build the gant-integration branch too
@@ -11,7 +322,7 @@ antpm (1.12-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristof <tade60@freemail.hu>  Mon, 14 Oct 2013 18:46:40 +0200
 
-antpm (1.11-1) UNRELEASED; urgency=low
+antpm (1.11-1) experimental; urgency=low
 
   [ Jordan Miller ]
   * First Import
@@ -98,7 +409,7 @@ antpm (1.11-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 12 Oct 2013 01:32:08 +0200
 
-antpm (1.9-1) UNRELEASED; urgency=low
+antpm (1.9-1) experimental; urgency=low
 
   [ RALOVICH, Kristóf ]
   * docs: update todo list
@@ -140,14 +451,14 @@ antpm (1.9-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Tue, 09 Jul 2013 19:05:03 +0200
 
-antpm (1.8-1) UNRELEASED; urgency=low
+antpm (1.8-1) experimental; urgency=low
 
   * GarminConvert: add a method that offsets the timestamps
   * AntMessage: bugfix: correctly convert file creation time
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 06 Jul 2013 00:46:18 +0200
 
-antpm (1.7-1) UNRELEASED; urgency=low
+antpm (1.7-1) experimental; urgency=low
 
   * antpm-*: recongize -h option for --help too
   * fit: this is a run-time warning
@@ -164,7 +475,7 @@ antpm (1.7-1) UNRELEASED; urgency=low
 
  -- RALOVICH, Kristóf <tade60@freemail.hu>  Sat, 06 Jul 2013 00:11:34 +0200
 
-antpm (1.6-3) UNRELEASED; urgency=low
+antpm (1.6-3) experimental; urgency=low
 
   [ RALOVICH, Kristóf ]
   * docs: more notes
@@ -176,7 +487,7 @@ antpm (1.6-3) UNRELEASED; urgency=low
 
  -- Ralovich Kristof <tade@cg.iit.bme.hu>  Wed, 26 Jun 2013 11:43:35 +0200
 
-antpm (1.6-2) UNRELEASED; urgency=low
+antpm (1.6-2) experimental; urgency=low
 
   [ Kristof Ralovich ]
   * script to generate changelog from git
@@ -185,7 +496,7 @@ antpm (1.6-2) UNRELEASED; urgency=low
 
  -- Ralovich Kristof <tade@cg.iit.bme.hu>  Tue, 25 Jun 2013 17:10:28 +0200
 
-antpm (1.6-0) UNRELEASED; urgency=low
+antpm (1.6-0) experimental; urgency=low
 
   [ RALOVICH, Kristóf ]
   * include Release builds in a .deb. package
@@ -266,8 +577,12 @@ antpm (1.6-0) UNRELEASED; urgency=low
 
  -- Ralovich Kristof <tade@cg.iit.bme.hu>  Tue, 25 Jun 2013 17:02:17 +0200
 
-antpm (1.0-1) UNRELEASED; urgency=low
+antpm (1.0-1) experimental; urgency=low
 
   * Initial release.
 
  -- Kristof Ralovich <tade60@freemail.hu>  Tue, 21 Mar 2013 16:22:10 +0100
+
+# Local Variables:
+# coding: utf-8
+# End:

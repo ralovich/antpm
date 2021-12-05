@@ -1,31 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
-/*
- * Portions copyright as:
- * Silicon Laboratories CP2101/CP2102/CP2103 USB to RS232 serial adaptor driver
- *
- * Copyright (C) 2010 Craig Shelley (craig@microtron.org.uk)
- *
- *	This program is free software; you can redistribute it and/or
- *	modify it under the terms of the GNU General Public License version
- *	2 as published by the Free Software Foundation.
- *
- * Support to set flow control line levels using TIOCMGET and TIOCMSET
- * thanks to Karl Hiramoto karl@hiramoto.org. RTSCTS hardware flow
- * control thanks to Munir Nassar nassarmu@real-time.com
- * Original backport to 2.4 by andreas 'randy' weinberger randy@ebv.com
- * Several fixes and enhancements by Bill Pfutzenreuter BPfutzenreuter@itsgames.com
- * Ported to userspace by Kristof Ralovich
- *
- */
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 
@@ -48,6 +36,8 @@
 #include <algorithm>
 #include <vector>
 #include <string>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/condition_variable.hpp>
 #include <boost/thread/thread_time.hpp>
 #include <iostream>
 
@@ -56,7 +46,9 @@
 #define NOMINMAX 1
 #include "lusb0_usb.h"
 #else
-#include "usb.h"
+#include <errno.h>
+#include <libusb.h>
+#include "SerialTty.hpp"
 #endif
 
 
@@ -66,10 +58,39 @@ const uchar USB_ANT_CONFIGURATION = 1;
 const uchar USB_ANT_INTERFACE = 0;
 const uchar USB_ANT_EP_IN  = 0x81;
 const uchar USB_ANT_EP_OUT = 0x01;
+enum {
+  BULK_WRITE_TIMEOUT_MS = 3000,
+  BULK_READ_TIMEOUT_MS = 1000
+};
 
 
 
-
+#if defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION >= 0x01000103)
+#define LOG_USB_WARN(func, rv)                      \
+  do {                                              \
+    LOG(LOG_WARN) << func << ": " << rv << ": \""   \
+                  << libusb_error_name(rv) << "\t"  \
+                  << libusb_strerror((libusb_error)rv) << "\"\n"; \
+  } while(0)
+#define LOG_USB_WARN2(func, rv)                                         \
+  do {                                                                  \
+    LOG(LOG_WARN) << func << ": " << rv                                 \
+                  << ": \"" << libusb_strerror((libusb_error)rv) << "\"\n"            \
+                  << ": \"" << static_cast<char*>(strerror(rv)) << "\"\n"; \
+  } while(0)
+#else
+#define LOG_USB_WARN(func, rv)                      \
+  do {                                              \
+    LOG(LOG_WARN) << func << ": " << rv << ": \""   \
+                  << libusb_error_name(rv) << "\"\n"; \
+  } while(0)
+#define LOG_USB_WARN2(func, rv)                                         \
+  do {                                                                  \
+    LOG(LOG_WARN) << func << ": " << rv                                 \
+                  << ": \"" << libusb_error_name(rv) << "\"\n"            \
+                  << ": \"" << static_cast<char*>(strerror(rv)) << "\"\n"; \
+  } while(0)
+#endif
 
 
 
@@ -79,267 +100,203 @@ struct SerialUsbPrivate
   mutable boost::mutex m_queueMtx;
   boost::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
-  //lqueue<uchar> m_recvQueue2;
   volatile int m_recvThKill;
-  //AntCallback* m_callback;
-  usb_dev_handle* dev;
+  libusb_device_handle* dev;
+  unsigned short dev_vid;
+  unsigned short dev_pid;
+  size_t m_writeDelay;
 
-#define REQTYPE_HOST_TO_INTERFACE	0x41
-#define REQTYPE_INTERFACE_TO_HOST	0xc1
-#define REQTYPE_HOST_TO_DEVICE	0x40
-#define REQTYPE_DEVICE_TO_HOST	0xc0
+#define REQTYPE_HOST_TO_INTERFACE 0x41
+#define REQTYPE_INTERFACE_TO_HOST 0xc1
+#define REQTYPE_HOST_TO_DEVICE  0x40
+#define REQTYPE_DEVICE_TO_HOST  0xc0
 
-#define USB_CTRL_GET_TIMEOUT	5000
-#define USB_CTRL_SET_TIMEOUT	5000
+#define USB_CTRL_GET_TIMEOUT  5000
+#define USB_CTRL_SET_TIMEOUT  5000
 
-  /* Config request codes */
-  #define CP210X_IFC_ENABLE	0x00
-  #define CP210X_SET_BAUDDIV	0x01
-  #define CP210X_GET_BAUDDIV	0x02
-  #define CP210X_SET_LINE_CTL	0x03
-  #define CP210X_GET_LINE_CTL	0x04
-  #define CP210X_SET_BREAK	0x05
-  #define CP210X_IMM_CHAR		0x06
-  #define CP210X_SET_MHS		0x07
-  #define CP210X_GET_MDMSTS	0x08
-  #define CP210X_SET_XON		0x09
-  #define CP210X_SET_XOFF		0x0A
-  #define CP210X_SET_EVENTMASK	0x0B
-  #define CP210X_GET_EVENTMASK	0x0C
-  #define CP210X_SET_CHAR		0x0D
-  #define CP210X_GET_CHARS	0x0E
-  #define CP210X_GET_PROPS	0x0F
-  #define CP210X_GET_COMM_STATUS	0x10
-  #define CP210X_RESET		0x11
-  #define CP210X_PURGE		0x12
-  #define CP210X_SET_FLOW		0x13
-  #define CP210X_GET_FLOW		0x14
-  #define CP210X_EMBED_EVENTS	0x15
-  #define CP210X_GET_EVENTSTATE	0x16
-  #define CP210X_SET_CHARS	0x19
-  #define CP210X_GET_BAUDRATE	0x1D
-  #define CP210X_SET_BAUDRATE	0x1E
+#define CP210X_IFC_ENABLE 0x00
+#define CP210X_SET_MHS    0x07
+#define CP210X_SET_BAUDRATE 0x1E
+#define UART_ENABLE   0x0001
 
-  /* CP210X_IFC_ENABLE */
-  #define UART_ENABLE		0x0001
-  #define UART_DISABLE		0x0000
-
-  /* CP210X_(SET|GET)_BAUDDIV */
-  #define BAUD_RATE_GEN_FREQ	0x384000
-
-  /* CP210X_(SET|GET)_LINE_CTL */
-  #define BITS_DATA_MASK		0X0f00
-  #define BITS_DATA_5		0X0500
-  #define BITS_DATA_6		0X0600
-  #define BITS_DATA_7		0X0700
-  #define BITS_DATA_8		0X0800
-  #define BITS_DATA_9		0X0900
-
-  #define BITS_PARITY_MASK	0x00f0
-  #define BITS_PARITY_NONE	0x0000
-  #define BITS_PARITY_ODD		0x0010
-  #define BITS_PARITY_EVEN	0x0020
-  #define BITS_PARITY_MARK	0x0030
-  #define BITS_PARITY_SPACE	0x0040
-
-  #define BITS_STOP_MASK		0x000f
-  #define BITS_STOP_1		0x0000
-  #define BITS_STOP_1_5		0x0001
-  #define BITS_STOP_2		0x0002
-
-  /* CP210X_SET_BREAK */
-  #define BREAK_ON		0x0001
-  #define BREAK_OFF		0x0000
-
-  /* CP210X_(SET_MHS|GET_MDMSTS) */
-  #define CONTROL_DTR		0x0001
-  #define CONTROL_RTS		0x0002
-  #define CONTROL_CTS		0x0010
-  #define CONTROL_DSR		0x0020
-  #define CONTROL_RING		0x0040
-  #define CONTROL_DCD		0x0080
-  #define CONTROL_WRITE_DTR	0x0100
-  #define CONTROL_WRITE_RTS	0x0200
-
-
-#define TIOCM_DTR       0x002
-#define TIOCM_RTS       0x004
-
-  int get_config(int request, char* data, int size)
-  {
-    if(!dev)
-      return -1111;
-
-    int index = 0; // bInterfaceNumber ==? USB_ANT_INTERFACE
-
-    int irv;
-    irv = usb_control_msg(dev, REQTYPE_INTERFACE_TO_HOST, request, 0,
-                          index, data, size, USB_CTRL_GET_TIMEOUT);
-    LOG_VAR(irv);
-
-    return irv;
-  }
+#define CONTROL_DTR   0x0001
+#define CONTROL_RTS   0x0002
+#define CONTROL_WRITE_DTR 0x0100
+#define CONTROL_WRITE_RTS 0x0200
 
   // size in bytes
-  int set_config(int request, char* data, int size)
+  bool
+  setConfig(int request, char* data, int size)
   {
-    if(!dev)
-      return -1111;
+    if(!dev || size<0)
+      return false;
 
     int index = 0; // bInterfaceNumber ==? USB_ANT_INTERFACE
 
-    int irv;
+    int irv = -1;
+    int sz = 0;
     if(size>2)
     {
-      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, 0,
-                            index, data, size, USB_CTRL_SET_TIMEOUT);
+      sz = size;
+      irv = libusb_control_transfer(dev, REQTYPE_HOST_TO_INTERFACE, request, 0,
+                                    index, reinterpret_cast<unsigned char*>(data),
+                                    sz, USB_CTRL_SET_TIMEOUT);
     }
     else
     {
-      irv = usb_control_msg(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0],
-                            index, NULL, 0, USB_CTRL_SET_TIMEOUT);
+      sz = 0;
+      irv = libusb_control_transfer(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0],
+                                    index, NULL, sz, USB_CTRL_SET_TIMEOUT);
     }
-    LOG_VAR(irv);
-
-    return irv;
-  }
-
-  int set_config_single(int request, unsigned short data)
-  {
-    return set_config(request, reinterpret_cast<char*>(&data), 2);
-  }
-
-  int change_speed(unsigned int baud)
-  {
-    return set_config(CP210X_SET_BAUDRATE, reinterpret_cast<char*>(&baud), sizeof(baud));
-  }
-
-  int tiocmset(unsigned int set, unsigned int clear)
-  {
-	  unsigned int control = 0;
-
-	  if (set & TIOCM_RTS) {
-		  control |= CONTROL_RTS;
-		  control |= CONTROL_WRITE_RTS;
-	  }
-	  if (set & TIOCM_DTR) {
-		  control |= CONTROL_DTR;
-		  control |= CONTROL_WRITE_DTR;
-	  }
-	  if (clear & TIOCM_RTS) {
-		  control &= ~CONTROL_RTS;
-		  control |= CONTROL_WRITE_RTS;
-	  }
-	  if (clear & TIOCM_DTR) {
-		  control &= ~CONTROL_DTR;
-		  control |= CONTROL_WRITE_DTR;
-	  }
-
-    lprintf(LOG_INF, "%s - control = 0x%.4x\n", __FUNCTION__, control);
-
-	  return set_config(CP210X_SET_MHS, reinterpret_cast<char*>(&control), 2);
-  }
-
-
-  void
-  modprobe()
-  {
-//    ffff8800364a8300 962108826 S Co:3:001:0 s 23 03 0004 0001 0000 0
-//    ffff8800364a8300 962108840 C Co:3:001:0 0 0
-//    ffff8800b225b780 962162649 S Ci:3:001:0 s a3 00 0000 0001 0004 4 <
-//    ffff8800b225b780 962162697 C Ci:3:001:0 0 4 = 03010000
-//    ffff8800b225b780 962218579 S Co:3:001:0 s 23 01 0014 0001 0000 0
-//    ffff8800b225b780 962218591 C Co:3:001:0 0 0
-//    ffff8800b225b780 962218620 S Ci:3:000:0 s 80 06 0100 0000 0040 64 <
-//    ffff8800b225b780 962222272 C Ci:3:000:0 0 18 = 12011001 00000040 cf0f0410 00030102 0301
-//    ffff8800364a8300 962222320 S Co:3:001:0 s 23 03 0004 0001 0000 0
-//    ffff8800364a8300 962222330 C Co:3:001:0 0 0
-//    ffff8800b225b3c0 962274639 S Ci:3:001:0 s a3 00 0000 0001 0004 4 <
-//    ffff8800b225b3c0 962274675 C Ci:3:001:0 0 4 = 03010000
-//    ffff8800364a8300 962330667 S Co:3:001:0 s 23 01 0014 0001 0000 0
-//    ffff8800364a8300 962330676 C Co:3:001:0 0 0
-//    ffff8800364a8300 962330685 S Co:3:000:0 s 00 05 0002 0000 0000 0
-//    ffff8800364a8300 962333269 C Co:3:000:0 0 0
-//    ffff8800b225b3c0 962350649 S Ci:3:002:0 s 80 06 0100 0000 0012 18 <
-//    ffff8800b225b3c0 962354268 C Ci:3:002:0 0 18 = 12011001 00000040 cf0f0410 00030102 0301
-//    ffff8800b225b3c0 962354312 S Ci:3:002:0 s 80 06 0200 0000 0020 32 <
-//    ffff8800b225b3c0 962357263 C Ci:3:002:0 0 32 = 09022000 01010080 32090400 0002ff00 00020705 81024000 00070501 02400000
-//    ffff8800364a8300 962357309 S Ci:3:002:0 s 80 06 0303 0409 00ff 255 <
-//    ffff8800364a8300 962364268 C Ci:3:002:0 0 128 = 80033100 30003000 36003200 00001400 28002f00 f300a700 18003a00 80004700
-//    ffff8800b225ba80 962364316 S Co:3:002:0 s 00 09 0001 0000 0000 0
-//    ffff8800b225ba80 962366264 C Co:3:002:0 0 0
-    if(!dev)
-      return;
-
-    //cp210x_startup: usb_reset_device
-
-    set_config_single(CP210X_IFC_ENABLE, UART_ENABLE);
-    //cp2101_set_config_single(port, CP210X_IFC_ENABLE, UART_ENABLE);
-    /* Configure the termios structure */
-    //cp2101_get_termios(port);
-    change_speed(115200);
-    /* Set the DTR and RTS pins low */
-    //cp2101_tiocmset(port, NULL, TIOCM_DTR | TIOCM_RTS, 0);
-    tiocmset(TIOCM_DTR | TIOCM_RTS, 0);
-
-  }
-
-  void
-  open_tty()
-  {}
-
-  usb_dev_handle*
-  libUSBGetDevice (unsigned short vid, unsigned short pid)
-  {
-    struct usb_bus *UsbBus = NULL;
-    struct usb_device *UsbDevice = NULL;
-    usb_dev_handle *ret;
-
-    int dBuses, dDevices;
-    dBuses = usb_find_busses ();
-    dDevices = usb_find_devices ();
-
-    LOG_VAR2(dBuses, dDevices);
-    lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", "", "", vid, pid);
-
-    for (UsbBus = usb_get_busses(); UsbBus; UsbBus = UsbBus->next)
+    if(irv<0)
     {
-      bool found = false;
-      for (UsbDevice = UsbBus->devices; UsbDevice; UsbDevice = UsbDevice->next)
+      LOG_USB_WARN("libusb_control_transfer", irv);
+    }
+
+    return irv==sz;
+  }
+
+  bool
+  cp210xInit()
+  {
+    if((dev_vid==0x0fcf) && (dev_pid==0x1008 || dev_pid==0x1009))
+      return true;
+
+    CHECK_RETURN_FALSE(dev);
+
+    unsigned short word = UART_ENABLE;
+    CHECK_RETURN_FALSE(setConfig(CP210X_IFC_ENABLE, reinterpret_cast<char*>(&word), sizeof(word)));
+    unsigned int baud = 115200;
+    CHECK_RETURN_FALSE(setConfig(CP210X_SET_BAUDRATE, reinterpret_cast<char*>(&baud), sizeof(baud)));
+
+    unsigned int control = 0;
+    control |= CONTROL_RTS;
+    control |= CONTROL_WRITE_RTS;
+    control |= CONTROL_DTR;
+    control |= CONTROL_WRITE_DTR;
+    CHECK_RETURN_FALSE(setConfig(CP210X_SET_MHS, reinterpret_cast<char*>(&control), 2));
+
+    return true;
+  }
+
+  libusb_device_handle*
+  libUSBGetDevice (const unsigned short vid, const unsigned short pid)
+  {
+    libusb_device_handle *udev;
+
+    // discover devices
+    libusb_device **list;
+    bool found = false;
+
+    ssize_t cnt = libusb_get_device_list(NULL, &list);
+    if(cnt < 0)
+    {
+      LOG_USB_WARN("libusb_get_device_list", cnt);
+      return NULL;
+    }
+    
+    ssize_t i = 0;
+    int err = 0;
+    libusb_device *device = NULL;
+    int rv = -1;
+    for (i = 0; i < cnt; i++) {
+      device = list[i];
+
+      libusb_device_descriptor desc;
+      rv = libusb_get_device_descriptor(device, &desc);
+      if(rv)
       {
-        lprintf(LOG_INF, "bus: %s, dev: %s, vid: 0x%04hx, pid: 0x%04hx\n", UsbBus->dirname, UsbDevice->filename, UsbDevice->descriptor.idVendor, UsbDevice->descriptor.idProduct);
-        if (UsbDevice->descriptor.idVendor == vid && UsbDevice->descriptor.idProduct== pid)
-        {
-          lprintf(LOG_INF, "found!\n");
-          found = true;
-          break;
-        }
-      }
-      if(found)
         break;
+      }
+
+      //lprintf(LOG_INF, "vid: 0x%04hx, pid: 0x%04hx\n", desc.idVendor, desc.idProduct);
+      if(desc.idVendor == vid && desc.idProduct == pid)
+      {
+        dev_vid = vid;
+        dev_pid = pid;
+        found = true;
+        break;
+      }
     }
 
-    if (!UsbDevice) return NULL;
-    ret = usb_open (UsbDevice);
+    int bulk_in = -1;
+    int bulk_out = -1;
+    if (found) {
+      err = libusb_open(device, &udev);
+      if (err)
+      {
+        LOG_USB_WARN("libusb_open", err);
+        return NULL;
+      }
+
+      libusb_config_descriptor* config = NULL;
+      rv = libusb_get_config_descriptor_by_value(device,USB_ANT_CONFIGURATION,&config);
+      if ( rv ) {
+        LOG_USB_WARN("libusb_get_config_descriptor_by_value", rv);
+        return NULL;
+      }
+
+      if(config)
+      {
+        for(int i = 0; i < config->interface->altsetting->bNumEndpoints; i++ )
+        {
+          const libusb_endpoint_descriptor* ep = &config->interface->altsetting->endpoint[i];
+          switch ( ep->bmAttributes & LIBUSB_TRANSFER_TYPE_MASK ) {
+          case LIBUSB_TRANSFER_TYPE_BULK:
+            if ( ep->bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK ) {
+              bulk_in = ep->bEndpointAddress;
+              lprintf(LOG_INF, "bulk IN  = %02x\n", bulk_in);
+            } else {
+               bulk_out = ep->bEndpointAddress;
+              lprintf(LOG_INF, "bulk OUT = %02x\n", bulk_out);
+            }
+            break;
+          case LIBUSB_TRANSFER_TYPE_INTERRUPT:
+            if ( ep->bEndpointAddress & LIBUSB_ENDPOINT_DIR_MASK ) {
+              int intr_in = ep->bEndpointAddress;
+              lprintf(LOG_INF, "intr IN  = %02x\n", intr_in);
+            }
+            break;
+          default:
+            break;
+          }
+        }
+        libusb_free_config_descriptor(config);
+      }
+    }
+
+    libusb_free_device_list(list, 1);
+
+    if(!found)
+    {
+      return NULL;
+    }
+    
 
 
-    //int cfg = usb_get_configuration(UsbDevice);
-    int rv=usb_set_configuration (ret, USB_ANT_CONFIGURATION);
-    LOG_VAR(rv);
-    if (rv < 0) {
-      usb_close (ret);
+    rv = libusb_set_configuration(udev, USB_ANT_CONFIGURATION);
+    if(rv)
+    {
+      LOG_USB_WARN("USB_ANT_CONFIGURATION", rv);
+      libusb_close (udev);
+      udev = NULL;
       return NULL;
     }
 
 
-    rv=usb_claim_interface (ret, USB_ANT_INTERFACE);
-    LOG_VAR(rv);
-    if (rv < 0) {
-      usb_close (ret);
+    rv = libusb_claim_interface(udev, USB_ANT_INTERFACE);
+    if(rv)
+    {
+      LOG_USB_WARN("USB_ANT_INTERFACE", rv);
+      libusb_close (udev);
+      udev = NULL;
       return NULL;
     }
 
-    return ret;
+
+
+
+    return udev;
   }
 };
 
@@ -352,15 +309,20 @@ SerialUsb::SerialUsb()
   m_p.reset(new SerialUsbPrivate());
   m_p->m_recvThKill = 0;
   m_p->dev = 0;
+  m_p->dev_vid = 0;
+  m_p->dev_pid = 0;
+  m_p->m_writeDelay = 3;
 
-  usb_init();
-
+  int err = -1;
+  err = libusb_init(NULL);
+  LOG_USB_WARN("libusb_init", err);
 }
 
 SerialUsb::~SerialUsb()
 {
   close();
-  m_p.reset();
+  libusb_exit(NULL);
+  lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
 }
 
 //#define ENSURE_OR_RETURN_FALSE(e) do {  if(-1 == (e)) {perror(#e); return false;} } while(false)
@@ -387,43 +349,48 @@ struct AntUsbHandler2_Recevier
 bool
 SerialUsb::open()
 {
-  close();
+  assert(!isOpen());
+  if(isOpen())
+    return false;
+
+  // FIXME: 3 and 4 are only cp210x based, for the rest the setup should be different to allow them to work
+  enum {NUM_DEVS=5};
+  uint16_t known[NUM_DEVS][2] =
+    {
+      {0x0fcf, 0x1003},
+      {0x0fcf, 0x1004},
+      {0x0fcf, 0x1006},
+      {0x0fcf, 0x1008},
+      {0x0fcf, 0x1009},
+    };
 
   //bool rv = false;
 
   // ffff8800b1c470c0 1328871577 S Co:3:002:0 s 00 09 0001 0000 0000 0
   // ffff8800b1c470c0 1328873340 C Co:3:002:0 0 0
-  m_p->dev = m_p->libUSBGetDevice(0x0fcf, 0x1004);
+  for(size_t i = 0; i < NUM_DEVS; i++)
+  {
+    uint16_t vid = known[i][0];
+    uint16_t pid = known[i][1];
+    LOG(LOG_INF) << "Trying to open vid=0x" << toString(vid,4,'0') << ", pid=0x" << toString(pid,4,'0') << " ...\n";
+    m_p->dev = m_p->libUSBGetDevice(vid, pid);
+    if(m_p->dev)
+    {
+      LOG(LOG_INF) << "Opened vid=0x" << toString(vid,4,'0') << ", pid=0x" << toString(pid,4,'0') << " OK.\n";
+      break;
+    }
+    //LOG(LOG_RAW) << " failed.\n";
+  }
   if(!m_p->dev)
   {
-    m_p->dev = m_p->libUSBGetDevice(0x0fcf, 0x1008);
-    if(!m_p->dev)
-    {
-      return false;
-    }
+    LOG(antpm::LOG_WARN) << "Opening any known usb VID/PID failed!\n";
+    return false;
   }
 
-  m_p->modprobe();
+  assert(m_p->dev_vid!=0);
+  assert(m_p->dev_pid!=0);
 
-  m_p->open_tty();
-
-  //cp2101_set_config_single(port, CP2101_UART, UART_ENABLE)
-  /* Configure the termios structure */
-  //cp2101_get_termios(port);
-  /* Set the DTR and RTS pins low */
-  //cp2101_tiocmset(port, NULL, TIOCM_DTR | TIOCM_RTS, 0);
-
-  // ffff8800b1c470c0 1328873580 S Co:3:002:0 s 02 01 0000 0001 0000 0
-  // ffff8800b1c470c0 1328874338 C Co:3:002:0 0 0
-  //int irv = usb_clear_halt(m_p->dev, USB_ANT_EP_OUT);
-  //LOG_VAR(irv);
-
-  // usb_clear_halt()
-  // usb_get_string_simple()
-  // usb_reset()
-  // usb_device()
-  // usb_set_configuration()
-  // usb_set_debug()
+  CHECK_RETURN_FALSE(m_p->cp210xInit());
 
   m_p->m_recvThKill = 0;
   AntUsbHandler2_Recevier recTh;
@@ -438,18 +405,24 @@ SerialUsb::open()
 void
 SerialUsb::close()
 {
-  m_p->m_recvThKill = 1;
-  m_p->m_recvTh.join();
-
   if(m_p.get())
   {
+    m_p->m_recvThKill = 1;
+    {
+      boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+      m_p->m_condQueue.notify_all(); // make sure an other thread calling readBlocking() moves on too
+    }
+    m_p->m_recvTh.join(); // wtf if the thread was never started?
+
     if(m_p->dev)
     {
       //usb_reset(m_p->dev);
-      usb_release_interface(m_p->dev, USB_ANT_INTERFACE);
-      usb_close(m_p->dev);
+      libusb_release_interface(m_p->dev, USB_ANT_INTERFACE);
+      libusb_close(m_p->dev);
     }
     m_p->dev = 0;
+    m_p->m_writeDelay = 0;
+    m_p.reset();
   }
 }
 
@@ -515,6 +488,7 @@ SerialUsb::readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead)
       m_p->m_recvQueue.pop();
     }
     bytesRead = s;
+    //lprintf(LOG_RAW, "|q|=%d\n", m_p->m_recvQueue.size());
   }
 
   if(bytesRead==0)
@@ -531,16 +505,21 @@ SerialUsb::write(const char* src, const size_t sizeBytes, size_t& bytesWritten)
     return false;
 
   int size = static_cast<int>(sizeBytes);
-  //int written = usb_interrupt_write(m_p->dev, USB_ANT_EP_OUT, const_cast<char*>(src), size, 3000);
-  int written = usb_bulk_write(m_p->dev, USB_ANT_EP_OUT, const_cast<char*>(src), size, 3000);
-  if(written < 0)
+  int written = -1;
+  int rv = libusb_bulk_transfer(m_p->dev, USB_ANT_EP_OUT,
+                                reinterpret_cast<unsigned char*>(const_cast<char*>(src)),
+                                size, &written, BULK_WRITE_TIMEOUT_MS);
+  //lprintf(LOG_RAW, "W rv=%d written=%d\n", rv, written);
+  if(rv)
   {
-    char* usberr=usb_strerror();
-    LOG_VAR(usberr);
+    LOG_USB_WARN2("SerialUsb::write", rv);
     return false;
   }
 
   bytesWritten = written;
+
+  if(m_p->m_writeDelay>0 && m_p->m_writeDelay<=10)
+    sleepms(m_p->m_writeDelay);
 
   return (bytesWritten==sizeBytes);
 }
@@ -557,24 +536,32 @@ SerialUsb::receiveHandler()
       return NULL;
 
     unsigned char buf[4096];
-    int timeout_ms = 1000;
-    int rv = usb_bulk_read(m_p->dev, USB_ANT_EP_IN, (char*)buf, sizeof(buf), timeout_ms);
+    int actual_length = -1;
+    int rv1 = libusb_bulk_transfer(m_p->dev, USB_ANT_EP_IN, buf,
+                                  sizeof(buf), &actual_length, BULK_READ_TIMEOUT_MS);
 
-    if(rv > 0)
+    //lprintf(LOG_RAW, "R rv=%d, recv=%d\n", rv1, actual_length);
+    if(rv1==LIBUSB_SUCCESS)
     {
-      boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
-      for(int i = 0; i < rv; i++)
-        m_p->m_recvQueue.push(buf[i]);
-      m_p->m_condQueue.notify_one();
+      if(actual_length > 0)
+      {
+        boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+        for(int i = 0; i < actual_length; i++)
+          m_p->m_recvQueue.push(buf[i]);
+        //lprintf(LOG_RAW, "|q|=%d\n", m_p->m_recvQueue.size());
+        m_p->m_condQueue.notify_one();
+      }
     }
-    else if(rv==0)
+#ifdef _WIN32
+    else if(rv1==-116) // timeout
     {}
-    else if(rv==-116) // timeout
+#else
+    else if(rv1==LIBUSB_ERROR_TIMEOUT)//"Operation timed out" LIBUSB_ERROR_TIMEOUT
     {}
+#endif
     else
     {
-      char* usberr=usb_strerror();
-      LOG_VAR2(rv, usberr);
+      LOG_USB_WARN("SerialUsb::receiveHandler", rv1);
     }
   }
 
@@ -590,18 +577,22 @@ const size_t SerialUsb::getQueueLength() const
 }
 
 
-//// called from other thread
-//void
-//AntUsbHandler::queueData()
-//{
-//}
-
-
 bool
 SerialUsb::isOpen() const
 {
   // TODO: is thread running too??
   return m_p.get() && m_p->dev;
 }
+
+
+bool
+SerialUsb::setWriteDelay(const size_t ms)
+{
+  m_p->m_writeDelay = ms;
+  return true;
+}
+
+
+
 
 }

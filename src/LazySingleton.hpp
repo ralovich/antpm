@@ -1,14 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-//                                                                //
-// Copyright (c) 2003-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 #pragma once
@@ -38,10 +43,7 @@ namespace antpm
     public:
       virtual    ~ClassInstantiator() {}
     protected:
-      static /*inline*/ T* instantiate();
-
-      // template < class P1 >
-      // static inline T* instantiate(P1 p1);
+      static std::unique_ptr<T> make_unique();
 
       template <class T1, class I1> friend class LazySingleton;
   };
@@ -60,11 +62,11 @@ namespace antpm
       LazySingleton(const LazySingleton<T>&); // no copy ctor
       const LazySingleton<T>& operator= (const LazySingleton<T>&); // no copy assignment
     private:
-      static std::auto_ptr<T> theObject;
+      static std::unique_ptr<T> theObject;
   };
 
   template<class T, class I>
-  std::auto_ptr<T> LazySingleton<T, I>::theObject(0);
+  std::unique_ptr<T> LazySingleton<T, I>::theObject;
 
   template<class T, class I>
   inline T&
@@ -88,10 +90,10 @@ namespace antpm
   {
     lazySingletonTrace();
   
-    if(!theObject.get())
+    if(!theObject)
     {
-      //theObject = std::auto_ptr<T>(create<T>());
-      theObject = std::auto_ptr<T>(I::instantiate());
+      // NOTE: not thread safe!
+      theObject = I::make_unique();
     }
 
     return theObject.get();

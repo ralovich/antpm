@@ -1,0 +1,39 @@
+#!/bin/bash
+
+GIT_KNOWN=`mktemp`
+FS_KNOWN=`mktemp`
+git ls-tree --full-tree -r HEAD | awk '{print $4}' | sort > $GIT_KNOWN
+cat scripts/origsrc-file-list | sort > $FS_KNOWN
+
+KNOWN_MISSING=`mktemp`
+
+/bin/cat <<EOF >$KNOWN_MISSING
+3rd_party/libusb-win32-bin-1.2.6.0/bin/amd64/libusb0.dll
+3rd_party/libusb-win32-bin-1.2.6.0/bin/amd64/libusb0.sys
+3rd_party/libusb-win32-bin-1.2.6.0/bin/x86/libusb0.dll
+3rd_party/libusb-win32-bin-1.2.6.0/bin/x86/libusb0.sys
+3rd_party/libusb-win32-bin-1.2.6.0/bin/x86/libusb0_x86.dll
+3rd_party/libusb-win32-bin-1.2.6.0/driver_installer/inf-wizard.exe
+3rd_party/libusb-win32-bin-1.2.6.0/include/lusb0_usb.h
+3rd_party/libusb-win32-bin-1.2.6.0/lib/msvc/libusb.lib
+3rd_party/libusb-win32-bin-1.2.6.0/lib/msvc_x64/libusb.lib
+3rd_party/usbmon-6/COPYING
+3rd_party/usbmon-6/Makefile
+3rd_party/usbmon-6/README
+3rd_party/usbmon-6/usbmon.8
+3rd_party/usbmon-6/usbmon.c
+.gitignore
+scripts/archlinux/PKGBUILD
+scripts/coverity_scan_script.sh
+scripts/do_cov.sh
+scripts/snaphot-deb
+scripts/verify-orig
+.travis.yml
+EOF
+
+
+ACTUAL_MISSING=`mktemp`
+comm --nocheck-order -3 <(cat $GIT_KNOWN) <(cat $FS_KNOWN) > $ACTUAL_MISSING
+
+comm --nocheck-order -3 <(cat $KNOWN_MISSING) <(cat $ACTUAL_MISSING)
+

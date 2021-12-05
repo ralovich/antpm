@@ -1,13 +1,19 @@
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2014 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 #pragma once
 
@@ -38,14 +44,7 @@ struct M_ANT_Channel_Id : public AntMessageContentBase
   ushort devNum;
   uchar  devId;
   uchar  transType;
-  const std::string toString() const
-  {
-    std::stringstream sstr;
-    sstr
-      << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", devNum=0x" << antpm::toString<int>(devNum,4,'0')
-      << ", devId=0x" << antpm::toString<int>(devId,2,'0') << ", transType=0x" << antpm::toString<int>(transType,2,'0');
-    return sstr.str();
-  }
+  const std::string toString() const;
 };
 struct M_ANTFS_Beacon : public AntMessageContentBase
 {
@@ -87,74 +86,17 @@ struct M_ANTFS_Beacon : public AntMessageContentBase
   };
 
 
-  const char* szBeaconChannelPeriod() const
-  {
-    if(beaconChannelPeriod==0x0) return "Beacon=0.5Hz";
-    else if(beaconChannelPeriod==0x1) return "Beacon=1Hz";
-    else if(beaconChannelPeriod==0x2) return "Beacon=2Hz";
-    else if(beaconChannelPeriod==0x3) return "Beacon=4Hz";
-    else if(beaconChannelPeriod==0x4) return "Beacon=8Hz";
-    else if(beaconChannelPeriod==0x7) return "Beacon=MatchEstablishedChannelPeriod";
-    else return "Beacon=??";
-  }
-  const char* szPairingEnabled() const
-  {
-    return pairingEnabled ? "pairing=enabled" : "pairing=disabled";
-  }
-  const char* szUploadEnabled() const
-  {
-    return uploadEnabled ? "upload=enabled" : "upload=disabled";
-  }
-  const char* szClientDeviceState() const
-  {
-    if(clientDeviceState==0x00) return "State=Link";
-    else if(clientDeviceState==0x01) return "State=Authentication";
-    else if(clientDeviceState==0x02) return "State=Transport";
-    else if(clientDeviceState==0x03) return "State=Busy";
-    else return "State=??";
-  }
-  const char* szDataAvail() const
-  {
-    return dataAvail ? "dataAvail=yes" : "dataAvail=no";
-  }
-  const char* szAuthType() const
-  {
-    if(authType==0x0) return "Auth=Passthrough";
-    else if(authType==0x1) return "Auth=NA";
-    else if(authType==0x2) return "Auth=PairingOnly";
-    else if(authType==0x3) return "Auth=PasskeyAndPairingOnly";
-    else  return "Auth=??";
-  }
-  const std::string strDeviceDescriptor() const
-  {
-    return std::string("dev=0x") + antpm::toString(this->dev, 4, '0') + std::string("manuf=0x") + antpm::toString(this->manuf, 4, '0');
-  }
-  const std::string strDeviceSerial() const
-  {
-    return std::string("SN=0x") + antpm::toString(this->sn, 8, '0');
-  }
-  void getDeviceDescriptor(ushort& dev, ushort& manuf) const
-  {
-    dev=this->dev;
-    manuf=this->manuf;
-  }
-  uint getDeviceSerial() const
-  {
-    return this->sn;
-  }
-  const std::string toString() const
-  {
-    assert(beaconId==ANTFS_BeaconId);
-    std::stringstream sstr;
-    sstr << " ANTFS_BEACON(0x" << antpm::toString(unsigned(beaconId), 2, '0') << ") "
-      << this->szBeaconChannelPeriod()
-      << ", " << this->szPairingEnabled()
-      << ", " << this->szUploadEnabled()
-      << ", " << this->szDataAvail()
-      << ", " << this->szClientDeviceState()
-      << ", " << this->szAuthType();
-    return sstr.str();
-  }
+  const char* szBeaconChannelPeriod() const;
+  const char* szPairingEnabled() const;
+  const char* szUploadEnabled() const;
+  const char* szClientDeviceState() const;
+  const char* szDataAvail() const;
+  const char* szAuthType() const;
+  const std::string strDeviceDescriptor() const;
+  const std::string strDeviceSerial() const;
+  void getDeviceDescriptor(ushort& dev, ushort& manuf) const;
+  uint getDeviceSerial() const;
+  const std::string toString() const;
 };
 #pragma pack(pop)
 BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Beacon)==8);
@@ -192,22 +134,12 @@ struct M_ANTFS_Command : public AntMessageContentBase
         };
         uchar sn4[4];
       };
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << "freq=0x" << antpm::toString(unsigned(chanFreq), 2, '0') << ", period=0x" << antpm::toString(unsigned(chanPeriod), 2, '0') << ", SNhost=0x" << antpm::toString(sn, 8, '0');
-        return sstr.str();
-      }
+      const std::string toString() const;
     } link;
     struct Disconnect
     {
       uchar cmdType;
-      const char* szCmdType() const
-      {
-        if(cmdType==ReturnToLinkLayer) return "type=ReturnToLinkLayer";
-        else if(cmdType==ReturnToBroadcastMode) return "type=ReturnToBroadcastMode";
-        else return "type=??";
-      }
+      const char* szCmdType() const;
       const std::string toString() const
       {
         std::stringstream sstr;
@@ -228,20 +160,8 @@ struct M_ANTFS_Command : public AntMessageContentBase
         uchar sn4[4];
       };
       // TODO:extra bytes ....
-      const char* szCmdType() const
-      {
-        if(cmdType==ProceedToTransport) return "type=ProceedToTransport(pass-through)";
-        else if(cmdType==RequestClientDeviceSerialNumber) return "type=RequestClientDeviceSerialNumber";
-        else if(cmdType==RequestPairing) return "type=RequestPairing";
-        else if(cmdType==RequestPasskeyExchange) return "type=RequestPasskeyExchange";
-        else return "type=??";
-      }
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << szCmdType() << ", authStrLen=" << int(authStrLen) << ", SNhost=0x" << antpm::toString(sn, 8, '0');
-        return sstr.str();
-      }
+      const char *szCmdType() const;
+      const std::string toString() const;
     } authenticate;
     // ping
     struct DownloadRequest
@@ -249,35 +169,20 @@ struct M_ANTFS_Command : public AntMessageContentBase
       ushort dataFileIdx;
       uint   dataOffset;
       // ...
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << "file=0x" << antpm::toString(dataFileIdx, 4, '0') << ", dataOffset=0x" << antpm::toString(dataOffset, 8, '0');
-        return sstr.str();
-      }
+      const std::string toString() const;
     } downloadRequest;
     struct UploadRequest
     {
       ushort dataFileIdx;
       uint   maxSize;
       //uint   dataOffset; //TODO: in next burst packet
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << "file=0x" << antpm::toString(dataFileIdx, 4, '0') << ", maxSize=0x" << antpm::toString(maxSize, 8, '0');
-        return sstr.str();
-      }
+      const std::string toString() const;
     } uploadRequest;
     struct EraseRequest
     {
       ushort dataFileIdx;
       // ...
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << "dataFileIdx=0x" << antpm::toString(dataFileIdx, 4, '0');
-        return sstr.str();
-      }
+      const std::string toString() const;
     } eraseRequest;
     struct UploadData
     {
@@ -286,12 +191,7 @@ struct M_ANTFS_Command : public AntMessageContentBase
       // TODO: more burst packets
       // uchar unused6[6];
       // ushort crc;
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << "crcSeed=0x" << antpm::toString(crcSeed, 4, '0') << ", dataOffset=0x" << antpm::toString(dataOffset, 8, '0');
-        return sstr.str();
-      }
+      const std::string toString() const;
     } uploadData;
 
     struct DirectCmd
@@ -299,32 +199,10 @@ struct M_ANTFS_Command : public AntMessageContentBase
       ushort fd;
       ushort offset;
       ushort data;
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << "fd=0x" << antpm::toString(fd, 4, '0')
-             << ", offset=0x" << antpm::toString(offset, 4, '0')
-             << ", data=0x" << antpm::toString(data, 4, '0') ;
-        return sstr.str();
-      }
+      const std::string toString() const;
     } direct;
   } detail;
-  const std::string toString() const
-  {
-    assert(commandId==ANTFS_CommandResponseId);
-    std::stringstream sstr;
-    sstr << " ANTFS_CMD(0x" << antpm::toString(unsigned(commandId),2,'0') << ") "
-      << antFSCommand2Str(command);
-    if(command==ANTFS_CmdLink) sstr << " " << detail.link.toString();
-    else if(command==ANTFS_CmdDisconnect) sstr << " " << detail.disconnect.toString();
-    else if(command==ANTFS_CmdAuthenticate) sstr << " " << detail.authenticate.toString();
-    else if(command==ANTFS_ReqDownload) sstr << " " << detail.downloadRequest.toString();
-    else if(command==ANTFS_ReqUpload)  sstr << " " << detail.uploadRequest.toString();
-    else if(command==ANTFS_ReqErase)   sstr << " " << detail.eraseRequest.toString();
-    else if(command==ANTFS_UploadData) sstr << " " << detail.uploadData.toString();
-    else if(command==ANTFS_CmdDirect)  sstr << " " << detail.direct.toString();
-    return sstr.str();
-  }
+  const std::string toString() const;
 };
 struct M_ANTFS_Command_Authenticate : public M_ANTFS_Command
 {
@@ -393,19 +271,8 @@ struct M_ANTFS_Response : public AntMessageContentBase
         uchar sn4[4];
       };
       // TODO:extra bytes in following burst message
-      const char* szRespType() const
-      {
-        if(respType==0) return "resp=SN";
-        else if(respType==1) return "resp=accept";
-        else if (respType==2) return "resp=reject";
-        else return "resp=??";
-      }
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << szRespType() << ", authStrLen=" << int(authStrLen) << ", SNclient=0x" << antpm::toString(sn, 8, '0');
-        return sstr.str();
-      }
+      const char* szRespType() const;
+      const std::string toString() const;
     } authenticateResponse;
     // ping
     struct DownloadRequestResponse
@@ -414,22 +281,8 @@ struct M_ANTFS_Response : public AntMessageContentBase
       uchar reserved;
       uint  remainingBytes;
       // ...
-      const char* szResponseVal() const
-      {
-        if(responseVal==DownloadRequestOK) return "resp=DownloadRequestOK";
-        else if(responseVal==DataDoesNotExist) return "resp=DataDoesNotExist";
-        else if(responseVal==DataExistsButIsNotDownloadable) return "resp=DataExistsButIsNotDownloadable";
-        else if(responseVal==NotReadyToDownload) return "resp=NotReadyToDownload";
-        else if(responseVal==DownloadRequestInvalid) return "resp=DownloadRequestInvalid";
-        else if(responseVal==CRCIncorrect) return "resp=CRCIncorrect";
-        return "resp=??";
-      }
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << szResponseVal() << ", remainingBytes=0x" << antpm::toString(remainingBytes, 8, '0');
-        return sstr.str();
-      }
+      const char* szResponseVal() const;
+      const std::string toString() const;
     } downloadRequestResponse;
     struct UploadRequestResponse
     {
@@ -437,50 +290,20 @@ struct M_ANTFS_Response : public AntMessageContentBase
       uchar unused1;
       uint  lastDataOffset;
       // TODO: 4 packets in total
-      const char* szResponseVal() const
-      {
-        if(responseVal==UploadRequestOK) return "resp=UploadRequestOK";
-        else if(responseVal==DataFileIndexDoesNotExist) return "resp=DataFileIndexDoesNotExist";
-        else if(responseVal==DataFileIndexExistsButIsNotWriteable) return "resp=DataFileIndexExistsButIsNotWriteable";
-        else if(responseVal==NotEnoughSpaceToCompleteWrite) return "resp=NotEnoughSpaceToCompleteWrite";
-        else if(responseVal==UploadRequestInvalid) return "resp=UploadRequestInvalid";
-        else if(responseVal==NotReadyToUpload) return "resp=NotReadyToUpload";
-        return "resp=??";
-      }
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << szResponseVal() << ", lastDataOffset=0x" << antpm::toString(lastDataOffset, 8, '0');
-        return sstr.str();
-      }
+      const char* szResponseVal() const;
+      const std::string toString() const;
     } uploadRequestResponse;
     struct EraseRequestResponse
     {
       uchar responseVal;
-      const char* szResponseVal() const
-      {
-        if(responseVal==0) return "resp=EraseSuccessful";
-        else if(responseVal==1) return "resp=EraseFailed";
-        else if(responseVal==2) return "resp=NotReady";
-        return "resp=??";
-      }
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << szResponseVal() << " 0x" << antpm::toString<int>(int(responseVal),2,'0');
-        return sstr.str();
-      }
+      const char* szResponseVal() const;
+      const std::string toString() const;
     } eraseRequestResponse;
     struct UploadDataResponse
     {
       // TODO: first is a beacon
       uchar responseVal;
-      const char* szResponseVal() const
-      {
-        if(responseVal==DataUploadSuccessfulOK) return "resp=DataUploadSuccessfulOK";
-        else if(responseVal==DataUploadFailed) return "resp=DataUploadFailed";
-        return "resp=??";
-      }
+      const char* szResponseVal() const;
       const std::string toString() const
       {
         std::stringstream sstr;
@@ -493,30 +316,10 @@ struct M_ANTFS_Response : public AntMessageContentBase
       ushort fd;
       ushort offset;
       ushort data;
-      const std::string toString() const
-      {
-        std::stringstream sstr;
-        sstr << "fd=0x" << antpm::toString(fd, 4, '0')
-             << ", offset=0x" << antpm::toString(offset, 4, '0')
-             << ", data=0x" << antpm::toString(data, 4, '0') ;
-        return sstr.str();
-      }
+      const std::string toString() const;
     } directResponse;
   } detail;
-  const std::string toString() const
-  {
-    assert(responseId==ANTFS_CommandResponseId);
-    std::stringstream sstr;
-    sstr << " ANTFS_RESP(0x" << antpm::toString(unsigned(responseId),2,'0') << ") "
-      << antFSResponse2Str(response);
-    if(response==ANTFS_RespAuthenticate) sstr << " " << detail.authenticateResponse.toString();
-    else if(response==ANTFS_RespDownload) sstr << " " << detail.downloadRequestResponse.toString();
-    else if(response==ANTFS_RespUpload) sstr << " " << detail.uploadRequestResponse.toString();
-    else if(response==ANTFS_RespErase)      sstr << " " << detail.eraseRequestResponse.toString();
-    else if(response==ANTFS_RespUploadData) sstr << " " << detail.uploadDataResponse.toString();
-    else if(response==ANTFS_RespDirect)     sstr << " " << detail.directResponse.toString();
-    return sstr.str();
-  }
+  const std::string toString() const;
 };
 struct M_ANTFS_Response_Download : public M_ANTFS_Response
 {
@@ -550,12 +353,7 @@ struct M_ANT_Burst : public AntMessageContentBase
     uchar seqchan;
   };
   uchar data8[8];
-  const std::string toString() const
-  {
-    std::stringstream sstr;
-    sstr << " chan=0x" << antpm::toString<int>(chan,2,'0') << ", seq=" << antpm::toStringDec<int>(seq,1,' ') << ", last=" << (isLast()?"yes":"no ");
-    return sstr.str();
-  }
+  const std::string toString() const;
   bool isLast() const
   {
     bool isLast = ((last!=0x00)?true:false);
@@ -576,7 +374,7 @@ struct AntMessage{
 
 
 public:
-  AntMessage() {}
+  AntMessage() : sent(false), idx(0) {}
   AntMessage(uchar mesg, uchar data1) {uchar buf[1] = {data1}; if(!assemble(mesg, buf, sizeof(buf))) throw 0; }
   AntMessage(uchar mesg, uchar data1, uchar data2) {uchar buf[2] = {data1, data2 }; if(!assemble(mesg, buf, sizeof(buf))) throw 0; }
   AntMessage(uchar mesg, uchar data1, uchar data2, uchar data3) {uchar buf[3] = {data1, data2, data3 }; if(!assemble(mesg, buf, sizeof(buf))) throw 0; }
@@ -634,6 +432,12 @@ struct AntFsFile
   bool checkCrc(const ushort seed = 0x0000) const;
   ushort crc16Calc(const ushort seed = 0x0000) const;
   ushort crc16byte(const ushort crc, uchar byte) const;
+  bool saveToFile(const char* fileName = "antfs.bin");
+};
+
+struct GFile
+{
+  std::vector<uchar> bytes;
   bool saveToFile(const char* fileName = "antfs.bin");
 };
 

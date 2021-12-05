@@ -3,14 +3,20 @@
 // vers 0.6t
 // -*- mode: c++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2; coding: utf-8-unix -*-
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2011-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 
 #pragma once
@@ -69,7 +75,7 @@ typedef uint32_t uint;
 
 #define MESG_GET_SERIAL_NUM_ID    0x61
 
-
+#define MESG_STARTUP_MSG_ID 0x6f
 
 
 #define MESG_DATA_SIZE      30
@@ -156,6 +162,7 @@ extern struct AntFSResponseNames {int i; const char* s; } antFSResponseNames[];
   ENUMERATE1(ST_ANTFS_DL_DIRECTORY, 1024) \
   ENUMERATE1(ST_ANTFS_DL_FILES, 1025) \
   ENUMERATE1(ST_ANTFS_DL_SINGLE_FILE, 1027) \
+  ENUMERATE1(ST_ANTFS_GINTF_DL_CAPS, 1034) \
   ENUMERATE1(ST_ANTFS_ERASE_SINGLE_FILE, 500) \
   ENUMERATE1(ST_ANTFS_BAD, 1006) \
   ENUMERATE1(ST_ANTFS_LAST, 1007)

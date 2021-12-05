@@ -19,14 +19,20 @@
  *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
  ***************************************************************************/
 // ***** BEGIN LICENSE BLOCK *****
-////////////////////////////////////////////////////////////////////
-// Copyright (c) 2012-2013 RALOVICH, Kristóf                      //
-//                                                                //
-// This program is free software; you can redistribute it and/or  //
-// modify it under the terms of the GNU General Public License    //
-// version 2 as published by the Free Software Foundation.        //
-//                                                                //
-////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+// Copyright (c) 2011-2014 RALOVICH, Kristóf                            //
+//                                                                      //
+// This program is free software; you can redistribute it and/or modify //
+// it under the terms of the GNU General Public License as published by //
+// the Free Software Foundation; either version 3 of the License, or    //
+// (at your option) any later version.                                  //
+//                                                                      //
+// This program is distributed in the hope that it will be useful,      //
+// but WITHOUT ANY WARRANTY; without even the implied warranty of       //
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the        //
+// GNU General Public License for more details.                         //
+//                                                                      //
+//////////////////////////////////////////////////////////////////////////
 // ***** END LICENSE BLOCK *****
 #pragma once
 
@@ -179,7 +185,10 @@ enum MessageFieldTypes
     MessageFieldTypeLanguage,
     MessageFieldTypeSport,
     MessageFieldTypeEvent,
-    MessageFieldTypeEventType
+    MessageFieldTypeEventType,
+    MessageFieldTypeSwimStroke,
+    MessageFieldTypeLengthType,
+    MessageFieldTypePoolLengthUnit
 };
 
 enum Manufacturers
@@ -261,6 +270,7 @@ enum GarminProducts
     GarminFR70          = 1436,
     GarminFR310XT4T     = 1446,
     GarminAMX           = 1461,
+    GarminSwim          = 1499,
     GarminSDM4          = 10007,
     GarminTraningCenter = 20119,
     GarminConnect       = 65534
@@ -274,6 +284,11 @@ public:
     std::vector<uint16_t> waypointsFiles;
     std::vector<uint16_t> courseFiles;
     std::time_t getFitFileTime(const uint16_t idx); // represented in garmintime
+    // \param files list of files already downloaded to the host and discovered in ~/.config/antpm/.../
+    void cullFitFiles(const std::multimap<uint16_t, std::pair<std::string, size_t>>& db_files);
+    void cullFitFilesDate();
+private:
+    void cullFitFile(const uint16_t idx, const size_t file_size_bytes);
 };
 
 class FIT

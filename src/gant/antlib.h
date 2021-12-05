@@ -17,7 +17,7 @@ uchar ANT_SetChannelRFFreq(uchar chan, uchar freq);
 uchar ANT_SetChannelPeriod(uchar chan, ushort period);
 uchar ANT_SetChannelSearchTimeout(uchar chan, uchar timeout);
 uchar ANT_SetSearchWaveform(uchar chan, ushort waveform);
-uchar ANT_SendAcknowledgedDataA(uchar chan, uchar *data); // ascii version
+uchar ANT_SendAcknowledgedDataA(uchar chan, uchar *data); /* ascii version */
 uchar ANT_SendAcknowledgedData(uchar chan, uchar *data);
 ushort ANT_SendBurstTransferA(uchar chan, uchar *data, ushort numpkts);
 ushort ANT_SendBurstTransfer(uchar chan, uchar *data, ushort numpkts);

@@ -9,12 +9,12 @@ echo
 ./scripts/make-tarball
 echo -e "\nTarball OK\n"
 
-mv antpm_*.orig.tar.xz $ROOT/
+mv antpm_*.orig.tar.gz $ROOT/
 
 ( cd $ROOT;
     mkdir build;
     cd build
-    tar --xz -xf ../antpm*.tar.xz
+    tar -xzf ../antpm*.tar.gz
     mv scripts/debian .
     echo -e "\nStarting to build...\n"
     debuild -us -uc && echo -e "\nBuild OK\ndeb package in '${ROOT}' \n";
