@@ -111,6 +111,7 @@ void ZeroFileContent::cullFitFilesDate()
       //logger() << "0x" << toString<uint16_t>(it->first,4,'0') << ": relative_age=" << relative_age << "\n";
       return relative_age <= threshold;
     }
+    return false;
   };
 
   activityFiles.erase(std::remove_if(activityFiles.begin(), activityFiles.end(),
