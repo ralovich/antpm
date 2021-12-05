@@ -22,6 +22,10 @@
 #include <string>
 #include <boost/static_assert.hpp>
 
+extern "C" {
+#include "garmintools/garmin.h" // garmin-forerunner-tools
+}
+
 namespace antpm {
 
 // create packets to send to device (to ask for tracks, etc.)

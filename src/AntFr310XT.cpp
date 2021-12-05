@@ -389,7 +389,7 @@ AntFr310XT::handleEvents()
 
     M_ANTFS_Beacon* beacon(reinterpret_cast<M_ANTFS_Beacon*>(&m.getPayloadRef()[1]));
     // TODO:handle case of no available data
-    if(!beacon->dataAvail)
+    if(false && !beacon->dataAvail)
     {
       changeStateSafe(ST_ANTFS_NODATA);
       LOG(LOG_RAW) << "\n\nNo data available from client!\n\n\n";
@@ -774,6 +774,11 @@ AntFr310XT::handleEvents()
   }
   else if(state==ST_ANTFS_GINTF_A000_A001)
   {
+
+    /// @@execute
+    /// 6.1 A000 - Product Data Protocol
+    /// 6.2 A001 - Protocol Capability Protocol
+
     // when authentication succeeds, State=Transport beacon arrives
     //R  96.026 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
     //R 124.999 MESG_BROADCAST_DATA_ID chan=0x00 ANTFS_BEACON(0x43) Beacon=1Hz, pairing=disabled, upload=disabled, dataAvail=no, State=Transport, Auth=PasskeyAndPairingOnly
@@ -807,7 +812,7 @@ AntFr310XT::handleEvents()
     // R   3.122 MESG_BURST_DATA_ID chan=0x00, seq=2, last=no  6f66747761726520 oftware
     // R   3.123 MESG_BURST_DATA_ID chan=0x00, seq=3, last=no  56657273696f6e20 Version
     // R   3.258 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes 322e383000000000 2.80....
-    uint64_t code = 0xfe00000000000000;
+    uint64_t code = 0xfe00000000000000; // L000 Pid_Product_Rqst
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
     {GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
@@ -827,7 +832,7 @@ AntFr310XT::handleEvents()
 //    R   3.094 MESG_BURST_DATA_ID chan=0x00, seq=1, last=no  6f66747761726520 oftware
 //    R   3.158 MESG_BURST_DATA_ID chan=0x00, seq=2, last=no  56657273696f6e20 Version
 //    R   3.124 MESG_BURST_DATA_ID chan=0x00, seq=3, last=yes 322e313000000000 2.10....
-    code = 0x06000200ff000000;
+    code = 0x06000200ff000000; // L000 Pid_Product_Data
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
     {GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
@@ -865,10 +870,19 @@ AntFr310XT::handleEvents()
 //    R   3.124 MESG_BURST_DATA_ID chan=0x00, seq=1, last=no  44f40341f10344f5 D..A..D.
 //    R   3.128 MESG_BURST_DATA_ID chan=0x00, seq=2, last=no  0341f50344f60341 .A..D..A
 //    R   3.122 MESG_BURST_DATA_ID chan=0x00, seq=3, last=yes f60344f903000000 ..D.....
-    code = 0x06000200f8000000;
+    code = 0x06000200f8000000; // L000_Pid_Ext_Product_Data
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
     {GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
+
+    code = 0x06000200fd000000; // L000_Pid_Protocol_Array
+    CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+
+    changeStateSafe(ST_ANTFS_GINTF_A1000);
+
+    // laps     A906 D1015
+    // tracks:  A302 D311 D1018
 
     // 0x060002001b000000 pid=0x001b=27 L001_Pid_Records
     code = 0x060002001b000000;
@@ -902,6 +916,101 @@ AntFr310XT::handleEvents()
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
     //{GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
+  }
+  else if(state==ST_ANTFS_GINTF_A1000)
+  {
+    vector<uint8_t> data;
+    uint64_t code;
+
+    {
+      /// @@execute
+      /// runs:   A1000 D1009
+      /// 6.15  A1000 - Run Transfer Protocol
+
+      code = 0x0a000200c2010000; // A010_Cmnd_Transfer_Runs
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+      {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+      {GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
+      //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(A010_Cmnd_Transfer_Runs); file0.saveToFile(folder, code);}
+      uint16_t runs = data[16+5]<<8 | data[16+4];
+      logger() << "FOUND " << runs << " RUNS!\n";
+
+      int run_dl_count = 0;
+      code = 0x060002001b000000; // L001_Pid_Records
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+      {GFile file0; file0.bytes=data; file0.saveToFile((folder+"//run_"+toStringDec(run_dl_count, 4, '0')+".bin").c_str());}
+      //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(L001_Pid_Records); file0.saveToFile((folder+"//run_"+toStringDec(run_dl_count, 4, '0')+".bin").c_str());}
+      run_dl_count += 1;
+      for( ; run_dl_count<runs; run_dl_count++)
+      {
+        code = 0x06000200de030000; // L001_Pid_Run
+        CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+        //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(L001_Pid_Run); file0.saveToFile((folder+"//run_"+toStringDec(run_dl_count, 4, '0')+".bin").c_str());}
+        {GFile file0; file0.bytes=data; file0.saveToFile((folder+"//run_"+toStringDec(run_dl_count, 4, '0')+".bin").c_str());}
+      }
+      code = 0x060002000c000000; // L001_Pid_Xfer_Cmplt
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    }
+
+
+    {
+      code = 0x0a00020075000000; // A010_Cmnd_Transfer_Laps
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+      //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(A010_Cmnd_Transfer_Laps); file0.saveToFile(folder, code);}
+      {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+      uint16_t laps = data[16+5]<<8 | data[16+4];
+      logger() << "FOUND " << laps << " LAPS!\n";
+
+      int lap_dl_count = 0;
+      code = 0x060002001b000000; // L001_Pid_Records
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+      //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(L001_Pid_Records); file0.saveToFile((folder+"//lap_"+toStringDec(lap_dl_count, 5, '0')+".bin").c_str());}
+      {GFile file0; file0.bytes=data; file0.saveToFile((folder+"//lap_"+toStringDec(lap_dl_count, 4, '0')+".bin").c_str());}
+      lap_dl_count += 1;
+      for( ; lap_dl_count<laps; lap_dl_count++)
+      {
+        code = 0x0600020095000000; // L001_Pid_Lap
+        CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+        //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(L001_Pid_Lap); file0.saveToFile((folder+"//lap_"+toStringDec(lap_dl_count, 5, '0')+".bin").c_str());}
+        {GFile file0; file0.bytes=data; file0.saveToFile((folder+"//lap_"+toStringDec(lap_dl_count, 4, '0')+".bin").c_str());}
+      }
+      code = 0x060002000c000000; // L001_Pid_Xfer_Cmplt
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    }
+
+
+
+    {
+      code = 0x0a00020006000000; // A010_Cmnd_Transfer_Trk
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+      //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(A010_Cmnd_Transfer_Trk); file0.saveToFile(folder, code);}
+      {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+      uint16_t trks = data[16+5]<<8 | data[16+4];
+      logger() << "FOUND " << trks << " TRACKS!\n";
+
+      code = 0x060002001b000000; // L001_Pid_Records
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+
+      int trk_dl_count = 0;
+      code = 0x0600020063000000; // L001_Pid_Trk_Hdr
+      //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(L001_Pid_Trk_Hdr); file0.saveToFile((folder+"//trk_"+toStringDec(trk_dl_count, 5, '0')+".bin").c_str());}
+      {GFile file0; file0.bytes=data; file0.saveToFile((folder+"//trk_"+toStringDec(trk_dl_count, 4, '0')+".bin").c_str());}
+      trk_dl_count += 1;
+      for( ; trk_dl_count<trks; trk_dl_count++)
+      {
+        // FIXME: is this correct?
+        code = 0x06000200e6050000; // L001_Pid_Trk_Data
+        CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+        //{GarminPacketIntf file0; file0.bytes=data; file0.interpret(L001_Pid_Trk_Data); file0.saveToFile((folder+"//trk_"+toStringDec(trk_dl_count, 5, '0')+".bin").c_str());}
+        {GFile file0; file0.bytes=data; file0.saveToFile((folder+"//trk_"+toStringDec(trk_dl_count, 4, '0')+".bin").c_str());}
+      }
+      code = 0x060002000c000000; // L001_Pid_Xfer_Cmplt
+      CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
+    }
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
 
     // just exit

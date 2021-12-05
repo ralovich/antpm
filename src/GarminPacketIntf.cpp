@@ -202,8 +202,10 @@ int GarminPacketIntf::interpretPid(uint64_t& data)
     return L000_Pid_Product_Data;
   case 0x06000200f8000000:
     return L000_Pid_Ext_Product_Data; // starts A000
-  case BSWAP_64(0x0a000200c2010000):
+  case 0x0a000200c2010000:
     return A010_Cmnd_Transfer_Runs;
+  case 0x060002001b000000:
+    return L001_Pid_Records;
   default:
     return -1;
   }
