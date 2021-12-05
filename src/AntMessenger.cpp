@@ -759,12 +759,14 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   cmd.detail.authenticate.authStrLen = 0;
   cmd.detail.authenticate.sn = hostSN;
 
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 2000));
+
+  {
   AntChannel& pc = *chs[chan].get();
   AntBurstListener bl(pc);
   //pc.addMsgListener(&bl);
 
 
-  CHECK_RETURN_FALSE_LOG_OK_DBG2(ANT_SendAcknowledgedData(chan, reinterpret_cast<uchar*>(&cmd), 2000));
 
   std::vector<uchar> burstData;
   /*bool rv =*/ bl.collectBurst(burstData, 5000);
