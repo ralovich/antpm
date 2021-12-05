@@ -232,7 +232,7 @@ AntBCastListener::match(AntMessage& other) const
 {
   return other.getMsgId()==MESG_BROADCAST_DATA_ID
       && other.getPayloadRef()[0]==owner.getChan()
-      && other.getPayloadRef()[1]==first;
+      && (other.getPayloadRef()[1]==ANTFS_BeaconId || other.getPayloadRef()[1]==ANTFS_CommandResponseId);
 }
 
 bool
