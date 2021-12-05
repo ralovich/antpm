@@ -777,14 +777,23 @@ AntMessenger::ANTFS_RequestClientDeviceSerialNumber(const uchar chan, const uint
   //
   //CHECK_RETURN_FALSE_LOG_OK(waitForBurst(chan, burstData, 30000));
   LOG_VAR_DBG2(burstData.size());
-  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==4*8);
+  CHECK_RETURN_FALSE_LOG_OK_DBG2(burstData.size()==4*8 || burstData.size()==2*8);
 
   const M_ANTFS_Response* cmdResp(reinterpret_cast<const M_ANTFS_Response*>(&burstData[8]));
   sn = cmdResp->detail.authenticateResponse.sn;
   uchar lenDevName=cmdResp->detail.authenticateResponse.authStrLen; // 16 for 310XT, 14 for 410
-  CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName>0);
+  LOG_VAR_DBG2(static_cast<int>(lenDevName));
+  if(burstData.size()==32)
+  {
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(lenDevName>0);
 
-  devName = std::string(reinterpret_cast<const char*>(&burstData[16]), lenDevName);
+    devName = std::string(reinterpret_cast<const char*>(&burstData[16]), lenDevName);
+  }
+  else
+  {
+    devName = "Forerunner 405";
+  }
+  }
 
   logger() << "devName = \"" << devName << "\"\n";
 
