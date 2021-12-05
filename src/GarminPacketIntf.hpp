@@ -50,7 +50,8 @@ BOOST_STATIC_ASSERT(sizeof(GarminPacket)==13);
 struct GarminPacketIntf
 {
   bool interpret(int lastPid, std::vector<uint8_t> data);
-  int  interpretPid(std::vector<uint8_t> &data);
+  int  interpretPid(std::vector<uint8_t> &data); // used during off-line analysis
+  int  interpretPid(uint64_t& data); // used for on-line interpretation
 
 public:
   bool parseStrings(const std::vector<uint8_t> &data, const size_t skip, std::vector<std::string> &out);

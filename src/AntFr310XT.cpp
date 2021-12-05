@@ -22,6 +22,7 @@
 #include "antdefs.hpp"
 #include "common.hpp"
 #include "DeviceSettings.hpp"
+#include "GarminPacketIntf.hpp"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -784,6 +785,8 @@ AntFr310XT::handleEvents()
 
     CHECK_RETURN_FALSE(createDownloadFolder());
 
+    CHECK_RETURN_FALSE_LOG_OK_DBG2(m_antMessenger->ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
+
     vector<uint8_t> data;
     // watch type
     // S  20.527 MESG_REQUEST_ID chan=0x00 reqMsgId=MESG_CHANNEL_STATUS_ID
@@ -807,6 +810,7 @@ AntFr310XT::handleEvents()
     uint64_t code = 0xfe00000000000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
     // GPS version
 //    S  48.159 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_CmdDirect fd=0xffff, offset=0x0000, data=0x0000
@@ -826,6 +830,7 @@ AntFr310XT::handleEvents()
     code = 0x06000200ff000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
     // 06000200f8000000 = capabilities
 //    S   6.746 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_CmdDirect fd=0xffff, offset=0x0000, data=0x0000
@@ -863,34 +868,40 @@ AntFr310XT::handleEvents()
     code = 0x06000200f8000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
     // 0x060002001b000000 pid=0x001b=27 L001_Pid_Records
     code = 0x060002001b000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    //{GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
     // 0x06000200de030000 pid=0x03de=990 L001_Pid_Run
     code = 0x06000200de030000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    //{GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
 
     // 0x0600020095000000 pid=0x0095=149 L001_Pid_Lap
     code = 0x0600020095000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    //{GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
 
     // 0x0600020063000000 pid=0x0063=99 L001_Pid_Trk_Hdr
     code = 0x0600020063000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    //{GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
 
     // 0x06000200e6050000 pid=0x05e6=1510 ????_Pid_Unknown
     code = 0x06000200e6050000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
     {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    //{GarminPacketIntf gpi; int last_cmd_pid = gpi.interpretPid(code); std::vector<uint8_t> data2(data.begin()+16, data.end()); gpi.interpret(last_cmd_pid, data2);}
 
 
     // just exit

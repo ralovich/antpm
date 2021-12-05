@@ -190,6 +190,21 @@ GarminPacketIntf::interpretPid(std::vector<uint8_t>& data)
   }
 }
 
+int GarminPacketIntf::interpretPid(uint64_t& data)
+{
+  switch(data)
+  {
+  case 0xfe00000000000000:
+    return L000_Pid_Product_Rqst;
+  case 0x06000200ff000000:
+    return L000_Pid_Product_Data;
+  case 0x06000200f8000000:
+    return L000_Pid_Ext_Product_Data; // starts A000
+  default:
+    return -1;
+  }
+}
+
 
 bool
 GarminPacketIntf::parseStrings(const std::vector<uint8_t>& data, const size_t skip, std::vector<std::string>& out)
