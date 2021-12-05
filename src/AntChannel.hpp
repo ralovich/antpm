@@ -42,6 +42,7 @@ public:
 protected:
   virtual bool match(AntMessage& other) const = 0;
 public:
+  virtual const char* name() const = 0;
   // whether there was a response before timeout
   bool waitForMsg(AntMessage* m, const size_t timeout_ms);
 };
@@ -70,6 +71,7 @@ struct AntEvListener : public AntListenerBase
   AntEvListener(AntChannel& o) : AntListenerBase(o) {}
   virtual ~AntEvListener() {}
   virtual bool match(AntMessage& other) const override;
+  virtual const char* name() const override { return "AntEvListener"; }
   // whether there was a response before timeout
   bool waitForEvent(uint8_t& msgCode, const size_t timeout_ms);
 };
@@ -81,6 +83,7 @@ struct AntRespListener : public AntListenerBase
   AntRespListener(AntChannel& o, const uint8_t msgId_) : AntListenerBase(o), msgId(msgId_) {}
   virtual ~AntRespListener() {}
   virtual bool match(AntMessage& other) const override;
+  virtual const char* name() const override { return "AntRespListener"; }
   // whether there was a response before timeout
   bool waitForResponse(uint8_t& respVal, const size_t timeout_ms);
 };
@@ -93,6 +96,7 @@ struct AntReqListener : public AntListenerBase
   AntReqListener(AntChannel& o, uint8_t m, uint8_t c) : AntListenerBase(o), msgId(m), chan(c) {}
   virtual ~AntReqListener() {}
   virtual bool match(AntMessage& other) const override;
+  virtual const char* name() const override { return "AntReqListener"; }
 };
 
 struct AntBCastListener : public AntListenerBase
@@ -102,6 +106,7 @@ struct AntBCastListener : public AntListenerBase
   AntBCastListener(AntChannel& o, uint8_t f) : AntListenerBase(o), first(f) {}
   virtual ~AntBCastListener() {}
   virtual bool match(AntMessage& other) const override;
+  virtual const char* name() const override { return "AntBCastListener"; }
   bool waitForBCast(AntMessage& bcast, const size_t timeout_ms);
 };
 
@@ -114,6 +119,7 @@ struct AntBurstListener : public AntListenerBase
   virtual void onMsg(AntMessage& m) override;
   virtual void interruptWait() override;
   virtual bool match(AntMessage& other) const override;
+  virtual const char* name() const override { return "AntBurstListener"; }
   virtual bool waitForBursts(std::list<AntMessage>& bs, const size_t timeout_ms);
   bool collectBurst(std::vector<uint8_t>& burstData, const size_t timeout_ms);
 };
