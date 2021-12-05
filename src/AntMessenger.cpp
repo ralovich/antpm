@@ -276,6 +276,9 @@ AntMessenger::ANT_SendBurstData2(const uchar chan, const std::vector<uchar>& dat
     CHECK_RETURN_FALSE(ANT_SendBurstData(burst.seqchan, &data[start]));
     if(start==0 && data.size()>8)
     {
+      // TODO handle EVENT_RX_FAIL and EVENT_RX_SEARCH_TIMEOUT
+
+
       //LOG_VAR(waitForBroadcast(chan,0,800));
       CHECK_RETURN_FALSE(waitForBroadcast(chan,0,800));
       //sleepms(10);
@@ -838,6 +841,9 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<ui
     sentDirect = sentDirect && el.waitForEvent(responseVal, 800);
     //pc.rmEvListener(&el);
     sentDirect = sentDirect && (responseVal==EVENT_TRANSFER_TX_COMPLETED);
+
+    if(responseVal==CHANNEL_NOT_OPENED)
+      return false;
 
     if(sentDirect)
       break;
