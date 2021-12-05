@@ -69,6 +69,7 @@ enum {
 #define LOG_USB_WARN(func, rv)                      \
   do {                                              \
     LOG(LOG_WARN) << func << ": " << rv << ": \""   \
+                  << libusb_error_name(rv) << "\t"  \
                   << libusb_strerror((libusb_error)rv) << "\"\n"; \
   } while(0)
 #define LOG_USB_WARN2(func, rv)                                         \
@@ -147,7 +148,7 @@ struct SerialUsbPrivate
       irv = libusb_control_transfer(dev, REQTYPE_HOST_TO_INTERFACE, request, data[0],
                                     index, NULL, sz, USB_CTRL_SET_TIMEOUT);
     }
-    if(irv)
+    if(irv<0)
     {
       LOG_USB_WARN("libusb_control_transfer", irv);
     }
