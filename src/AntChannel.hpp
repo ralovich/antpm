@@ -60,7 +60,7 @@ public:
   void rmMsgListener2(AntListenerBase* lb);
   void onMsg(AntMessage &m);
   void interruptWait();
-  void sanityCheck();
+  void sanityCheck(const char* caller);
   const uchar getChan() const { return chan; }
   
 };
