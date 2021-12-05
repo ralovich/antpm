@@ -185,6 +185,8 @@ GarminPacketIntf::interpretPid(std::vector<uint8_t>& data)
     return L000_Pid_Product_Data;
   case BSWAP_64(0x06000200f8000000):
     return L000_Pid_Ext_Product_Data; // starts A000
+  case BSWAP_64(0x0a000200c2010000):
+    return A010_Cmnd_Transfer_Runs;
   default:
     return -1;
   }
@@ -200,6 +202,8 @@ int GarminPacketIntf::interpretPid(uint64_t& data)
     return L000_Pid_Product_Data;
   case 0x06000200f8000000:
     return L000_Pid_Ext_Product_Data; // starts A000
+  case BSWAP_64(0x0a000200c2010000):
+    return A010_Cmnd_Transfer_Runs;
   default:
     return -1;
   }
