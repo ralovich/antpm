@@ -82,7 +82,7 @@ void ZeroFileContent::cullFitFilesDate()
   // detect file dates with fixed date offsets in between
   // only download files with later date
 
-  unsigned threshold = 20;
+  unsigned threshold = 20; // seconds
 
   std::multimap<uint32_t, uint16_t> date_sorted_activities;
 
@@ -100,6 +100,7 @@ void ZeroFileContent::cullFitFilesDate()
     date_sorted_activities.insert(std::make_pair(zfRecord.timeStamp, zfRecord.index));
   }
 
+  // returns true if relative age (of file w.r.t to the next) below a threshold
   auto remover = [&](uint16_t file_idx)
   {
     auto it = date_sorted_activities.begin();
@@ -111,6 +112,7 @@ void ZeroFileContent::cullFitFilesDate()
       //logger() << "0x" << toString<uint16_t>(it->first,4,'0') << ": relative_age=" << relative_age << "\n";
       return relative_age <= threshold;
     }
+    return false;
   };
 
   activityFiles.erase(std::remove_if(activityFiles.begin(), activityFiles.end(),
