@@ -349,6 +349,9 @@ struct AntUsbHandler2_Recevier
 bool
 SerialUsb::open()
 {
+#ifdef __APPLE__
+  return false;
+#endif
   assert(!isOpen());
   if(isOpen())
     return false;

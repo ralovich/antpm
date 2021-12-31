@@ -363,6 +363,8 @@ SerialTty::open()
     possibleNames.push_back("/dev/ttyUSB7");
     possibleNames.push_back("/dev/ttyUSB8");
     possibleNames.push_back("/dev/ttyUSB9");
+    possibleNames.push_back("/dev/cu.ANTUSBStick.slabvcp");
+    possibleNames.push_back("/dev/cu.ANTUSBStick.slabvcp");
 
     possibleNames.erase(remove_if(possibleNames.begin(),
                                   possibleNames.end(),
