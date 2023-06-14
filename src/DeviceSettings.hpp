@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <cstdint> // uint16_t
 
 namespace antpm {
 
