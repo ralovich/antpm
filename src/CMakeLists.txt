@@ -142,7 +142,7 @@ ADD_LIBRARY(antpm
   ${SRCS}
 )
 TARGET_LINK_LIBRARIES(antpm
-  Boost::datetime
+  Boost::date_time
   ${LIBUSB_1_LIBRARIES}
   Boost::thread
   Boost::atomic
