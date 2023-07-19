@@ -6,6 +6,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 
 PROJECT(antpm C CXX)
+set(CMAKE_CXX_STANDARD 14)
 
 OPTION(USE_COVERAGE "use gcov" FALSE)
 OPTION(USE_BOOST_TEST "use boost::test" FALSE)
@@ -78,9 +79,9 @@ ELSE()
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
 FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
-IF(NOT Boost_FOUND)
-  MESSAGE(FATAL_ERROR "Boost not found!")
-ENDIF()
+#IF(NOT Boost_FOUND)
+#  MESSAGE(FATAL_ERROR "Boost not found!")
+#ENDIF()
 
 
 INCLUDE_DIRECTORIES(.)
@@ -141,7 +142,7 @@ ADD_LIBRARY(antpm
 TARGET_LINK_LIBRARIES(antpm
   ${Boost_DATE_TIME_LIBRARY}
   ${LIBUSB_1_LIBRARIES}
-  ${Boost_THREAD_LIBRARY}
+  Boost::thread
   ${Boost_ATOMIC_LIBRARY}
   ${Boost_EXCEPTION_LIBRARY}
   ${Boost_SYSTEM_LIBRARY}
@@ -164,7 +165,7 @@ ADD_EXECUTABLE(antpm-downloader
 )
 TARGET_LINK_LIBRARIES(antpm-downloader
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-downloader RUNTIME DESTINATION bin)
 
