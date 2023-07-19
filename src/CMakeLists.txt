@@ -86,10 +86,6 @@ FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options 
 #  MESSAGE(FATAL_ERROR "Boost not found!")
 #ENDIF()
 
-
-
-
-
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_WARNINGS)
   #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:libboost_date_time-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_thread-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_program_options-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_filesystem-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_system-vc90-mt-s-1_43.lib")
