@@ -6,6 +6,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 
 PROJECT(antpm C CXX)
+set(CMAKE_CXX_STANDARD 14)
 
 OPTION(USE_COVERAGE "use gcov" FALSE)
 OPTION(USE_BOOST_TEST "use boost::test" FALSE)
@@ -68,8 +69,10 @@ ELSE()
 ENDIF()
 
 IF(USE_BOOST_STATIC_LINK)
+    set(Boost_VERBOSE ON)
+    set(Boost_DEBUG ON)
   set(Boost_USE_STATIC_LIBS        ON)
-  set(Boost_USE_STATIC_RUNTIME    ON)
+  set(Boost_USE_STATIC_RUNTIME    OFF)
 ELSE()
   set(Boost_USE_STATIC_LIBS        OFF)
   set(Boost_USE_STATIC_RUNTIME    OFF)
@@ -78,16 +81,16 @@ ELSE()
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
 FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
-IF(NOT Boost_FOUND)
-  MESSAGE(FATAL_ERROR "Boost not found!")
-ENDIF()
+#IF(NOT Boost_FOUND)
+#  MESSAGE(FATAL_ERROR "Boost not found!")
+#ENDIF()
 
 
 INCLUDE_DIRECTORIES(.)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+#INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${LIBUSB_1_INCLUDE_DIRS})
 
-LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+#LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_WARNINGS)
@@ -124,9 +127,9 @@ SET(SRCS
 )
 IF(NOT WIN32)
   SET(SRCS
-	  ${SRCS}
-    SerialTty.hpp SerialTty.cpp
-	  )
+      ${SRCS}
+      SerialTty.hpp SerialTty.cpp
+      )
   SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
   SET(MY_ANTPM_LIBRARIES "stdc++")
   IF(NOT APPLE)
@@ -139,13 +142,13 @@ ADD_LIBRARY(antpm
   ${SRCS}
 )
 TARGET_LINK_LIBRARIES(antpm
-  ${Boost_DATE_TIME_LIBRARY}
+  Boost::date_time
   ${LIBUSB_1_LIBRARIES}
-  ${Boost_THREAD_LIBRARY}
-  ${Boost_ATOMIC_LIBRARY}
-  ${Boost_EXCEPTION_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
+  Boost::thread
+  Boost::atomic
+  Boost::exception
+  Boost::system
+  Boost::filesystem
   ${MY_ANTPM_LIBRARIES}
 )
 
@@ -154,7 +157,7 @@ ADD_EXECUTABLE(antpm-usbmon2ant
 )
 TARGET_LINK_LIBRARIES(antpm-usbmon2ant
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-usbmon2ant RUNTIME DESTINATION bin)
 
@@ -164,7 +167,7 @@ ADD_EXECUTABLE(antpm-downloader
 )
 TARGET_LINK_LIBRARIES(antpm-downloader
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-downloader RUNTIME DESTINATION bin)
 
@@ -174,7 +177,7 @@ ADD_EXECUTABLE(antpm-fit2gpx
 )
 TARGET_LINK_LIBRARIES(antpm-fit2gpx
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-fit2gpx RUNTIME DESTINATION bin)
 
