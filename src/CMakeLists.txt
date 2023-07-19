@@ -155,7 +155,7 @@ ADD_EXECUTABLE(antpm-usbmon2ant
 )
 TARGET_LINK_LIBRARIES(antpm-usbmon2ant
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-usbmon2ant RUNTIME DESTINATION bin)
 
@@ -175,7 +175,7 @@ ADD_EXECUTABLE(antpm-fit2gpx
 )
 TARGET_LINK_LIBRARIES(antpm-fit2gpx
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-fit2gpx RUNTIME DESTINATION bin)
 
