@@ -46,7 +46,7 @@ struct Producer
   lqueue2<int> _q;
 
   lqueue3<int> q;
-  std::unique_ptr<boost::thread> q_th;
+  std::unique_ptr<std::thread> q_th;
 
   lqueue3_bg<double> q_bg;
   volatile bool die;
@@ -58,13 +58,13 @@ struct Producer
       _q.push(234);
       q.push(27);
       q_bg.push(435.5543);
-      boost::thread::yield();
+      std::this_thread::yield();
     }
   }
 
   void start_q_th()
   {
-    q_th.reset(new boost::thread(boost::bind(&lqueue3<int>::eventLoop, &q)));
+    q_th.reset(new std::thread(std::bind(&lqueue3<int>::eventLoop, &q)));
   }
 };
 
@@ -97,10 +97,11 @@ BOOST_AUTO_TEST_CASE(test_lqueue1)
   p.q_bg.setOnDataArrivedCallback(onDataArrived);
 
   // https://svn.boost.org/trac/boost/ticket/2144
-  boost::thread th = boost::thread(boost::ref(p));
+  std::thread th = std::thread(std::ref(p));
   p.start_q_th();
 
-  boost::this_thread::sleep( boost::posix_time::milliseconds(20) );
+  using namespace std::chrono_literals;
+  std::this_thread::sleep_for( 2000ms );
 
 
   p.q.kill();

@@ -221,7 +221,10 @@ public:
     /// if queue empty, wait until timeout if there was anything pushed
     if(Super::m_q.empty() && timeout > 0)
     {
-      boost::posix_time::time_duration td = boost::posix_time::milliseconds(timeout);
+      //boost::posix_time::time_duration td = boost::posix_time::milliseconds(timeout);
+      //std::chrono::time_point<std::chrono::steady_clock> td = std::chrono::steady_clock::now() + std::chrono::milliseconds(timeout);
+      using namespace std::chrono_literals;
+      auto td = timeout*1ms;
       if(!Super::m_pushEvent.timed_wait(lock, td))
       {
         bytesRead = 0;
@@ -293,10 +296,13 @@ protected:
   {
     while(!stop)
     {
-      boost::unique_lock<boost::mutex> lock(Super::m_mtx);
+      std::unique_lock<std::mutex> lock(Super::m_mtx);
 
-      boost::posix_time::time_duration td = boost::posix_time::milliseconds(2000);
-      if(!Super::m_pushEvent.timed_wait(lock, td)) // will automatically and atomically unlock mutex while it waits
+      //boost::posix_time::time_duration td = boost::posix_time::milliseconds(2000);
+      std::chrono::time_point<std::chrono::steady_clock> td = std::chrono::steady_clock::now() + std::chrono::milliseconds(2000);
+      //using namespace std::chrono_literals;
+      //auto td = 2000*1ms;
+      if(!Super::m_pushEvent.wait_until(lock, td)) // will automatically and atomically unlock mutex while it waits
       {
         //std::cout << "no event before timeout\n";
         continue;

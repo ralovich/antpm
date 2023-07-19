@@ -68,7 +68,8 @@ AntMessenger::AntMessenger()
   msgTh.rv=0;
   m_packerTh = boost::thread(msgTh, this);
 
-  m_rpackQueue2.setOnDataArrivedCallback(std::bind1st(std::mem_fun(&AntMessenger::onMessage), this));
+  // m_rpackQueue2.setOnDataArrivedCallback(std::bind1st(std::mem_fun(&AntMessenger::onMessage), this));
+  m_rpackQueue2.setOnDataArrivedCallback(std::bind(std::mem_fn(&AntMessenger::onMessage), this, std::placeholders::_1));
 
   for(int i=0; i < ANTPM_MAX_CHANNELS; i++)
   {

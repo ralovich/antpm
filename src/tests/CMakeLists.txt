@@ -7,8 +7,8 @@ ADD_EXECUTABLE(testDeviceSettings
 )
 TARGET_LINK_LIBRARIES(testDeviceSettings
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::program_options
+  Boost::unit_test_framework
 )
 
 ADD_EXECUTABLE(testDateTime
@@ -16,8 +16,8 @@ ADD_EXECUTABLE(testDateTime
 )
 TARGET_LINK_LIBRARIES(testDateTime
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::program_options
+  Boost::unit_test_framework
 )
 
 
@@ -26,7 +26,7 @@ ADD_EXECUTABLE(sm1
 )
 TARGET_LINK_LIBRARIES(sm1
   antpm
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::unit_test_framework
 )
 
 ADD_EXECUTABLE(lq1
@@ -34,7 +34,7 @@ ADD_EXECUTABLE(lq1
 )
 TARGET_LINK_LIBRARIES(lq1
   antpm
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::unit_test_framework
 )
 
 

@@ -56,7 +56,7 @@
 #endif
 
 namespace fs = boost::filesystem;
-using namespace std;
+//using namespace std;
 
 namespace antpm{
 
@@ -71,8 +71,8 @@ struct SerialTtyPrivate
   volatile int m_recvThKill;
   size_t       m_writeDelay;
 
-  bool guessDeviceName(vector<string>& guessedNames);
-  bool openDevice(vector<string>& names);
+  bool guessDeviceName(std::vector<std::string>& guessedNames);
+  bool openDevice(std::vector<std::string>& names);
 };
 
 // runs in other thread
@@ -95,9 +95,9 @@ struct SerialTtyIOThread
 };
 
 
-string
+std::string
 find_file_starts_with(const fs::path & dir,
-                      const string& start)
+                      const std::string& start)
 {
   fs::directory_iterator end_iter;
   for( fs::directory_iterator dir_iter(dir) ; dir_iter != end_iter ; ++dir_iter)
@@ -167,7 +167,7 @@ struct InvalidChar
 
 
 bool
-SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
+SerialTtyPrivate::guessDeviceName(std::vector<std::string> &guessedNames)
 {
 #ifdef __linux__
   // check for cp210x kernel module
@@ -291,7 +291,7 @@ getFileMode(const char* fname)
 
 
 bool
-SerialTtyPrivate::openDevice(vector<string>& names)
+SerialTtyPrivate::openDevice(std::vector<std::string> &names)
 {
   for(size_t i = 0; i < names.size(); i++)
   {
@@ -340,8 +340,8 @@ SerialTty::~SerialTty()
     }                                                       \
   } while(false)
 
-struct contains : public std::binary_function<vector<string>, string,bool> {
-  inline bool operator() (vector<string> v, string e) const {return find(v.begin(), v.end(), e) != v.end();}
+struct contains : public std::binary_function<std::vector<std::string>, std::string,bool> {
+  inline bool operator() (std::vector<std::string> v, std::string e) const {return find(v.begin(), v.end(), e) != v.end();}
 };
 
 bool
@@ -351,11 +351,11 @@ SerialTty::open()
 
   bool rv = false;
 
-  vector<string> guessedNames;
+  std::vector<std::string> guessedNames;
   m_p->guessDeviceName(guessedNames);
   if(!m_p->openDevice(guessedNames))
   {
-    vector<string> possibleNames;
+    std::vector<std::string> possibleNames;
     possibleNames.push_back("/dev/ttyUSB0");
     possibleNames.push_back("/dev/ttyUSB1");
     possibleNames.push_back("/dev/ttyUSB2");
@@ -371,7 +371,7 @@ SerialTty::open()
 
     possibleNames.erase(remove_if(possibleNames.begin(),
                                   possibleNames.end(),
-                                  bind1st(contains(), guessedNames)),
+                                  bind(contains(), guessedNames, std::placeholders::_1)),
                         possibleNames.end());
 
     m_p->openDevice(possibleNames);
