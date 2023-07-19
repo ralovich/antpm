@@ -305,6 +305,10 @@ folderExists(const char* dirName)
 const std::string
 getVersionString()
 {
+  unsigned char arr[2] = {0x01, 0x00};
+  unsigned short int x = *(unsigned short int *) arr;
+  bool little_endian = x == 1;
+
   return std::string("") + APP_NAME
       + " v" + std::string(BOOST_STRINGIZE(ANTPM_VERSION))
       + " built "
@@ -319,12 +323,18 @@ getVersionString()
   "win64"
 #elif defined(_WIN32)
   "win32"
+#elif defined(__APPLE__)
+  "macos"
 #else
   "unknown_os"
 #endif
       + " with "
 #ifdef __GNUC__
+# if defined(__clang__)
+  "CLANG " __VERSION__
+# else
   "GCC " __VERSION__
+# endif
 #elif defined(_MSC_VER)
 # define STRINGIFY( L )       #L
 # define MAKESTRING( M, L )   M(L)
@@ -336,7 +346,7 @@ getVersionString()
 #else
   "unknow_compiler"
 #endif
-      + std::string("");
+      + (little_endian ? std::string(" LE") : std::string(" BE"));
 }
 
 
