@@ -87,10 +87,10 @@ FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options 
 
 
 INCLUDE_DIRECTORIES(.)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
+#INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 INCLUDE_DIRECTORIES(${LIBUSB_1_INCLUDE_DIRS})
 
-LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+#LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_WARNINGS)
@@ -127,9 +127,9 @@ SET(SRCS
 )
 IF(NOT WIN32)
   SET(SRCS
-	  ${SRCS}
-    SerialTty.hpp SerialTty.cpp
-	  )
+      ${SRCS}
+      SerialTty.hpp SerialTty.cpp
+      )
   SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
   SET(MY_ANTPM_LIBRARIES "stdc++")
   IF(NOT APPLE)
@@ -142,13 +142,13 @@ ADD_LIBRARY(antpm
   ${SRCS}
 )
 TARGET_LINK_LIBRARIES(antpm
-  ${Boost_DATE_TIME_LIBRARY}
+  Boost::datetime
   ${LIBUSB_1_LIBRARIES}
   Boost::thread
-  ${Boost_ATOMIC_LIBRARY}
-  ${Boost_EXCEPTION_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
+  Boost::atomic
+  Boost::exception
+  Boost::system
+  Boost::filesystem
   ${MY_ANTPM_LIBRARIES}
 )
 
