@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - name: Install build-deps
-      run: sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-thread-dev libboost-exception-dev libboost-filesystem-dev libboost-system-dev libboost-date-time-dev libboost-program-options-dev libboost-test-dev libboost-atomic-dev
+      run: sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-thread-dev libboost-exception-dev libboost-filesystem-dev libboost-system-dev libboost-date-time-dev libboost-program-options-dev libboost-test-dev libboost-atomic-dev valgrind
 
     - uses: actions/checkout@v3
 
