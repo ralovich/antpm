@@ -30,11 +30,14 @@
 
 #include <functional>
 #include <algorithm>
-#include <vector>
+#include <condition_variable>
+#include <functional>
+#include <mutex>
+#include <queue>
 #include <string>
+#include <thread>
+#include <vector>
 
-#include <boost/version.hpp>
-#include <boost/thread/thread_time.hpp>
 #include <boost/filesystem.hpp>
 
 #include "Log.hpp"
@@ -61,9 +64,9 @@ struct SerialTtyPrivate
 {
   std::string m_devName;
   int m_fd;
-  boost::thread m_recvTh;
-  mutable boost::mutex m_queueMtx;
-  boost::condition_variable m_condQueue;
+  std::thread m_recvTh;
+  mutable std::mutex m_queueMtx;
+  std::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
   volatile int m_recvThKill;
   size_t       m_writeDelay;
@@ -408,7 +411,7 @@ SerialTty::open()
 
   m_p->m_recvThKill = 0;
   SerialTtyIOThread recTh;
-  m_p->m_recvTh = boost::thread(recTh, this);
+  m_p->m_recvTh = std::thread(recTh, this);
 
   return true;
 }
@@ -421,7 +424,7 @@ SerialTty::close()
   m_p->m_recvThKill = 1;
 
   {
-    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
     m_p->m_condQueue.notify_all();
   }
 
@@ -445,7 +448,7 @@ SerialTty::read(char* dst, const size_t sizeBytes, size_t& bytesRead)
   if(!dst)
     return false;
 
-  boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+  std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
 
   size_t s = m_p->m_recvQueue.size();
   s = std::min(s, sizeBytes);
@@ -471,11 +474,12 @@ SerialTty::readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead)
 
   const size_t timeout_ms = 1000;
   {
-    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
 
     //while(m_recvQueue.empty()) // while - to guard agains spurious wakeups
     {
-      m_p->m_condQueue.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms));
+      using namespace std::chrono_literals;
+      m_p->m_condQueue.wait_for(lock, timeout_ms*1ms);
     }
     size_t s = m_p->m_recvQueue.size();
     s = std::min(s, sizeBytes);
@@ -544,7 +548,7 @@ SerialTty::ioHandler()
 const size_t SerialTty::getQueueLength() const
 {
   size_t len=0;
-  boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+  std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
   len += m_p->m_recvQueue.size();
   return len;
 }
@@ -583,7 +587,7 @@ SerialTty::queueData()
   {}
   else
   {
-    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
     for(ssize_t i = 0; i < rb; i++)
       m_p->m_recvQueue.push(buf[i]);
     m_p->m_condQueue.notify_one();

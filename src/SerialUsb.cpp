@@ -23,23 +23,21 @@
 #include "common.hpp"
 #include <sys/types.h>
 #include <sys/stat.h>
-//#include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
-//#include <pthread.h>
-//#include <termios.h>
 #include <stdlib.h>
 #include <signal.h>
 
-#include <functional>
-//#include <tr1/functional>
 #include <algorithm>
-#include <vector>
-#include <string>
-#include <boost/thread/thread.hpp>
-#include <boost/thread/condition_variable.hpp>
-#include <boost/thread/thread_time.hpp>
+#include <cassert>
+#include <condition_variable>
+#include <functional>
 #include <iostream>
+#include <mutex>
+#include <queue>
+#include <string>
+#include <thread>
+#include <vector>
 
 #ifdef _WIN32
 #define VC_EXTRALEAN 1
@@ -97,9 +95,9 @@ enum {
 
 struct SerialUsbPrivate
 {
-  boost::thread m_recvTh;
-  mutable boost::mutex m_queueMtx;
-  boost::condition_variable m_condQueue;
+  std::thread m_recvTh;
+  mutable std::mutex m_queueMtx;
+  std::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
   volatile int m_recvThKill;
   libusb_device_handle* dev;
@@ -399,7 +397,7 @@ SerialUsb::open()
   m_p->m_recvThKill = 0;
   AntUsbHandler2_Recevier recTh;
   recTh.rv = 0;
-  m_p->m_recvTh = boost::thread(recTh, this);
+  m_p->m_recvTh = std::thread(recTh, this);
 
   return true;
 }
@@ -413,7 +411,7 @@ SerialUsb::close()
   {
     m_p->m_recvThKill = 1;
     {
-      boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+      std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
       m_p->m_condQueue.notify_all(); // make sure an other thread calling readBlocking() moves on too
     }
     if(m_p->m_recvTh.joinable())
@@ -438,7 +436,7 @@ SerialUsb::close()
 bool
 SerialUsb::read(char& c)
 {
-  boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+  std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
 
   if(m_p->m_recvQueue.empty())
     return false;
@@ -455,7 +453,7 @@ SerialUsb::read(char* dst, const size_t sizeBytes, size_t& bytesRead)
   if(!dst)
     return false;
 
-  boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+  std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
 
   size_t s = m_p->m_recvQueue.size();
   s = std::min(s, sizeBytes);
@@ -481,11 +479,12 @@ SerialUsb::readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead)
 
   const size_t timeout_ms = 1000;
   {
-    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
 
     //while(m_p->m_recvQueue.empty()) // while - to guard agains spurious wakeups
     {
-      m_p->m_condQueue.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms));
+      using namespace std::chrono_literals;
+      m_p->m_condQueue.wait_for(lock, timeout_ms*1ms);
     }
     size_t s = m_p->m_recvQueue.size();
     s = std::min(s, sizeBytes);
@@ -552,7 +551,7 @@ SerialUsb::receiveHandler()
     {
       if(actual_length > 0)
       {
-        boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+        std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
         for(int i = 0; i < actual_length; i++)
           m_p->m_recvQueue.push(buf[i]);
         //lprintf(LOG_RAW, "|q|=%d\n", m_p->m_recvQueue.size());
@@ -578,7 +577,7 @@ SerialUsb::receiveHandler()
 const size_t SerialUsb::getQueueLength() const
 {
   size_t len=0;
-  boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+  std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
   len += m_p->m_recvQueue.size();
   return len;
 }

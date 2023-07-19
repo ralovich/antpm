@@ -43,7 +43,6 @@
 #include <string>
 #include <map>
 #include <sstream>
-#include <boost/static_assert.hpp>
 #include <ctime>
 
 
@@ -140,7 +139,7 @@ struct DirectoryHeader
     uint32_t currentSystemTime;
     uint32_t directoryModifiedTime;
 };
-BOOST_STATIC_ASSERT(sizeof(DirectoryHeader)==16);
+static_assert(sizeof(DirectoryHeader)==16);
 
 #pragma pack()
 
