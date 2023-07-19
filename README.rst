@@ -29,11 +29,9 @@ This project is in no way associated with Garmin.
 
 .. _donationware: http://en.wikipedia.org/wiki/Donationware
 
-.. image:: https://secure.travis-ci.org/ralovich/antpm.png
+.. image:: https://github.com/ralovich/antpm/actions/workflows/cmake.yml/badge.svg
    :alt: Build Status
-   :target: http://travis-ci.org/ralovich/antpm
-   :width: 77px
-   :height: 19px
+   :target: https://github.com/ralovich/antpm/actions/workflows/cmake.yml
 
 .. image:: https://scan.coverity.com/projects/2691/badge.svg
    :alt: Coverity Status
