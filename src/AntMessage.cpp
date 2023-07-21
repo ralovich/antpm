@@ -25,11 +25,9 @@
 #include <iomanip> // setw
 #include <cstring> // strlen
 #include <cassert> // assert
+#include <filesystem>
 #include <fstream>
 #include <queue>
-#include <boost/date_time/time_duration.hpp>
-#include <boost/date_time.hpp>
-#include <boost/filesystem.hpp>
 #include "FIT.hpp"
 
 
@@ -682,15 +680,17 @@ AntMessage::saveAsAntParse(std::ostream& os, const Container& messages)
 {
   CHECK_RETURN_FALSE(os.good());
 
-  boost::system_time t0;
+  std::chrono::time_point<std::chrono::system_clock> t0;
+  //boost::system_time t0;
   for(typename Container::const_iterator i=messages.begin(); i!= messages.end(); i++)
   {
     if(i==messages.begin())
       t0=i->timestamp;
-    boost::system_time t1 = i->timestamp;
-    boost::posix_time::time_duration td = t1 - t0;
+    //boost::system_time t1 = i->timestamp;
+    std::chrono::time_point<std::chrono::system_clock> t1 = i->timestamp;
+    auto td = t1 - t0;
     t0 = t1;
-    double dt = double(td.total_microseconds())*0.001;
+    double dt = double(std::chrono::duration_cast<std::chrono::microseconds>(td).count())*0.001;
     os << i->strDt(dt) << "\n";
   }
   return true;
@@ -798,13 +798,24 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { LOG(LOG_ERR) << "truncated fwrite\n"; fclose(f); return false; }
   fclose(f);
 
-  FIT fit;
+  //FIT fit;
   std::time_t ct=0;
   CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
   char fit_timestamp[256];
   strftime(fit_timestamp, sizeof(fit_timestamp), "%d-%m-%Y %H:%M:%S", localtime(&ct));
   LOG_VAR(fit_timestamp);
-  boost::filesystem::last_write_time(boost::filesystem::path(fileName), ct);
+
+  //const auto fileTime = std::filesystem::last_write_time(filePath);
+  //const auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(fileTime);
+  //const auto time = std::chrono::system_clock::to_time_t(systemTime);
+  using namespace std::chrono;
+  std::chrono::time_point<std::chrono::system_clock> ctime = std::chrono::system_clock::from_time_t(ct);
+  std::filesystem::file_time_type ftime = time_point_cast<std::filesystem::file_time_type::clock::duration>(ctime-system_clock::now()+std::filesystem::file_time_type::clock::now());
+  //system_clock::time_point sctp = time_point_cast<system_clock::duration>(ftime - std::filesystem::file_time_type::clock::now()
+  //                                                    + system_clock::now());
+  //ftime = std::chrono::time_point_cast<std::filesystem::file_time_type>(ctime);
+  //ftime = clock_time_conversion<file_clock, system_clock>{}(ctime);
+  std::filesystem::last_write_time(std::filesystem::path(fileName), ftime);
 
   return true;
 }

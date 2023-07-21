@@ -32,21 +32,21 @@ AntChannel::AntChannel(const uchar ch)
 void
 AntChannel::addMsgListener2(AntListenerBase* lb)
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  std::unique_lock<std::mutex> lock(m_mtxListeners);
   listeners.push_back(lb);
 }
 
 void
 AntChannel::rmMsgListener2(AntListenerBase* lb)
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  std::unique_lock<std::mutex> lock(m_mtxListeners);
   listeners.remove(lb);
 }
 
 void
 AntChannel::onMsg(AntMessage &m)
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  std::unique_lock<std::mutex> lock(m_mtxListeners);
   for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
   {
     AntListenerBase* listener = *i;
@@ -57,7 +57,7 @@ AntChannel::onMsg(AntMessage &m)
 void
 AntChannel::interruptWait()
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  std::unique_lock<std::mutex> lock(m_mtxListeners);
   for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
   {
     AntListenerBase* listener = *i;
@@ -68,7 +68,7 @@ AntChannel::interruptWait()
 void
 AntChannel::sanityCheck(const char* caller)
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxListeners);
+  std::unique_lock<std::mutex> lock(m_mtxListeners);
   if(!listeners.empty())
   {
     lprintf(LOG_DBG3, "sanityCheck[ch=%d] found %d leftover listeners (caller=%s)\n", static_cast<int>(chan), static_cast<int>(listeners.size()), caller);
@@ -105,7 +105,7 @@ AntListenerBase::~AntListenerBase()
 void
 AntListenerBase::onMsg(AntMessage& m)
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  std::unique_lock<std::mutex> lock(m_mtxResp);
   if(match(m))
   {
     //assert(!m_msgResp); //this assert won't always work: e.g. if the waitForMsg() already concluded, there is noone to reset this pointer
@@ -117,7 +117,7 @@ AntListenerBase::onMsg(AntMessage& m)
 void
 AntListenerBase::interruptWait()
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  std::unique_lock<std::mutex> lock(m_mtxResp);
   m_msgResp.reset();
   m_cndResp.notify_all(); // intentionally generate a "spurious" wakeup
 }
@@ -125,7 +125,7 @@ AntListenerBase::interruptWait()
 bool
 AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  std::unique_lock<std::mutex> lock(m_mtxResp);
   if(m_msgResp) // it had already arrived
   {
     if(m) *m = *m_msgResp;
@@ -133,7 +133,9 @@ AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
     //lprintf(LOG_DBG3, "waitForMsg [0] already arrived\n");
     return true;
   }
-  if(!m_cndResp.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms)))
+  using namespace std::chrono_literals;
+  auto td = timeout_ms*1ms;
+  if(std::cv_status::timeout == m_cndResp.wait_for(lock, td))
   {
     // false means, timeout was reached
     //lprintf(LOG_DBG3, "waitForMsg [1] timeout\n");
@@ -258,7 +260,7 @@ AntBCastListener::waitForBCast(AntMessage& bcast, const size_t timeout_ms)
 void
 AntBurstListener::onMsg(AntMessage& m)
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  std::unique_lock<std::mutex> lock(m_mtxResp);
   if(match(m))
   {
     m_bursts.push_back(m);
@@ -269,7 +271,7 @@ AntBurstListener::onMsg(AntMessage& m)
 void
 AntBurstListener::interruptWait()
 {
-  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  std::unique_lock<std::mutex> lock(m_mtxResp);
   m_bursts.clear();
   m_cndResp.notify_all(); // intentionally generate a "spurious" wakeup
 }
@@ -289,14 +291,16 @@ bool
 AntBurstListener::waitForBursts(std::list<AntMessage>& bs, const size_t timeout_ms)
 {
   bs.clear();
-  boost::unique_lock<boost::mutex> lock(m_mtxResp);
+  std::unique_lock<std::mutex> lock(m_mtxResp);
   if(!m_bursts.empty()) // some had already arrived
   {
     std::swap(bs, m_bursts);
     return true;
   }
   // TODO: handle arrival of event:EVENT_RX_FAIL
-  if(!m_cndResp.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms)))
+  using namespace std::chrono_literals;
+  auto td = timeout_ms*1ms;
+  if(std::cv_status::timeout == m_cndResp.wait_for(lock, td))
   {
     // // false means, timeout was reached
     return false;
@@ -315,21 +319,30 @@ AntBurstListener::waitForBursts(std::list<AntMessage>& bs, const size_t timeout_
 bool
 AntBurstListener::collectBurst(std::vector<uint8_t>& burstData, const size_t timeout_ms)
 {
-  boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
-  boost::posix_time::ptime end = start+boost::posix_time::milliseconds(timeout_ms);
+  using sc = std::chrono::system_clock;
+  using namespace std::chrono_literals;
+  auto td = timeout_ms*1ms;
+  std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
+  std::chrono::system_clock::time_point end = start + td;
+  //boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
+  //boost::posix_time::ptime end = start+boost::posix_time::milliseconds(timeout_ms);
 
-  boost::posix_time::ptime after=start;
-  boost::posix_time::time_duration remaining = end-after;
+  //boost::posix_time::ptime after=start;
+  //boost::posix_time::time_duration remaining = end-after;
+  std::chrono::system_clock::time_point after = start;
+  std::chrono::system_clock::duration remaining = end - after;
   uchar expectedSeq=0;
   bool found=false;
   bool lastFound=false;
-  while(remaining>boost::posix_time::time_duration(boost::posix_time::milliseconds(0)))
+  while(remaining > sc::duration(0ms))
   {
     std::list<AntMessage> msgs;
-    size_t left_ms=static_cast<size_t>(remaining.total_milliseconds());
+    size_t left_ms=static_cast<size_t>(std::chrono::duration_cast<std::chrono::milliseconds>(remaining).count());
+    //size_t left_ms=static_cast<size_t>(remaining.total_milliseconds());
     //printf("msg wait ms=%d\n",  int(left_ms));
     CHECK_RETURN_FALSE(waitForBursts(msgs, left_ms));
-    after = boost::posix_time::microsec_clock::local_time();
+    //after = boost::posix_time::microsec_clock::local_time();
+    after = sc::now();  // TODO: should this be std::chrono::high_resolution_clock::now(); ?
     remaining = end-after;
     for(std::list<AntMessage>::iterator i = msgs.begin(); i != msgs.end(); i++)
     {

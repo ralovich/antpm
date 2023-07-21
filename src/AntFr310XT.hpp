@@ -22,7 +22,7 @@
 #include "antdefs.hpp"
 #include <list>
 #include <memory>
-#include <boost/thread.hpp>
+#include <thread>
 #include "FIT.hpp"
 
 namespace antpm{
@@ -59,18 +59,18 @@ public:
   void postEvent(const AntMessage& m);
 
 protected:
-  boost::scoped_ptr<Serial> m_serial;
-  boost::scoped_ptr<AntMessenger> m_antMessenger;
+  std::unique_ptr<Serial> m_serial;
+  std::unique_ptr<AntMessenger> m_antMessenger;
   typedef enum { LINK,AUTHENTICATION,TRANSPORT,BUSY} StateANTFS;
   StateANTFS clientState;
   int state;
-  boost::mutex stateMtx;
+  std::mutex stateMtx;
   volatile int m_eventThKill;
   int m_restartCount;
-  boost::thread m_eventTh;
+  std::thread m_eventTh;
   lqueue4<AntMessage> m_evQue;
   AntParsedLoggerCallback aplc;
-  boost::scoped_ptr<DeviceSettings> m_ds;
+  std::unique_ptr<DeviceSettings> m_ds;
 
   FIT             fit;
   ZeroFileContent zfc;

@@ -31,7 +31,6 @@
 #include <vector>
 #include <string>
 #include <chrono>
-#include <boost/thread/thread_time.hpp>
 #include <iostream>
 #include "stdintfwd.hpp"
 
@@ -98,7 +97,7 @@ AntFr310XT::AntFr310XT(Serial *s)
 
   AntFr310XT_EventLoop eventTh;
   eventTh.rv=0;
-  m_eventTh = boost::thread(eventTh, this);
+  m_eventTh = std::thread(eventTh, this);
 
 }
 
@@ -111,7 +110,10 @@ AntFr310XT::~AntFr310XT()
   }
 
   m_eventThKill=1;
-  m_eventTh.join();
+  if(m_eventTh.joinable())
+  {
+    m_eventTh.join();
+  }
   state = ST_ANTFS_0;
 
   m_antMessenger.reset();
@@ -193,7 +195,7 @@ AntFr310XT::run()
 void
 AntFr310XT::stop()
 {
-  assert(boost::this_thread::get_id() == this->m_eventTh.get_id());
+  assert(std::this_thread::get_id() == this->m_eventTh.get_id());
   m_eventThKill = 1;
   // stop() is called from the event thread
   // terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::thread_resource_error> >'
@@ -282,7 +284,7 @@ AntFr310XT::handleEvents()
 {
 #define changeStateSafe(x) do                                           \
   {                                                                     \
-    boost::unique_lock<boost::mutex> lock(this->stateMtx);              \
+    std::unique_lock<std::mutex> lock(this->stateMtx);              \
     if(this->state == ST_ANTFS_LAST)                                    \
     {                                                                   \
       lock.unlock();                                                    \
@@ -298,7 +300,7 @@ AntFr310XT::handleEvents()
 
 #define checkForExit() do                                               \
   {                                                                     \
-    boost::unique_lock<boost::mutex> lock(this->stateMtx);              \
+    std::unique_lock<std::mutex> lock(this->stateMtx);              \
     if(this->state == ST_ANTFS_LAST)                                    \
     {                                                                   \
       lock.unlock();                                                    \
@@ -913,7 +915,7 @@ AntFr310XT::handleEvents()
 int
 AntFr310XT::changeState(const int newState, bool force)
 {
-  boost::unique_lock<boost::mutex> lock(stateMtx);
+  std::unique_lock<std::mutex> lock(stateMtx);
   int oldState = this->state;
   if(oldState == ST_ANTFS_LAST && newState != ST_ANTFS_LAST&& !force)
   {

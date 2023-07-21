@@ -21,10 +21,9 @@
 #include "AntMessage.hpp"
 #include "AntChannel.hpp"
 #include "lqueue.hpp"
+#include <atomic>
 #include <list>
-#include "SmartPtrFwd.hpp"
 #include "Serial.hpp"
-#include <boost/thread.hpp>
 
 
 
@@ -170,12 +169,12 @@ private:
   Serial* m_io;
   AntCallback* m_cb;
   //std::vector<std::shared_ptr<AntCallback>> m_cbs;
-  boost::thread m_packerTh; // thread to reconstruct messages from bytes flowing in
+  std::thread m_packerTh; // thread to reconstruct messages from bytes flowing in
   volatile int m_packerThKill;
 
   // received packet queue
   lqueue3<AntMessage> m_rpackQueue2;
-  volatile size_t packetIdx;
+  std::atomic<size_t> packetIdx;
 private:
   std::vector<std::unique_ptr<AntChannel>> chs;
   //AntChannel chs[ANTPM_MAX_CHANNELS];

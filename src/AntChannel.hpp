@@ -18,8 +18,10 @@
 #pragma once
 
 #include "AntMessage.hpp"
-#include <boost/thread.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <condition_variable>
+#include <memory>
+#include <mutex>
+#include <thread>
 
 
 namespace antpm{
@@ -29,9 +31,9 @@ struct AntChannel;
 struct AntListenerBase
 {
 protected:
-  boost::mutex m_mtxResp;
-  boost::condition_variable m_cndResp;
-  boost::scoped_ptr<AntMessage> m_msgResp;
+  std::mutex m_mtxResp;
+  std::condition_variable m_cndResp;
+  std::unique_ptr<AntMessage> m_msgResp;
   AntChannel& owner;
 
 public:
@@ -52,7 +54,7 @@ struct AntChannel
   AntChannel(const uchar ch);
 private:
   const uchar chan;
-  boost::mutex m_mtxListeners;
+  std::mutex m_mtxListeners;
   std::list<AntListenerBase*> listeners;
 public:
   void addMsgListener2(AntListenerBase* lb);

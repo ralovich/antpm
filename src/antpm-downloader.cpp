@@ -28,7 +28,6 @@
 #include "Log.hpp"
 
 #include <boost/program_options.hpp>
-#include <boost/bind.hpp>
 
 
 #ifdef _WIN32
@@ -185,11 +184,6 @@ main(int argc, char** argv)
     cerr << desc << "\n";
     return EXIT_FAILURE;
   }
-  catch(boost::exception& e)
-  {
-    cerr << boost::diagnostic_information(e) << std::endl;
-    return EXIT_FAILURE;
-  }
   catch(std::exception& ex)
   {
     cerr << ex.what() << "\n";
@@ -226,7 +220,7 @@ main(int argc, char** argv)
 
   {
     AntFr310XT watch2;
-    stopFunc = boost::bind(&AntFr310XT::stopAsync, &watch2);
+    stopFunc = std::bind(&AntFr310XT::stopAsync, &watch2);
     {
       watch2.setModeDownloadAll();
       if(pairing) watch2.setModeForcePairing();

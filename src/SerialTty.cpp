@@ -31,14 +31,12 @@
 #include <functional>
 #include <algorithm>
 #include <condition_variable>
-#include <functional>
+#include <filesystem>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
 #include <vector>
-
-#include <boost/filesystem.hpp>
 
 #include "Log.hpp"
 #include "common.hpp"
@@ -55,8 +53,7 @@
 # define IUCLC 0
 #endif
 
-namespace fs = boost::filesystem;
-//using namespace std;
+namespace fs = std::filesystem;
 
 namespace antpm{
 
@@ -103,56 +100,10 @@ find_file_starts_with(const fs::path & dir,
   for( fs::directory_iterator dir_iter(dir) ; dir_iter != end_iter ; ++dir_iter)
   {
     fs::path p = *dir_iter;
-/// from http://www.boost.org/doc/libs/1_49_0/libs/filesystem/v2/doc/index.htm
-
-/// Version 3, a major revision with many new and improved features,
-/// is also available. Version 3 may break some user code written for
-/// Version 2.
-
-// To ease the transition, Boost releases 1.44 through 1.47 will
-// supply both V2 and V3. Version 2 is the default version for Boost
-// release 1.44 and 1.45. Version 3 will be the default starting with
-// release 1.46.
-
-// Define macro BOOST_FILESYSTEM_VERSION as 3 to use Version 3. This
-// will be the default for release 1.46 and later.
-
-// Define macro BOOST_FILESYSTEM_VERSION as 2 to use Version 2. This
-// is the default for release 1.44 and 1.45.
-
-// You may define the BOOST_FILESYSTEM_VERSION macro:
-
-
-// On the build command line; the exact format depends on your
-// compiler or IDE
-
-
-// In your code, before including any filesystem header, #define
-// BOOST_FILESYSTEM_VERSION n
-
-
-// #define BOOST_FILESYSTEM_VERSION n in boost/config/user.hpp. Note
-// #that this approach applies to all uses of Boost.Filesystem.
-
-// Existing code should be moved to version 3 as soon as
-// convenient. New code should be written for version 3.
-
-// Version 2 is deprecated, and will not be included in Boost releases
-// 1.48 and later.
-
-#if (((BOOST_VERSION/100000)==1) && (((BOOST_VERSION / 100) % 1000)<44)) // BOOST_FILESYSTEM_VERSION==2
-    if(std::string(p.leaf()).find(start)==0)
+    if(p.filename().string().find(start)==0)
     {
-      return std::string(p.leaf());
+      return p.filename().string();
     }
-#elif BOOST_FILESYSTEM_VERSION==3
-    if(p.leaf().string().find(start)==0)
-    {
-      return p.leaf().string();
-    }
-#else
-# error "Unsupported boost filesystem version" ##BOOST_FILESYSTEM_VERSION
-#endif
   }
   return "";
 }
@@ -209,26 +160,26 @@ SerialTtyPrivate::guessDeviceName(std::vector<std::string> &guessedNames)
   else
   {
     LOG(LOG_DBG) << "Detecting in " << driverDir << " ...\n";
-    for(fs::recursive_directory_iterator end, iter(driverDir, fs::symlink_option::recurse); iter != end; )
+    for(fs::recursive_directory_iterator end, iter(driverDir, fs::directory_options::follow_directory_symlink); iter != end; )
     {
-      if(iter.level()>=2)
+      if(iter.depth()>=2)
       {
         iter.pop();
         continue;
       }
-      //cout << iter.level() << ", " << *iter << std::endl;
+      //cout << iter.depth() << ", " << *iter << std::endl;
       fs::path p = iter->path();
       //cout << p.parent_path() << "\n";
-      if(iter.level()==1 && p.leaf()=="interface" && find_file_starts_with(p.parent_path(), "ttyUSB")!="")
+      if(iter.depth()==1 && p.filename()=="interface" && find_file_starts_with(p.parent_path(), "ttyUSB")!="")
       {
         std::vector<unsigned char> vuc(readFile(p.c_str()));
-        string iface="";
+        std::string iface="";
         if(!vuc.empty())
         {
-          iface=string(reinterpret_cast<char*>(&vuc[0]));
+          iface=std::string(reinterpret_cast<char*>(&vuc[0]));
           iface.erase(std::remove_if(iface.begin(),iface.end(),InvalidChar()), iface.end());
         }
-        string ttyUSB = find_file_starts_with(p.parent_path(), "ttyUSB");
+        std::string ttyUSB = find_file_starts_with(p.parent_path(), "ttyUSB");
         LOG(LOG_DBG) << "Found: \"" << iface << "\" as " << ttyUSB << " in " << p << "\n";
         guessedNames.push_back("/dev/"+ttyUSB);
       }
@@ -385,7 +336,7 @@ SerialTty::open()
     //
     // Log off and log on again for the changes to take effect!
     char se[256];
-    strerror_r(m_p->m_fd, se, sizeof(se));
+    (void)strerror_r(m_p->m_fd, se, sizeof(se));
     LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and /dev/ttyUSBxxx was created by cp210x!\n"
                         << "\tAlso make sure that /dev/ttyUSBxxx is R+W accessible by your user (usually enabled through udev.rules)!\n";
     LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << se << "\n";

@@ -82,7 +82,7 @@ ELSE()
   ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
-FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
+FIND_PACKAGE(Boost 1.41.0 COMPONENTS unit_test_framework program_options filesystem REQUIRED)
 #IF(NOT Boost_FOUND)
 #  MESSAGE(FATAL_ERROR "Boost not found!")
 #ENDIF()
@@ -98,7 +98,7 @@ ADD_DEFINITIONS(-DANTPM_VERSION=${ANTPM_VERSION})
 
 SET(SRCS
   antdefs.hpp antdefs.cpp
-  SmartPtrFwd.hpp   w_inttypes.h w_stdint.h stdintfwd.hpp
+  w_inttypes.h w_stdint.h stdintfwd.hpp
   common.hpp common.cpp
   AntMessage.hpp AntMessage.cpp
   AntChannel.hpp   AntChannel.cpp
@@ -145,12 +145,7 @@ TARGET_LINK_DIRECTORIES(antpm
     PRIVATE ${LIBUSB_1_LIBRARY_DIRS}
     )
 TARGET_LINK_LIBRARIES(antpm
-  Boost::date_time
   ${LIBUSB_1_LIBRARIES}
-  Boost::thread
-  Boost::atomic
-  Boost::exception
-  Boost::system
   Boost::filesystem
   ${MY_ANTPM_LIBRARIES}
 )

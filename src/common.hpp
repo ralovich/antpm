@@ -20,7 +20,6 @@
 #include <ostream>
 #include <string>
 #include <vector>
-//#include "antdefs.hpp"
 #include "Log.hpp"
 #include "stdintfwd.hpp"
 
@@ -60,7 +59,7 @@ template < class T >
 const std::string
 toStringDec(const T& val, const int width = -1, const char fill = ' ');
 
-const std::vector<std::string> tokenize(const std::string& text, const char* delims);
+std::vector<std::string> split(const std::string& s, char delimiter);
 
 extern
 const std::string

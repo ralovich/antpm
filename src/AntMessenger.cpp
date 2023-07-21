@@ -29,8 +29,6 @@
 #include <iostream>
 #include <chrono>
 #include "common.hpp"
-#include <boost/thread/thread_time.hpp>
-#include <boost/foreach.hpp>
 
 #include "Log.hpp"
 
@@ -66,7 +64,7 @@ AntMessenger::AntMessenger()
   m_packerThKill = 0;
   AntMessenger_Recevier msgTh;
   msgTh.rv=0;
-  m_packerTh = boost::thread(msgTh, this);
+  m_packerTh = std::thread(msgTh, this);
 
   // m_rpackQueue2.setOnDataArrivedCallback(std::bind1st(std::mem_fun(&AntMessenger::onMessage), this));
   m_rpackQueue2.setOnDataArrivedCallback(std::bind(std::mem_fn(&AntMessenger::onMessage), this, std::placeholders::_1));
@@ -84,7 +82,10 @@ AntMessenger::~AntMessenger()
 {
   m_rpackQueue2.setOnDataArrivedCallback(0);
   m_packerThKill = 1;
-  m_packerTh.join();
+  if(m_packerTh.joinable())
+  {
+    m_packerTh.join();
+  }
   m_io=0;
   m_cb=0;
   lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
@@ -982,7 +983,7 @@ bool AntMessenger::writeMessage(AntMessage &m)
     return false;
 
   m.sent=true;
-  m.timestamp = boost::get_system_time();
+  m.timestamp = std::chrono::system_clock::now();
   m.idx = packetIdx++;
   assert(m.vrfChkSum());
 
@@ -1079,7 +1080,7 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     {
       q.pop_front();
     }
-    m.timestamp = boost::get_system_time();
+    m.timestamp = std::chrono::system_clock::now();
     m.idx = packetIdx++;
     m_rpackQueue2.push(m);
     if(m_cb)
