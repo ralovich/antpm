@@ -21,9 +21,7 @@
 #include <iostream>
 #include <boost/thread/thread_time.hpp>
 #include <boost/thread.hpp>
-#include <boost/tokenizer.hpp>
 #include <boost/foreach.hpp>
-//#include <QDateTime>
 #include <sstream>
 #include <boost/date_time.hpp>
 #include <boost/filesystem.hpp>
