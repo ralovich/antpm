@@ -425,7 +425,10 @@ SerialTty::close()
     m_p->m_condQueue.notify_all();
   }
 
-  m_p->m_recvTh.join();
+  if(m_p->m_recvTh.joinable())
+  {
+    m_p->m_recvTh.join();
+  }
 
   if(m_p->m_fd >= 0)
   {
