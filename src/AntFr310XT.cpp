@@ -222,7 +222,7 @@ AntFr310XT::stop()
 void
 AntFr310XT::stopAsync()
 {
-  assert(boost::this_thread::get_id() != this->m_eventTh.get_id());
+  assert(std::this_thread::get_id() != this->m_eventTh.get_id());
 
 
   LOG(LOG_WARN) << "stopAsync called!\n\n";
