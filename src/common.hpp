@@ -35,6 +35,7 @@ namespace antpm {
 #define LOG_VAR(x) do { LOG(antpm::LOG_INF) << #x << "= " << x << std::endl; } while(0)
 #define LOG_VAR_DBG2(x) do { LOG(antpm::LOG_DBG2) << #x << "= " << x << std::endl; } while(0)
 #define LOG_VAR2(x,y) do { LOG(antpm::LOG_INF) << #x << "= " << x << ", " #y << "= " << y << std::endl; } while(0)
+#define LOG_VAR2_IF_UNEQUAL(x,y) do { if((x) != (y)) { LOG(antpm::LOG_INF) << #x << "= " << x << ", " #y << "= " << y << std::endl; } } while(0)
 #define LOG_VAR3(x,y, z) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << std::endl; } while(0)
 #define LOG_VAR4(x,y, z, w) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << std::endl; } while(0)
 #define LOG_VAR5(x,y, z, w,v) do { LOG(antpm::LOG_INF) << #x "= " << x << ", " #y "= " << y << ", " #z "= " << z << ", " #w "= " << w << ", " #v "= " << v << std::endl; } while(0)

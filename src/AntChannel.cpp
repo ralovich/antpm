@@ -341,7 +341,8 @@ AntBurstListener::collectBurst(std::vector<uint8_t>& burstData, const size_t tim
       //  //++i;j++;
       //  continue;
       //}
-      //LOG_VAR2((int)burst->seq, (int)expectedSeq);
+
+      LOG_VAR2_IF_UNEQUAL((int)burst->seq, (int)expectedSeq);
       CHECK_RETURN_FALSE(burst->seq == expectedSeq);
       ++expectedSeq;
       if(expectedSeq == 4)
