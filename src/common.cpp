@@ -20,6 +20,7 @@
 #include "common.hpp"
 #include <cstring>
 #include <iostream>
+#include <iomanip> // setw
 #include <sstream>
 #include <thread>
 #include "Log.hpp"
