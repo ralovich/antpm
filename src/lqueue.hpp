@@ -17,7 +17,7 @@
 // ***** END LICENSE BLOCK *****
 #pragma once
 
-
+#include <atomic>
 #include <cassert>
 #include <condition_variable>
 #include <chrono>
@@ -159,9 +159,9 @@ public:
   }
 
 protected:
-  volatile bool stop;
-  volatile bool started;
-  volatile bool stopped;
+  std::atomic<bool> stop;
+  std::atomic<bool> started;
+  std::atomic<bool> stopped;
   Listener2 mCallback;
 };
 
@@ -327,6 +327,6 @@ protected:
 protected:
   ListenerProc lp;
   std::unique_ptr<std::thread> th_listener;
-  volatile bool stop;
+  std::atomic<bool> stop;
   Listener2 mCallback;
 };

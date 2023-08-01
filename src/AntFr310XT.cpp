@@ -82,7 +82,6 @@ AntFr310XT::AntFr310XT(Serial *s)
   , m_antMessenger(new AntMessenger())
   , clientState(BUSY)
   , state(ST_ANTFS_0)
-  , m_eventThKill(0)
   , m_restartCount(0)
   , aplc(getConfigFolder()+std::string("antparse_")+getDateString()+".txt")
   , clientSN(0)
@@ -109,7 +108,7 @@ AntFr310XT::~AntFr310XT()
     m_antMessenger->setCallback(0);
   }
 
-  m_eventThKill=1;
+  m_eventThKill=true;
   if(m_eventTh.joinable())
   {
     m_eventTh.join();
@@ -196,7 +195,7 @@ void
 AntFr310XT::stop()
 {
   assert(std::this_thread::get_id() == this->m_eventTh.get_id());
-  m_eventThKill = 1;
+  m_eventThKill = true;
   // stop() is called from the event thread
   // terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::thread_resource_error> >'
   //   what():  boost thread: trying joining itself: Resource deadlock avoided

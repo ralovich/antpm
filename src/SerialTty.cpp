@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#include <atomic>
 #include <functional>
 #include <algorithm>
 #include <condition_variable>
@@ -65,7 +66,7 @@ struct SerialTtyPrivate
   mutable std::mutex m_queueMtx;
   std::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
-  volatile int m_recvThKill;
+  std::atomic<bool> m_recvThKill = false;
   size_t       m_writeDelay;
 
   bool guessDeviceName(std::vector<std::string>& guessedNames);
@@ -270,7 +271,6 @@ SerialTty::SerialTty()
   LOG(LOG_INF) << "Using SerialTty...\n";
 
   m_p->m_fd = -1;
-  m_p->m_recvThKill = 0;
   m_p->m_writeDelay = 0;
 }
 
@@ -360,7 +360,7 @@ SerialTty::open()
   tp.c_cc[VTIME] = 0;
   ENSURE_OR_RETURN_FALSE(tcsetattr(m_p->m_fd, TCSANOW, &tp));
 
-  m_p->m_recvThKill = 0;
+  m_p->m_recvThKill = false;
   SerialTtyIOThread recTh;
   m_p->m_recvTh = std::thread(recTh, this);
 
@@ -372,7 +372,7 @@ SerialTty::open()
 void
 SerialTty::close()
 {
-  m_p->m_recvThKill = 1;
+  m_p->m_recvThKill = true;
 
   {
     std::unique_lock<std::mutex> lock(m_p->m_queueMtx);

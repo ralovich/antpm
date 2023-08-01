@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#include <atomic>
 #include <algorithm>
 #include <cassert>
 #include <condition_variable>
@@ -99,7 +100,7 @@ struct SerialUsbPrivate
   mutable std::mutex m_queueMtx;
   std::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
-  volatile int m_recvThKill;
+  std::atomic<bool> m_recvThKill = false; // set to true to signal receiver thread to exit
   libusb_device_handle* dev;
   unsigned short dev_vid;
   unsigned short dev_pid;
@@ -306,7 +307,6 @@ SerialUsb::SerialUsb()
   LOG(LOG_INF) << "Using SerialUsb...\n";
 
   m_p.reset(new SerialUsbPrivate());
-  m_p->m_recvThKill = 0;
   m_p->dev = 0;
   m_p->dev_vid = 0;
   m_p->dev_pid = 0;
@@ -394,7 +394,7 @@ SerialUsb::open()
 
   CHECK_RETURN_FALSE(m_p->cp210xInit());
 
-  m_p->m_recvThKill = 0;
+  m_p->m_recvThKill = false;
   AntUsbHandler2_Recevier recTh;
   recTh.rv = 0;
   m_p->m_recvTh = std::thread(recTh, this);
@@ -409,7 +409,7 @@ SerialUsb::close()
 {
   if(m_p.get())
   {
-    m_p->m_recvThKill = 1;
+    m_p->m_recvThKill = true;
     {
       std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
       m_p->m_condQueue.notify_all(); // make sure an other thread calling readBlocking() moves on too

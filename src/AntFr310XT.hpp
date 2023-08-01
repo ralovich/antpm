@@ -65,7 +65,7 @@ protected:
   StateANTFS clientState;
   int state;
   std::mutex stateMtx;
-  volatile int m_eventThKill;
+  std::atomic<bool> m_eventThKill = false;
   int m_restartCount;
   std::thread m_eventTh;
   lqueue4<AntMessage> m_evQue;
