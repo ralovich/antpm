@@ -1135,7 +1135,7 @@ AntMessenger::onMessage(std::vector<AntMessage> v)
     }
     else
     {
-      lprintf(antpm::LOG_WARN, "unhandled 0x%0x\n", (int)m.getMsgId());
+      lprintf(antpm::LOG_WARN, "unhandled 0x%0x %s\n", (int)m.getMsgId(), m.msgId2Str(m.getMsgId()).c_str());
     }
 
   }
