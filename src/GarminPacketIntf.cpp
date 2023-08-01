@@ -167,7 +167,7 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
   }
   sstr << "---------------\n\n\n";
 
-  cout << sstr.str();
+  LOG(LOG_INF) << sstr.str();
 
   return true;
 }
