@@ -821,6 +821,8 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<ui
   bool sentDirect = false;
   for(int i = 0; i < ANTPM_RETRIES; i++)
   {
+    if(interrupted)
+      return false;
     sentDirect = false;
 
     LOG_VAR(waitForBroadcast(chan));
