@@ -166,11 +166,11 @@ public:
   void interruptWait();
 //public:
 private:
-  Serial* m_io;
-  AntCallback* m_cb;
+  Serial* m_io = nullptr;
+  AntCallback* m_cb = nullptr;
   //std::vector<std::shared_ptr<AntCallback>> m_cbs;
   std::thread m_packerTh; // thread to reconstruct messages from bytes flowing in
-  volatile int m_packerThKill;
+  std::atomic<bool> m_packerThKill = false;
 
   std::atomic<bool> interrupted = false;
 

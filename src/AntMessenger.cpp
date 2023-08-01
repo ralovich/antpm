@@ -56,12 +56,8 @@ struct AntMessenger_Recevier
 
 
 AntMessenger::AntMessenger()
-  : m_io(0)
-  , m_cb(0)
-  , m_packerThKill(0)
-  , m_rpackQueue2()
+  : m_rpackQueue2()
 {
-  m_packerThKill = 0;
   AntMessenger_Recevier msgTh;
   msgTh.rv=0;
   m_packerTh = std::thread(msgTh, this);
@@ -81,7 +77,7 @@ AntMessenger::AntMessenger()
 AntMessenger::~AntMessenger()
 {
   m_rpackQueue2.setOnDataArrivedCallback(0);
-  m_packerThKill = 1;
+  m_packerThKill = true;
   if(m_packerTh.joinable())
   {
     m_packerTh.join();
