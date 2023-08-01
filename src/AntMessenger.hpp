@@ -172,6 +172,8 @@ private:
   std::thread m_packerTh; // thread to reconstruct messages from bytes flowing in
   volatile int m_packerThKill;
 
+  std::atomic<bool> interrupted = false;
+
   // received packet queue
   lqueue3<AntMessage> m_rpackQueue2;
   std::atomic<size_t> packetIdx;

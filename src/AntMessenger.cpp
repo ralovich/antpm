@@ -578,6 +578,9 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
   uint nextOffset = 0;
   do
   {
+    if(interrupted)
+      return false;
+
     //fprintf(loggerc(), "dlIter=%lu, crc=0x%04x, off=0x%08x\n", (unsigned long)dlIter, crc, nextOffset);
     //LOG_VAR2(dlIter, toString(crc,4,'0'));
     M_ANTFS_Command_Download dl;
@@ -1223,6 +1226,8 @@ AntMessenger::interruptWait()
   {
     chs[i]->interruptWait();
   }
+
+  interrupted = true;
 
   sanityCheck(__FUNCTION__);
 }
