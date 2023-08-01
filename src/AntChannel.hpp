@@ -49,7 +49,6 @@ public:
 
 struct AntChannel
 {
-  AntChannel() = default;
   AntChannel(const uchar ch);
 private:
   const uchar chan;

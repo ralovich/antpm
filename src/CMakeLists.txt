@@ -6,6 +6,7 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 
 PROJECT(antpm C CXX)
+set(CMAKE_CXX_STANDARD 14)
 
 OPTION(USE_COVERAGE "use gcov" FALSE)
 OPTION(USE_BOOST_TEST "use boost::test" FALSE)
@@ -66,10 +67,13 @@ ELSE()
   find_package(PkgConfig REQUIRED)
   pkg_check_modules(LIBUSB_1 REQUIRED libusb-1.0)
 ENDIF()
+MESSAGE(STATUS "LIBUSB_1: ${LIBUSB_1_INCLUDE_DIRS} ${LIBUSB_1_LIBRARY_DIRS} ${LIBUSB_1_LIBRARIES}")
 
 IF(USE_BOOST_STATIC_LINK)
+#    set(Boost_VERBOSE ON)
+#    set(Boost_DEBUG ON)
   set(Boost_USE_STATIC_LIBS        ON)
-  set(Boost_USE_STATIC_RUNTIME    ON)
+  set(Boost_USE_STATIC_RUNTIME    OFF)
 ELSE()
   set(Boost_USE_STATIC_LIBS        OFF)
   set(Boost_USE_STATIC_RUNTIME    OFF)
@@ -78,23 +82,16 @@ ELSE()
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
 FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
-IF(NOT Boost_FOUND)
-  MESSAGE(FATAL_ERROR "Boost not found!")
-ENDIF()
-
-
-INCLUDE_DIRECTORIES(.)
-INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
-INCLUDE_DIRECTORIES(${LIBUSB_1_INCLUDE_DIRS})
-
-LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
+#IF(NOT Boost_FOUND)
+#  MESSAGE(FATAL_ERROR "Boost not found!")
+#ENDIF()
 
 IF(MSVC)
   ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_WARNINGS)
   #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:libboost_date_time-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_thread-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_program_options-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_filesystem-vc90-mt-s-1_43.lib /NODEFAULTLIB:libboost_system-vc90-mt-s-1_43.lib")
 ENDIF()
 
-FILE(READ "${PROJECT_SOURCE_DIR}/VERSION" ANTPM_VERSION)
+FILE(READ "${PROJECT_SOURCE_DIR}/ANTPM_VERSION.inc" ANTPM_VERSION)
 MESSAGE(STATUS "ANTPM_VERSION=\\\"${ANTPM_VERSION}\\\"")
 ADD_DEFINITIONS(-DANTPM_VERSION=${ANTPM_VERSION})
 
@@ -120,32 +117,40 @@ SET(SRCS
   Log.hpp
   LazySingleton.hpp
 
-  VERSION
+  ANTPM_VERSION.inc
 )
 IF(NOT WIN32)
   SET(SRCS
-	  ${SRCS}
-    SerialTty.hpp SerialTty.cpp
-	  )
+      ${SRCS}
+      SerialTty.hpp SerialTty.cpp
+      )
   SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
   SET(MY_ANTPM_LIBRARIES "stdc++")
   IF(NOT APPLE)
     SET(MY_ANTPM_LIBRARIES "${MY_ANTPM_LIBRARIES};rt")
+  ENDIF()
+  IF(APPLE)
+      SET(LIBUSB_1_LIBRARIES ${pkgcfg_lib_LIBUSB_1_usb-1.0})
   ENDIF()
 ENDIF()
 
 
 ADD_LIBRARY(antpm
   ${SRCS}
-)
+  )
+TARGET_INCLUDE_DIRECTORIES(antpm PUBLIC .)
+TARGET_INCLUDE_DIRECTORIES(antpm PRIVATE ${LIBUSB_1_INCLUDE_DIRS})
+TARGET_LINK_DIRECTORIES(antpm
+    PRIVATE ${LIBUSB_1_LIBRARY_DIRS}
+    )
 TARGET_LINK_LIBRARIES(antpm
-  ${Boost_DATE_TIME_LIBRARY}
+  Boost::date_time
   ${LIBUSB_1_LIBRARIES}
-  ${Boost_THREAD_LIBRARY}
-  ${Boost_ATOMIC_LIBRARY}
-  ${Boost_EXCEPTION_LIBRARY}
-  ${Boost_SYSTEM_LIBRARY}
-  ${Boost_FILESYSTEM_LIBRARY}
+  Boost::thread
+  Boost::atomic
+  Boost::exception
+  Boost::system
+  Boost::filesystem
   ${MY_ANTPM_LIBRARIES}
 )
 
@@ -154,7 +159,7 @@ ADD_EXECUTABLE(antpm-usbmon2ant
 )
 TARGET_LINK_LIBRARIES(antpm-usbmon2ant
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-usbmon2ant RUNTIME DESTINATION bin)
 
@@ -164,7 +169,7 @@ ADD_EXECUTABLE(antpm-downloader
 )
 TARGET_LINK_LIBRARIES(antpm-downloader
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-downloader RUNTIME DESTINATION bin)
 
@@ -174,7 +179,7 @@ ADD_EXECUTABLE(antpm-fit2gpx
 )
 TARGET_LINK_LIBRARIES(antpm-fit2gpx
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
+  Boost::program_options
 )
 INSTALL(TARGETS antpm-fit2gpx RUNTIME DESTINATION bin)
 

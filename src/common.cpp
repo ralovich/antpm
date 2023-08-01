@@ -19,11 +19,7 @@
 
 #include "common.hpp"
 #include <iostream>
-#include <boost/thread/thread_time.hpp>
 #include <boost/thread.hpp>
-#include <boost/tokenizer.hpp>
-#include <boost/foreach.hpp>
-//#include <QDateTime>
 #include <sstream>
 #include <boost/date_time.hpp>
 #include <boost/filesystem.hpp>
@@ -120,8 +116,9 @@ tokenize(const std::string& text, const char* delims)
   std::vector<std::string> rv;
   boost::char_separator<char> sep(delims);
   boost::tokenizer<boost::char_separator<char> > tokens(text, sep);
-  BOOST_FOREACH(std::string t, tokens)
+  for(auto it = tokens.begin(); it != tokens.end(); it++)
   {
+    const std::string& t = *it;
     rv.push_back(t);
   }
   return rv;
@@ -305,8 +302,20 @@ folderExists(const char* dirName)
 const std::string
 getVersionString()
 {
+  unsigned char arr[2] = {0x01, 0x00};
+  unsigned short int x = *(unsigned short int *) arr;
+  bool little_endian = x == 1;
+
+//
+// Helper macro STRINGIZE:
+// Converts the parameter X to a string after macro replacement
+// on X has been performed.
+//
+#define STRINGIZE(X) DO_STRINGIZE(X)
+#define DO_STRINGIZE(X) #X
+
   return std::string("") + APP_NAME
-      + " v" + std::string(BOOST_STRINGIZE(ANTPM_VERSION))
+      + " v" + std::string(STRINGIZE(ANTPM_VERSION))
       + " built "
       + " under "
 #ifdef __linux__
@@ -319,24 +328,26 @@ getVersionString()
   "win64"
 #elif defined(_WIN32)
   "win32"
+#elif defined(__APPLE__)
+  "macos"
 #else
   "unknown_os"
 #endif
       + " with "
 #ifdef __GNUC__
+# if defined(__clang__)
+  "CLANG " __VERSION__
+# else
   "GCC " __VERSION__
+# endif
 #elif defined(_MSC_VER)
-# define STRINGIFY( L )       #L
-# define MAKESTRING( M, L )   M(L)
-# define STRINGIZE(X)         MAKESTRING( STRINGIFY, X )
   + std::string("MSVC " STRINGIZE(_MSC_FULL_VER))
-# undef STRINGIZE
-# undef MAKESTRING
-# undef STRINGIFY
 #else
   "unknow_compiler"
 #endif
-      + std::string("");
+      + (little_endian ? std::string(" LE") : std::string(" BE"));
+#undef DO_STRINGIZE
+#undef STRINGIZE
 }
 
 

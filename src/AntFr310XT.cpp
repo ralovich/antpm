@@ -438,11 +438,12 @@ AntFr310XT::handleEvents()
 
     LOG(LOG_RAW) << "\n\nFound client \"" << clientDevName << "\" SN=0x" << toString<uint>(clientSN,8,'0') << " SN=" << clientSN << "\n\n\n";
 
-    m_ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
+    m_ds.reset(new DeviceSettings(clientDevName, toStringDec<uint>(clientSN)));
     assert(m_ds.get());
     m_ds->loadDefaultValues();
     LOG_VAR(m_ds->getConfigFileName());
     m_ds->loadFromFile(m_ds->getConfigFileName());
+    mkDir(m_ds->getFolder().c_str());
     m_ds->saveToFile(m_ds->getConfigFileName());
     m_serial->setWriteDelay(m_ds->SerialWriteDelayMs);
 

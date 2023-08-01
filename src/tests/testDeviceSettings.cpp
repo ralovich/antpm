@@ -107,12 +107,13 @@ BOOST_AUTO_TEST_CASE(convert)
 BOOST_AUTO_TEST_CASE(load_save)
 {
   boost::scoped_ptr<DeviceSettings> m_ds;
+  std::string clientName = "TestDevice";
   uint clientSN = 1279010136;
   const char* fname = TEST_ROOT"/config.ini";
   std::cout << fname << "\n";
   const char* fname_tmp = TEST_ROOT"/config_tmp.ini";
 
-  m_ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
+  m_ds.reset(new DeviceSettings(clientName, toStringDec<uint>(clientSN)));
   assert(m_ds.get());
   m_ds->loadDefaultValues();
   boost::filesystem::remove(fname_tmp);
@@ -157,7 +158,7 @@ BOOST_AUTO_TEST_CASE(load_db)
   {
     boost::scoped_ptr<DeviceSettings> ds;
     //ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
-    ds.reset(new DeviceSettings(devices[i].c_str()));
+    ds.reset(new DeviceSettings("UnknownName", devices[i]));
     assert(ds.get());
     BOOST_CHECK(ds);
     Database db = ds->getDatabaseFiles();

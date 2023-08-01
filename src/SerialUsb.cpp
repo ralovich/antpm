@@ -54,6 +54,7 @@
 
 namespace antpm {
 
+//!  USB is little-endian. See section 7.1 of the USB 3.0 Specification https://www.usb.org/documents
 const uchar USB_ANT_CONFIGURATION = 1;
 const uchar USB_ANT_INTERFACE = 0;
 const uchar USB_ANT_EP_IN  = 0x81;
@@ -349,6 +350,9 @@ struct AntUsbHandler2_Recevier
 bool
 SerialUsb::open()
 {
+#ifdef __APPLE__
+  return false;
+#endif
   assert(!isOpen());
   if(isOpen())
     return false;
@@ -412,7 +416,10 @@ SerialUsb::close()
       boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
       m_p->m_condQueue.notify_all(); // make sure an other thread calling readBlocking() moves on too
     }
-    m_p->m_recvTh.join(); // wtf if the thread was never started?
+    if(m_p->m_recvTh.joinable())
+    {
+      m_p->m_recvTh.join();
+    }
 
     if(m_p->dev)
     {

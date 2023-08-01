@@ -363,6 +363,8 @@ SerialTty::open()
     possibleNames.push_back("/dev/ttyUSB7");
     possibleNames.push_back("/dev/ttyUSB8");
     possibleNames.push_back("/dev/ttyUSB9");
+    possibleNames.push_back("/dev/cu.ANTUSBStick.slabvcp");
+    possibleNames.push_back("/dev/cu.ANTUSBStick.slabvcp");
 
     possibleNames.erase(remove_if(possibleNames.begin(),
                                   possibleNames.end(),
@@ -423,7 +425,10 @@ SerialTty::close()
     m_p->m_condQueue.notify_all();
   }
 
-  m_p->m_recvTh.join();
+  if(m_p->m_recvTh.joinable())
+  {
+    m_p->m_recvTh.join();
+  }
 
   if(m_p->m_fd >= 0)
   {
