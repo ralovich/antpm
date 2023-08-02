@@ -1099,14 +1099,14 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
 
 /// Called from m_rpackQueue2.eventLoop()
 bool
-AntMessenger::onMessage(std::vector<AntMessage> v)
+AntMessenger::onMessage(const std::vector<AntMessage> &v)
 {
   //TODO: don't presort here, but call onMsg for all incoming packets
 
   //lprintf(antpm::LOG_DBG3, "%d\n", int(v.size()));
   for(size_t i = 0; i < v.size(); i++)
   {
-    AntMessage& m(v[i]);
+    const AntMessage& m(v[i]);
     lprintf(antpm::LOG_DBG3, "%s\n", m.str().c_str());
 
     if(m.getMsgId()==MESG_RESPONSE_EVENT_ID

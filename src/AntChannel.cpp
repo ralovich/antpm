@@ -44,7 +44,7 @@ AntChannel::rmMsgListener2(AntListenerBase* lb)
 }
 
 void
-AntChannel::onMsg(AntMessage &m)
+AntChannel::onMsg(const AntMessage &m)
 {
   std::unique_lock<std::mutex> lock(m_mtxListeners);
   for(std::list<AntListenerBase*>::iterator i = listeners.begin(); i != listeners.end(); i++)
@@ -102,7 +102,7 @@ AntListenerBase::~AntListenerBase()
 
 
 void
-AntListenerBase::onMsg(AntMessage& m)
+AntListenerBase::onMsg(const AntMessage &m)
 {
   std::unique_lock<std::mutex> lock(m_mtxResp);
   if(match(m))
@@ -161,7 +161,7 @@ AntListenerBase::waitForMsg(AntMessage* m, const size_t timeout_ms)
 
 
 bool
-AntEvListener::match(AntMessage& other) const
+AntEvListener::match(const AntMessage& other) const
 {
   return other.getMsgId()==MESG_RESPONSE_EVENT_ID
       && owner.getChan() == other.getPayloadRef()[0]
@@ -187,7 +187,7 @@ AntEvListener::waitForEvent(uint8_t& msgCode, const size_t timeout_ms)
 
 
 bool
-AntRespListener::match(AntMessage& other) const
+AntRespListener::match(const AntMessage& other) const
 {
   return other.getMsgId()==MESG_RESPONSE_EVENT_ID
       && owner.getChan() == other.getPayloadRef()[0]
@@ -215,7 +215,7 @@ AntRespListener::waitForResponse(uint8_t& respVal, const size_t timeout_ms)
 
 
 bool
-AntReqListener::match(AntMessage& other) const
+AntReqListener::match(const AntMessage &other) const
 {
   bool matched = other.getMsgId()==msgId
     && other.getPayloadRef()[0]==chan;
@@ -229,7 +229,7 @@ AntReqListener::match(AntMessage& other) const
 
 
 bool
-AntBCastListener::match(AntMessage& other) const
+AntBCastListener::match(const AntMessage &other) const
 {
   return other.getMsgId()==MESG_BROADCAST_DATA_ID
       && other.getPayloadRef()[0]==owner.getChan()
@@ -257,7 +257,7 @@ AntBCastListener::waitForBCast(AntMessage& bcast, const size_t timeout_ms)
 
 
 void
-AntBurstListener::onMsg(AntMessage& m)
+AntBurstListener::onMsg(const AntMessage &m)
 {
   std::unique_lock<std::mutex> lock(m_mtxResp);
   if(match(m))
@@ -278,7 +278,7 @@ AntBurstListener::interruptWait()
 
 
 bool
-AntBurstListener::match(AntMessage& other) const
+AntBurstListener::match(const AntMessage &other) const
 {
   const M_ANT_Burst* burst(reinterpret_cast<const M_ANT_Burst*>(other.getPayloadRef()));
   return other.getMsgId()==MESG_BURST_DATA_ID

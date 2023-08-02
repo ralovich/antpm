@@ -92,7 +92,7 @@ class lqueue3 : public lqueue2<DataType>
 {
 public:
   typedef std::function<bool (DataType&)>     Listener;
-  typedef std::function<bool (std::vector<DataType>&)> Listener2;
+  typedef std::function<bool (const std::vector<DataType>&)> Listener2;
   typedef lqueue2<DataType>                              Super;
 
   lqueue3()

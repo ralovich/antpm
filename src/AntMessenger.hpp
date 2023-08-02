@@ -156,7 +156,7 @@ private:
 
   bool assemblePackets(std::list<uchar>& q);
 
-  bool onMessage(std::vector<AntMessage> v);
+  bool onMessage(const std::vector<AntMessage>& v);
 
   void sanityCheck(const char* caller);
   
