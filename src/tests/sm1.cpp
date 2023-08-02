@@ -339,6 +339,8 @@ BOOST_AUTO_TEST_CASE(test_serial2)
   Serial* st = new SerialTester2();
   AntFr310XT watch2(st);
 
+  BOOST_CHECK_EQUAL(watch2.getSMState(), ST_ANTFS_0);
+
   watch2.run();
 
 }
