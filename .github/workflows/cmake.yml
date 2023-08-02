@@ -23,7 +23,9 @@ jobs:
 
     steps:
     - name: Build system ID
-      run: uname -a
+      run: |
+        echo ${{ runner.arch }}
+        uname -a
 
     - name: Install APT build-deps
       if: runner.os == 'Linux'
@@ -48,5 +50,5 @@ jobs:
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure
+      run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure -j 2
 
