@@ -6,6 +6,9 @@
 #if defined(__GNU__) /* Hurd */
 # define _GNU_SOURCE
 #endif
+#if defined(__APPLE__)
+# define _DARWIN_C_SOURCE
+#endif
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
