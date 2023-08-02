@@ -140,8 +140,7 @@ IF(NOT WIN32)
       ${SRCS}
       SerialTty.hpp SerialTty.cpp
       )
-  SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
-  SET(MY_ANTPM_LIBRARIES "stdc++")
+  SET(MY_ANTPM_LIBRARIES "stdc++;pthread")
   IF(NOT APPLE)
     SET(MY_ANTPM_LIBRARIES "${MY_ANTPM_LIBRARIES};rt")
   ENDIF()
