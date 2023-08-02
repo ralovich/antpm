@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Install build-deps
-        run: brew install pkg-config libusb cmake ninja boost
+        run: brew install pkg-config libusb cmake ninja boost libxml2
 
       - name: Checkout
         uses: actions/checkout@v3
