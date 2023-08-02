@@ -236,14 +236,12 @@ AntFr310XT::stopAsync()
 const int
 AntFr310XT::getSMState() const
 {
-  //boost::unique_lock<boost::mutex> lock(this->stateMtx); // not needed, as this is a atomic read
   return state;
 }
 
 const char*
 AntFr310XT::getSMStateStr() const
 {
-  //boost::unique_lock<boost::mutex> lock(this->stateMtx); // not needed, as this is a atomic read
   return StateFSWork2Str(state);
 }
 

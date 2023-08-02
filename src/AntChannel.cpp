@@ -97,7 +97,6 @@ AntListenerBase::AntListenerBase(AntChannel& o)
 AntListenerBase::~AntListenerBase()
 {
   //FIXME: what happens if this dtor is called while an other thread is still executing waitForMsg() ?
-  //boost::unique_lock<boost::mutex> lock(m_mtxResp);
   owner.rmMsgListener2(this);
 }
 
@@ -324,11 +323,7 @@ AntBurstListener::collectBurst(std::vector<uint8_t>& burstData, const size_t tim
   auto td = timeout_ms*1ms;
   std::chrono::system_clock::time_point start = std::chrono::system_clock::now();
   std::chrono::system_clock::time_point end = start + td;
-  //boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
-  //boost::posix_time::ptime end = start+boost::posix_time::milliseconds(timeout_ms);
 
-  //boost::posix_time::ptime after=start;
-  //boost::posix_time::time_duration remaining = end-after;
   std::chrono::system_clock::time_point after = start;
   std::chrono::system_clock::duration remaining = end - after;
   uchar expectedSeq=0;
@@ -341,7 +336,6 @@ AntBurstListener::collectBurst(std::vector<uint8_t>& burstData, const size_t tim
     //size_t left_ms=static_cast<size_t>(remaining.total_milliseconds());
     //printf("msg wait ms=%d\n",  int(left_ms));
     CHECK_RETURN_FALSE(waitForBursts(msgs, left_ms));
-    //after = boost::posix_time::microsec_clock::local_time();
     after = sc::now();  // TODO: should this be std::chrono::high_resolution_clock::now(); ?
     remaining = end-after;
     for(std::list<AntMessage>::iterator i = msgs.begin(); i != msgs.end(); i++)

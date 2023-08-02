@@ -367,7 +367,6 @@ static_assert(sizeof(M_ANT_Burst)==9);
 //
 struct AntMessage{
   bool                       sent;  // sent or received
-  //boost::system_time         timestamp;
   std::chrono::time_point<std::chrono::system_clock> timestamp;
   size_t                     idx;   //
   std::vector<unsigned char> bytes; // the raw message bytes
