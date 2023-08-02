@@ -830,13 +830,7 @@ GFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { LOG(LOG_ERR) << "truncated fwrite\n"; fclose(f); return false; }
   fclose(f);
 
-  //FIT fit;
-  //std::time_t ct=0;
-  //CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
-  //char tbuf[256];
-  //strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&ct));
-  ////LOG_VAR(tbuf);
-  //boost::filesystem::last_write_time(boost::filesystem::path(fileName), ct);
+  // TODO: set last write time to creation data of data, if available
 
   return true;
 }
