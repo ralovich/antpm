@@ -325,6 +325,12 @@ BOOST_AUTO_TEST_CASE(test_serial1)
 
 BOOST_AUTO_TEST_CASE(test_serial2)
 {
+  using namespace boost::unit_test;
+  BOOST_TEST_REQUIRE( framework::master_test_suite().argc == 2 );
+  BOOST_TEST_MESSAGE( "'argv[0]' contains " << framework::master_test_suite().argv[0] );
+  BOOST_TEST_MESSAGE( "'argv[1]' contains " << framework::master_test_suite().argv[1] );
+  std::string log_file_to_replay = framework::master_test_suite().argv[1];
+
   antpm::Log::instance()->addSink(std::cout);
   antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
 
