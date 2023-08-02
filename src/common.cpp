@@ -18,13 +18,13 @@
 
 
 #include "common.hpp"
+#include <cstring>
 #include <iostream>
-#include <boost/thread.hpp>
+#include <iomanip> // setw
 #include <sstream>
-#include <boost/date_time.hpp>
-#include <boost/filesystem.hpp>
+#include <thread>
 #include "Log.hpp"
-
+#include <filesystem>
 
 namespace antpm {
 
@@ -47,8 +47,9 @@ namespace antpm {
 void
 sleepms(const size_t timeout_ms)
 {
-  boost::system_time const timeout=boost::get_system_time() + boost::posix_time::milliseconds(timeout_ms);
-  boost::this_thread::sleep(timeout);
+  using namespace std::chrono_literals;
+  auto td = timeout_ms*1ms;
+  std::this_thread::sleep_for(td);
 }
 
 
@@ -110,18 +111,16 @@ toStringDec(const T& val, const int width, const char fill)
   return clStr.str();
 }
 
-const std::vector<std::string>
-tokenize(const std::string& text, const char* delims)
+std::vector<std::string> split(const std::string& s, char delimiter)
 {
-  std::vector<std::string> rv;
-  boost::char_separator<char> sep(delims);
-  boost::tokenizer<boost::char_separator<char> > tokens(text, sep);
-  for(auto it = tokens.begin(); it != tokens.end(); it++)
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream tokenStream(s);
+  while (std::getline(tokenStream, token, delimiter))
   {
-    const std::string& t = *it;
-    rv.push_back(t);
+    tokens.push_back(token);
   }
-  return rv;
+  return tokens;
 }
 
 const std::string
@@ -130,6 +129,7 @@ getDateString()
   //QString filename = QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss");
   //QByteArray ba=filename.toLatin1();
   //return ba.constData();
+#if 0
   std::ostringstream msg;
   const boost::posix_time::ptime now=boost::posix_time::second_clock::local_time();
   boost::posix_time::time_facet*const f=new boost::posix_time::time_facet("%Y_%m_%d_%H_%M_%S");
@@ -147,6 +147,13 @@ getDateString()
     std::cerr << e.what() << std::endl;
   }
   return msg.str();
+#endif
+  std::time_t t = std::time(nullptr);
+  std::tm tm = *std::localtime(&t);
+
+  std::stringstream ss;
+  ss << std::put_time(&tm, "%Y_%m_%d_%H_%M_%S");
+  return ss.str();
 }
 
 
@@ -256,12 +263,12 @@ mkDir(const char* dirName)
 {
   try
   {
-    boost::filesystem::path ddir(dirName);
+    std::filesystem::path ddir(dirName);
     LOG(LOG_DBG) << "mkDir: \"" << ddir << "\"\n";
-    return boost::filesystem::create_directories(ddir);
+    return std::filesystem::create_directories(ddir);
   }
   // Throws:  basic_filesystem_error<Path> if exists(p) && !is_directory(p)
-  catch(boost::filesystem::filesystem_error& bfe)
+  catch(std::filesystem::filesystem_error& bfe)
   {
     LOG(LOG_WARN) << "mkDir: failed\n"
                   << "\twhat  " << bfe.what() << "\n"
@@ -277,11 +284,11 @@ mkDirNoLog(const char* dirName)
 {
   try
   {
-    boost::filesystem::path ddir(dirName);
-    return boost::filesystem::create_directories(ddir);
+    std::filesystem::path ddir(dirName);
+    return std::filesystem::create_directories(ddir);
   }
   // Throws:  basic_filesystem_error<Path> if exists(p) && !is_directory(p)
-  catch(boost::filesystem::filesystem_error& bfe)
+  catch(std::filesystem::filesystem_error& bfe)
   {
     std::cerr << "mkDir: failed\n"
               << "\twhat  " << bfe.what() << "\n"
@@ -295,8 +302,8 @@ mkDirNoLog(const char* dirName)
 bool
 folderExists(const char* dirName)
 {
-  boost::filesystem::path ddir(dirName);
-  return boost::filesystem::exists(ddir) && boost::filesystem::is_directory(ddir);
+  std::filesystem::path ddir(dirName);
+  return std::filesystem::exists(ddir) && std::filesystem::is_directory(ddir);
 }
 
 const std::string

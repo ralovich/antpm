@@ -1,10 +1,10 @@
 # -*- mode: cmake; coding: utf-8-dos -*-
-CMAKE_MINIMUM_REQUIRED(VERSION 2.8.2)
+CMAKE_MINIMUM_REQUIRED(VERSION 3.14.2)
 IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-option(macos_native "don't look for non apple system paths" ON) # https://gitlab.kitware.com/cmake/cmake/-/issues/21918
+option(macos_native "don't look for non apple system paths" OFF) # https://gitlab.kitware.com/cmake/cmake/-/issues/21918
 if(macos_native)
   if(APPLE)
     set(CMAKE_IGNORE_PATH)
@@ -18,7 +18,8 @@ if(macos_native)
 endif()
 
 PROJECT(antpm C CXX)
-set(CMAKE_CXX_STANDARD 14)
+SET(CMAKE_CXX_STANDARD 17)
+SET(CXX_STANDARD_REQUIRED ON)
 
 OPTION(USE_COVERAGE "use gcov" FALSE)
 OPTION(USE_BOOST_TEST "use boost::test" FALSE)
@@ -56,7 +57,7 @@ IF(MSVC)
 ENDIF()
 
 IF(CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -std=c++1y -Wall")
+  set(CMAKE_CXX_FLAGS                "${CMAKE_CXX_FLAGS} -fpermissive  -fms-extensions -Wall")
   SET(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O2 -g")
   SET(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -O2")
   set(CMAKE_CXX_FLAGS_DEBUG          "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g3 -ggdb3")
@@ -93,7 +94,7 @@ ELSE()
   ADD_DEFINITIONS(-DBOOST_TEST_DYN_LINK)
 ENDIF()
 set(Boost_USE_MULTITHREADED      ON)
-FIND_PACKAGE(Boost 1.41.0 COMPONENTS thread unit_test_framework program_options system filesystem date_time atomic exception REQUIRED)
+FIND_PACKAGE(Boost 1.41.0 COMPONENTS unit_test_framework program_options filesystem REQUIRED)
 #IF(NOT Boost_FOUND)
 #  MESSAGE(FATAL_ERROR "Boost not found!")
 #ENDIF()
@@ -107,9 +108,24 @@ FILE(READ "${PROJECT_SOURCE_DIR}/ANTPM_VERSION.inc" ANTPM_VERSION)
 MESSAGE(STATUS "ANTPM_VERSION=\\\"${ANTPM_VERSION}\\\"")
 ADD_DEFINITIONS(-DANTPM_VERSION=${ANTPM_VERSION})
 
+IF(USE_BOOST_TEST)
+
+  if(${VALGRIND_PREFIX})
+    message(STATUS "Valgrind Prefix: ${VALGRIND_PREFIX}")
+  endif()
+  find_program(VALGRIND_PROGRAM NAMES valgrind PATH /usr/bin /usr/local/bin ${VALGRIND_PREFIX}/bin)
+  IF(VALGRIND_PROGRAM)
+    message(STATUS "Found Valgrind: ${VALGRIND_PROGRAM}")
+    SET(MEMORYCHECK_COMMAND:FILEPATH=${VALGRIND_PROGRAM})
+    # You can add additional options by specifying MEMORYCHECK_COMMAND_OPTIONS and MEMORYCHECK_SUPPRESSIONS_FILE. 
+  ENDIF()
+
+  enable_testing()
+ENDIF()
+  
 SET(SRCS
   antdefs.hpp antdefs.cpp
-  SmartPtrFwd.hpp   w_inttypes.h w_stdint.h stdintfwd.hpp
+  w_inttypes.h w_stdint.h stdintfwd.hpp
   common.hpp common.cpp
   AntMessage.hpp AntMessage.cpp
   AntChannel.hpp   AntChannel.cpp
@@ -136,8 +152,7 @@ IF(NOT WIN32)
       ${SRCS}
       SerialTty.hpp SerialTty.cpp
       )
-  SET(Boost_THREAD_LIBRARY "${Boost_THREAD_LIBRARY};pthread")
-  SET(MY_ANTPM_LIBRARIES "stdc++")
+  SET(MY_ANTPM_LIBRARIES "stdc++;pthread")
   IF(NOT APPLE)
     SET(MY_ANTPM_LIBRARIES "${MY_ANTPM_LIBRARIES};rt")
   ENDIF()
@@ -156,12 +171,7 @@ TARGET_LINK_DIRECTORIES(antpm
     PRIVATE ${LIBUSB_1_LIBRARY_DIRS}
     )
 TARGET_LINK_LIBRARIES(antpm
-  Boost::date_time
   ${LIBUSB_1_LIBRARIES}
-  Boost::thread
-  Boost::atomic
-  Boost::exception
-  Boost::system
   Boost::filesystem
   ${MY_ANTPM_LIBRARIES}
 )
@@ -219,17 +229,5 @@ ENDIF()
 # INCLUDE(CPack)
 
 IF(USE_BOOST_TEST)
-
-  if(${VALGRIND_PREFIX})
-    message(STATUS "Valgrind Prefix: ${VALGRIND_PREFIX}")
-  endif()
-  find_program(VALGRIND_PROGRAM NAMES valgrind PATH /usr/bin /usr/local/bin ${VALGRIND_PREFIX}/bin)
-  IF(VALGRIND_PROGRAM)
-    message(STATUS "Found Valgrind: ${VALGRIND_PROGRAM}")
-    SET(MEMORYCHECK_COMMAND:FILEPATH=${VALGRIND_PROGRAM})
-    # You can add additional options by specifying MEMORYCHECK_COMMAND_OPTIONS and MEMORYCHECK_SUPPRESSIONS_FILE. 
-  ENDIF()
-
-  enable_testing()
   ADD_SUBDIRECTORY(tests)
 ENDIF()

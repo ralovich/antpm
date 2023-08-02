@@ -25,11 +25,9 @@
 #include <iomanip> // setw
 #include <cstring> // strlen
 #include <cassert> // assert
+#include <filesystem>
 #include <fstream>
 #include <queue>
-#include <boost/date_time/time_duration.hpp>
-#include <boost/date_time.hpp>
-#include <boost/filesystem.hpp>
 #include "FIT.hpp"
 
 
@@ -682,15 +680,15 @@ AntMessage::saveAsAntParse(std::ostream& os, const Container& messages)
 {
   CHECK_RETURN_FALSE(os.good());
 
-  boost::system_time t0;
+  std::chrono::time_point<std::chrono::system_clock> t0;
   for(typename Container::const_iterator i=messages.begin(); i!= messages.end(); i++)
   {
     if(i==messages.begin())
       t0=i->timestamp;
-    boost::system_time t1 = i->timestamp;
-    boost::posix_time::time_duration td = t1 - t0;
+    std::chrono::time_point<std::chrono::system_clock> t1 = i->timestamp;
+    auto td = t1 - t0;
     t0 = t1;
-    double dt = double(td.total_microseconds())*0.001;
+    double dt = double(std::chrono::duration_cast<std::chrono::microseconds>(td).count())*0.001;
     os << i->strDt(dt) << "\n";
   }
   return true;
@@ -798,19 +796,19 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { LOG(LOG_ERR) << "truncated fwrite\n"; fclose(f); return false; }
   fclose(f);
 
-  FIT fit;
   std::time_t ct=0;
   CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
   char fit_timestamp[256];
   strftime(fit_timestamp, sizeof(fit_timestamp), "%d-%m-%Y %H:%M:%S", localtime(&ct));
   LOG_VAR(fit_timestamp);
-  boost::filesystem::last_write_time(boost::filesystem::path(fileName), ct);
+  namespace fs = std::filesystem;
+  fs::last_write_time(fs::path(fileName), from_time_t<fs::file_time_type>(ct));
 
   return true;
 }
 
 bool
-GFile::saveToFile(const char* fileName /* = "antfs.bin" */)
+GFile::saveToFile(const char* fileName)
 {
   logger() << "Saving '" << fileName << "'...\n";
   if(bytes.empty()) { LOG(LOG_ERR) << "nothing to save\n"; return false; }
@@ -819,13 +817,7 @@ GFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { LOG(LOG_ERR) << "truncated fwrite\n"; fclose(f); return false; }
   fclose(f);
 
-  //FIT fit;
-  //std::time_t ct=0;
-  //CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
-  //char tbuf[256];
-  //strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&ct));
-  ////LOG_VAR(tbuf);
-  //boost::filesystem::last_write_time(boost::filesystem::path(fileName), ct);
+  // TODO: set last write time to creation data of data, if available
 
   return true;
 }

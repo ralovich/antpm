@@ -7,8 +7,8 @@ ADD_EXECUTABLE(testDeviceSettings
 )
 TARGET_LINK_LIBRARIES(testDeviceSettings
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::program_options
+  Boost::unit_test_framework
 )
 
 ADD_EXECUTABLE(testDateTime
@@ -16,8 +16,8 @@ ADD_EXECUTABLE(testDateTime
 )
 TARGET_LINK_LIBRARIES(testDateTime
   antpm
-  ${Boost_PROGRAM_OPTIONS_LIBRARY}
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::program_options
+  Boost::unit_test_framework
 )
 
 
@@ -26,7 +26,7 @@ ADD_EXECUTABLE(sm1
 )
 TARGET_LINK_LIBRARIES(sm1
   antpm
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::unit_test_framework
 )
 
 ADD_EXECUTABLE(lq1
@@ -34,12 +34,12 @@ ADD_EXECUTABLE(lq1
 )
 TARGET_LINK_LIBRARIES(lq1
   antpm
-  ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY}
+  Boost::unit_test_framework
 )
 
 
 IF(VALGRIND_PROGRAM)
-  function(add_my_test name binary)
+  function(ADD_MY_TEST name binary)
     #set(memcheck_command "${CMAKE_MEMORYCHECK_COMMAND} ${CMAKE_MEMORYCHECK_COMMAND_OPTIONS}")
     #separate_arguments(memcheck_command)
     add_test(${name} ${binary} ${ARGN})
@@ -64,7 +64,7 @@ ADD_MY_TEST(testDeviceSettings2 testDeviceSettings --help)
 
 ADD_MY_TEST(testDateTime2 testDateTime --help)
 
-#ADD_MY_TEST(testDownload ../antpm-downloader)
+ADD_MY_TEST(testDownload ../antpm-downloader)
 
 ADD_MY_TEST(testFit2Gpx ../antpm-fit2gpx)
 
@@ -74,6 +74,9 @@ ADD_MY_TEST(testUsbmon2AntUsbmon ../antpm-usbmon2ant --op usbmon ${CMAKE_CURRENT
 ADD_MY_TEST(testUsbmon2AntFilter ../antpm-usbmon2ant --op filter ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 ADD_MY_TEST(testUsbmon2AntCount  ../antpm-usbmon2ant --op count  ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 
+ADD_MY_TEST(testLockedQueue lq1 --log_level=all)
 
-#ADD_MY_TEST(testsm1 sm1)
-ADD_MY_TEST(testlq1 lq1)
+ADD_MY_TEST(testStateMachineAsio sm1 --build_info --log_level=all --run_test=test_asio)
+ADD_TEST(testStateMachine0 sm1 --build_info --log_level=all --run_test=test_serial0)
+ADD_TEST(testStateMachine1 sm1 --build_info --log_level=all --run_test=test_serial1)
+ADD_TEST(testStateMachine2 sm1 --build_info --log_level=all --run_test=test_serial2 -- ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)

@@ -20,67 +20,117 @@
 
 #include "common.hpp"
 #include "lqueue.hpp"
-
+#include <atomic>
 #include <iostream>
 #include <string>
 #include <cctype>
-#include <boost/asio.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/array.hpp>
-#include <boost/bind.hpp>
 
 #define BOOST_TEST_MODULE lq1
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace antpm;
-//namespace fs = boost::filesystem;
 
 
 
 DEFAULT_LOG_INSTANTIATOR
 
+
 struct Producer
 {
-  lqueue2<int> _q;
+  lqueue2<float> _q;
 
   lqueue3<int> q;
-  std::unique_ptr<boost::thread> q_th;
+  std::thread q_th;
 
   lqueue3_bg<double> q_bg;
-  volatile bool die;
+
+  lqueue4<short> q4;
+  std::thread q4_th;
+
+  std::atomic<bool> die_producer = false;
+  std::atomic<size_t> num_produced = 0;
+
+  std::atomic<bool> die_receiver = false;
+  size_t num_received_fg = 0;
+  size_t num_received_fg4 = 0;
+  size_t num_received_bg = 0;
 
   void operator() ()
   {
-    while(!die)
+    while(!die_producer)
     {
-      _q.push(234);
-      q.push(27);
+      _q.push(234.5F);
+      q.push(27+num_produced);
       q_bg.push(435.5543);
-      boost::thread::yield();
+      q4.push(static_cast<short>(num_produced));
+      num_produced++;
+      std::this_thread::yield();
     }
   }
 
+  // start foreground consumer
   void start_q_th()
   {
-    q_th.reset(new boost::thread(boost::bind(&lqueue3<int>::eventLoop, &q)));
+    q_th = std::thread([&]{
+        q.eventLoop();
+    });
+    q4_th = std::thread([&]{
+        while(!die_receiver)
+        {
+            std::vector<short> received(4);
+            size_t elemsRead = 0;
+            q4.popArray(received.data(), received.size(), elemsRead, 10);
+            //assert(bytesRead % 2 == 0);
+            num_received_fg4 += elemsRead;
+            printf("l4: %zu\n", elemsRead);
+        }
+    });
+  }
+
+  void kill_producer()
+  {
+    die_producer = true;
+  }
+
+  void kill_consumers()
+  {
+    while(!q.empty() || !q_bg.empty() || !q4.empty())
+    {
+      std::this_thread::yield();
+    }
+
+    die_receiver = true;
+    q.kill();
+    q_bg.kill();
+    if(q_th.joinable())
+    {
+      q_th.join();
+    }
+    if(q4_th.joinable())
+    {
+      q4_th.join();
+    }
+  }
+
+  bool
+  onDataArrivedFg(const std::vector<int>& v)
+  {
+    cout << "fg: " << v.size() << endl;
+    num_received_fg += v.size();
+    return true;
+  }
+
+  bool
+  onDataArrivedBg(const std::vector<double>& v)
+  {
+    cout << "bg: " << v.size() << endl;
+    num_received_bg += v.size();
+    return true;
   }
 };
 
-bool
-onDataArrivedI(std::vector<int>& v)
-{
-  cout << v.size() << endl;
-  return true;
-}
 
-bool
-onDataArrived(std::vector<double>& v)
-{
-  cout << v.size() << endl;
-  return true;
-}
 
 BOOST_AUTO_TEST_CASE(test_lqueue1)
 {
@@ -92,21 +142,32 @@ BOOST_AUTO_TEST_CASE(test_lqueue1)
 
 
   Producer p;
-  p.die = false;
-  p.q.setOnDataArrivedCallback(onDataArrivedI);
-  p.q_bg.setOnDataArrivedCallback(onDataArrived);
+  p.q.setOnDataArrivedCallback([&](const std::vector<int>& v){return p.onDataArrivedFg(v);});
+  p.q_bg.setOnDataArrivedCallback([&](const std::vector<double>& v){return p.onDataArrivedBg(v);});
 
   // https://svn.boost.org/trac/boost/ticket/2144
-  boost::thread th = boost::thread(boost::ref(p));
+  std::thread th = std::thread(std::ref(p)); // start producer
   p.start_q_th();
 
-  boost::this_thread::sleep( boost::posix_time::milliseconds(20) );
+  using namespace std::chrono_literals;
+  std::this_thread::sleep_for( 100ms );
 
 
-  p.q.kill();
+  p.kill_producer();
+  if(th.joinable())
+  {
+    th.join();
+  }
 
-  p.die = true;
-  th.join();
+  p.kill_consumers();
+  std::cout << p.num_produced << std::endl;
+  std::cout << p.num_received_fg << std::endl;
+  std::cout << p.num_received_fg4 << std::endl;
+  std::cout << p.num_received_bg << std::endl;
+  BOOST_CHECK(p.num_produced > 0);
 
+  BOOST_CHECK(p.num_produced == p.num_received_fg);
+  BOOST_CHECK(p.num_produced == p.num_received_fg4);
+  BOOST_CHECK(p.num_produced == p.num_received_bg);
 }
 

@@ -31,7 +31,6 @@
 #include <vector>
 #include <string>
 #include <chrono>
-#include <boost/thread/thread_time.hpp>
 #include <iostream>
 #include "stdintfwd.hpp"
 
@@ -83,7 +82,6 @@ AntFr310XT::AntFr310XT(Serial *s)
   , m_antMessenger(new AntMessenger())
   , clientState(BUSY)
   , state(ST_ANTFS_0)
-  , m_eventThKill(0)
   , m_restartCount(0)
   , aplc(getConfigFolder()+std::string("antparse_")+getDateString()+".txt")
   , clientSN(0)
@@ -98,7 +96,7 @@ AntFr310XT::AntFr310XT(Serial *s)
 
   AntFr310XT_EventLoop eventTh;
   eventTh.rv=0;
-  m_eventTh = boost::thread(eventTh, this);
+  m_eventTh = std::thread(eventTh, this);
 
 }
 
@@ -110,8 +108,11 @@ AntFr310XT::~AntFr310XT()
     m_antMessenger->setCallback(0);
   }
 
-  m_eventThKill=1;
-  m_eventTh.join();
+  m_eventThKill=true;
+  if(m_eventTh.joinable())
+  {
+    m_eventTh.join();
+  }
   state = ST_ANTFS_0;
 
   m_antMessenger.reset();
@@ -193,8 +194,8 @@ AntFr310XT::run()
 void
 AntFr310XT::stop()
 {
-  assert(boost::this_thread::get_id() == this->m_eventTh.get_id());
-  m_eventThKill = 1;
+  assert(std::this_thread::get_id() == this->m_eventTh.get_id());
+  m_eventThKill = true;
   // stop() is called from the event thread
   // terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<boost::thread_resource_error> >'
   //   what():  boost thread: trying joining itself: Resource deadlock avoided
@@ -220,7 +221,7 @@ AntFr310XT::stop()
 void
 AntFr310XT::stopAsync()
 {
-  assert(boost::this_thread::get_id() != this->m_eventTh.get_id());
+  assert(std::this_thread::get_id() != this->m_eventTh.get_id());
 
 
   LOG(LOG_WARN) << "stopAsync called!\n\n";
@@ -235,14 +236,12 @@ AntFr310XT::stopAsync()
 const int
 AntFr310XT::getSMState() const
 {
-  //boost::unique_lock<boost::mutex> lock(this->stateMtx); // not needed, as this is a atomic read
   return state;
 }
 
 const char*
 AntFr310XT::getSMStateStr() const
 {
-  //boost::unique_lock<boost::mutex> lock(this->stateMtx); // not needed, as this is a atomic read
   return StateFSWork2Str(state);
 }
 
@@ -282,7 +281,7 @@ AntFr310XT::handleEvents()
 {
 #define changeStateSafe(x) do                                           \
   {                                                                     \
-    boost::unique_lock<boost::mutex> lock(this->stateMtx);              \
+    std::unique_lock<std::mutex> lock(this->stateMtx);              \
     if(this->state == ST_ANTFS_LAST)                                    \
     {                                                                   \
       lock.unlock();                                                    \
@@ -298,7 +297,7 @@ AntFr310XT::handleEvents()
 
 #define checkForExit() do                                               \
   {                                                                     \
-    boost::unique_lock<boost::mutex> lock(this->stateMtx);              \
+    std::unique_lock<std::mutex> lock(this->stateMtx);              \
     if(this->state == ST_ANTFS_LAST)                                    \
     {                                                                   \
       lock.unlock();                                                    \
@@ -914,7 +913,7 @@ AntFr310XT::handleEvents()
 int
 AntFr310XT::changeState(const int newState, bool force)
 {
-  boost::unique_lock<boost::mutex> lock(stateMtx);
+  std::unique_lock<std::mutex> lock(stateMtx);
   int oldState = this->state;
   if(oldState == ST_ANTFS_LAST && newState != ST_ANTFS_LAST&& !force)
   {

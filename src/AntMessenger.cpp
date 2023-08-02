@@ -29,8 +29,6 @@
 #include <iostream>
 #include <chrono>
 #include "common.hpp"
-#include <boost/thread/thread_time.hpp>
-#include <boost/foreach.hpp>
 
 #include "Log.hpp"
 
@@ -58,17 +56,15 @@ struct AntMessenger_Recevier
 
 
 AntMessenger::AntMessenger()
-  : m_io(0)
-  , m_cb(0)
-  , m_packerThKill(0)
-  , m_rpackQueue2()
+  : m_rpackQueue2()
 {
-  m_packerThKill = 0;
   AntMessenger_Recevier msgTh;
   msgTh.rv=0;
-  m_packerTh = boost::thread(msgTh, this);
+  m_packerTh = std::thread(msgTh, this);
 
-  m_rpackQueue2.setOnDataArrivedCallback(std::bind1st(std::mem_fun(&AntMessenger::onMessage), this));
+  m_rpackQueue2.setOnDataArrivedCallback([&](const std::vector<AntMessage>& v) -> bool {
+      return onMessage(v);
+  });
 
   for(int i=0; i < ANTPM_MAX_CHANNELS; i++)
   {
@@ -82,8 +78,11 @@ AntMessenger::AntMessenger()
 AntMessenger::~AntMessenger()
 {
   m_rpackQueue2.setOnDataArrivedCallback(0);
-  m_packerThKill = 1;
-  m_packerTh.join();
+  m_packerThKill = true;
+  if(m_packerTh.joinable())
+  {
+    m_packerTh.join();
+  }
   m_io=0;
   m_cb=0;
   lprintf(LOG_DBG2, "%s\n", __FUNCTION__);
@@ -576,6 +575,9 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
   uint nextOffset = 0;
   do
   {
+    if(interrupted)
+      return false;
+
     //fprintf(loggerc(), "dlIter=%lu, crc=0x%04x, off=0x%08x\n", (unsigned long)dlIter, crc, nextOffset);
     //LOG_VAR2(dlIter, toString(crc,4,'0'));
     M_ANTFS_Command_Download dl;
@@ -693,7 +695,8 @@ AntMessenger::ANTFS_Download( const uchar chan, const ushort file, std::vector<u
 
     CHECK_RETURN_FALSE(ANT_RequestMessage(chan, MESG_CHANNEL_STATUS_ID));
 
-    LOG(antpm::LOG_RAW) << "\n\nFile " << toString(file,4,'0') << ", downloaded " << std::dec << c2 << " of " << fileSize << " bytes. Total " << data.size() << " downloaded.\n\n";
+    LOG(antpm::LOG_RAW) << "\n\nFile " << toString(file,4,'0') << ", downloaded " << std::dec << c2 << " bytes. Total "
+                        << data.size() << " / " << fileSize << " downloaded (" << static_cast<double>(data.size())/fileSize*100.0 << "%).\n\n";
     // TODO: keep reading until there is data left
     dlIter += 1;
   } while((data.size()<fileSize) /*&& (dlIter++<ANTPM_RETRIES)*/ );
@@ -819,6 +822,8 @@ AntMessenger::ANTFS_Direct(const uchar chan, const uint64_t code, std::vector<ui
   bool sentDirect = false;
   for(int i = 0; i < ANTPM_RETRIES; i++)
   {
+    if(interrupted)
+      return false;
     sentDirect = false;
 
     LOG_VAR(waitForBroadcast(chan));
@@ -981,7 +986,7 @@ bool AntMessenger::writeMessage(AntMessage &m)
     return false;
 
   m.sent=true;
-  m.timestamp = boost::get_system_time();
+  m.timestamp = std::chrono::system_clock::now();
   m.idx = packetIdx++;
   assert(m.vrfChkSum());
 
@@ -1078,7 +1083,7 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     {
       q.pop_front();
     }
-    m.timestamp = boost::get_system_time();
+    m.timestamp = std::chrono::system_clock::now();
     m.idx = packetIdx++;
     m_rpackQueue2.push(m);
     if(m_cb)
@@ -1095,14 +1100,14 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
 
 /// Called from m_rpackQueue2.eventLoop()
 bool
-AntMessenger::onMessage(std::vector<AntMessage> v)
+AntMessenger::onMessage(const std::vector<AntMessage> &v)
 {
   //TODO: don't presort here, but call onMsg for all incoming packets
 
   //lprintf(antpm::LOG_DBG3, "%d\n", int(v.size()));
   for(size_t i = 0; i < v.size(); i++)
   {
-    AntMessage& m(v[i]);
+    const AntMessage& m(v[i]);
     lprintf(antpm::LOG_DBG3, "%s\n", m.str().c_str());
 
     if(m.getMsgId()==MESG_RESPONSE_EVENT_ID
@@ -1220,6 +1225,8 @@ AntMessenger::interruptWait()
   {
     chs[i]->interruptWait();
   }
+
+  interrupted = true;
 
   sanityCheck(__FUNCTION__);
 }

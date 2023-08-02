@@ -19,7 +19,6 @@
 
 #include "antdefs.hpp"
 #include <vector>
-#include <boost/static_assert.hpp>
 
 namespace antpm {
 
@@ -42,7 +41,7 @@ struct GarminPacket
   uint8_t  mData[1];
 };
 #pragma pack(pop)
-BOOST_STATIC_ASSERT(sizeof(GarminPacket)==13);
+static_assert(sizeof(GarminPacket)==13);
 
 struct GarminPacketIntf
 {
