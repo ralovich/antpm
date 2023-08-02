@@ -17,36 +17,50 @@
 // ***** END LICENSE BLOCK *****
 #pragma once
 
-
-#include <queue>
-#include <boost/function.hpp>
-#include <boost/thread.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <atomic>
+#include <cassert>
+#include <condition_variable>
+#include <chrono>
+#include <functional>
 #include <list>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <boost/core/demangle.hpp>
 
 
+//! Mutex protected list template. Allows pushing elements
+//! of data into the underlying container from multiple,
+//! concurrent threads.
 template <typename DataType>
 class lqueue2
 {
 public:
   typedef std::list<DataType> DataList;
 public:
+  virtual ~lqueue2()
+  {
+    std::scoped_lock lock(m_mtx);
+    fprintf(stdout, "%s %s remaining ql=%d\n", __FUNCTION__, boost::core::demangle(typeid(this).name()).c_str(), static_cast<int>(m_q.size()));
+  }
+
   bool empty() const
   {
-    boost::mutex::scoped_lock lock(m_mtx);
+    std::scoped_lock lock(m_mtx);
     return m_q.empty();
   }
 
   void push(DataType const& data)
   {
-    boost::mutex::scoped_lock lock(m_mtx);
+    std::scoped_lock lock(m_mtx);
     m_q.push_back(data);
     m_pushEvent.notify_all();
   }
 
   void pushArray(DataType const* data, const size_t nItems)
   {
-    boost::mutex::scoped_lock lock(m_mtx);
+    std::scoped_lock lock(m_mtx);
     for(size_t i = 0; i < nItems; i++)
       m_q.push_back(data[i]);
     m_pushEvent.notify_all();
@@ -56,27 +70,27 @@ public:
   const typename std::queue<DataType>::size_type
   size() const
   {
-    boost::unique_lock<boost::mutex> lock(m_mtx);
+    std::unique_lock<std::mutex> lock(m_mtx);
     return m_q.size();
   }
 
   const DataList
   getListCopy() const
   {
-    boost::unique_lock<boost::mutex> lock(m_mtx);
+    std::unique_lock<std::mutex> lock(m_mtx);
     return m_q; // copy
   }
 
   void
   clear()
   {
-    boost::unique_lock<boost::mutex> lock(m_mtx);
+    std::unique_lock<std::mutex> lock(m_mtx);
     m_q.clear();
   }
 
 protected:
-  mutable boost::mutex m_mtx;
-  boost::condition_variable m_pushEvent;
+  mutable std::mutex m_mtx;
+  std::condition_variable m_pushEvent;
   DataList m_q;
 };
 
@@ -87,8 +101,8 @@ template < class DataType>
 class lqueue3 : public lqueue2<DataType>
 {
 public:
-  typedef boost::function<bool (DataType&)>     Listener;
-  typedef boost::function<bool (std::vector<DataType>&)> Listener2;
+  typedef std::function<bool (DataType&)>     Listener;
+  typedef std::function<bool (const std::vector<DataType>&)> Listener2;
   typedef lqueue2<DataType>                              Super;
 
   lqueue3()
@@ -111,7 +125,7 @@ public:
     {
       while(!stopped)
       {
-        boost::thread::yield();
+        std::this_thread::yield();
       }
     }
   }
@@ -127,14 +141,15 @@ public:
   {
     assert(!started);
     started = true;
-    while(!stop)
-    {
-      boost::unique_lock<boost::mutex> lock(Super::m_mtx);
+    while (!stop) {
+      std::unique_lock<std::mutex> lock(Super::m_mtx);
 
-      boost::posix_time::time_duration td = boost::posix_time::milliseconds(2000);
-      if(!Super::m_pushEvent.timed_wait(lock, td)) // will automatically and atomically unlock mutex while it waits
+      using namespace std::chrono_literals;
+      auto td = 2000ms;
+      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, td)) // will automatically and atomically unlock mutex while it waits
       {
         //std::cout << "no event before timeout\n";
+        //printf("no event before timeout\n");
         continue;
       }
 
@@ -154,9 +169,9 @@ public:
   }
 
 protected:
-  volatile bool stop;
-  volatile bool started;
-  volatile bool stopped;
+  std::atomic<bool> stop;
+  std::atomic<bool> started;
+  std::atomic<bool> stopped;
   Listener2 mCallback;
 };
 
@@ -172,7 +187,7 @@ public:
   bool
   tryFindPop(DataType& needle, Cmp cmp)
   {
-    boost::mutex::scoped_lock lock(Super::m_mtx);
+    std::scoped_lock lock(Super::m_mtx);
     typename Super::DataList::iterator i;
     for(i = Super::m_q.begin(); i != Super::m_q.end(); i++)
     {
@@ -188,13 +203,14 @@ public:
   bool
   pop(DataType& data, const size_t timeout = 0)
   {
-    boost::mutex::scoped_lock lock(Super::m_mtx);
+    std::unique_lock lock(Super::m_mtx);
 
     /// if queue empty, wait until timeout if there was anything pushed
     if(Super::m_q.empty() && timeout > 0)
     {
-      boost::posix_time::time_duration td = boost::posix_time::milliseconds(timeout);
-      if(!Super::m_pushEvent.timed_wait(lock, td))
+      using namespace std::chrono_literals;
+      auto td = timeout*1ms;
+      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, td))
         return false;
     }
     if(Super::m_q.empty()) // spurious wakeup
@@ -211,13 +227,14 @@ public:
     if(!dst)
       return false;
 
-    boost::unique_lock<boost::mutex> lock(Super::m_mtx);
+    std::unique_lock<std::mutex> lock(Super::m_mtx);
 
     /// if queue empty, wait until timeout if there was anything pushed
     if(Super::m_q.empty() && timeout > 0)
     {
-      boost::posix_time::time_duration td = boost::posix_time::milliseconds(timeout);
-      if(!Super::m_pushEvent.timed_wait(lock, td))
+      using namespace std::chrono_literals;
+      auto td = timeout*1ms;
+      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, td))
       {
         bytesRead = 0;
         return false;
@@ -245,8 +262,8 @@ template < class DataType>
 class lqueue3_bg : public lqueue2<DataType>
 {
 public:
-  typedef boost::function<bool (DataType&)>     Listener;
-  typedef boost::function<bool (std::vector<DataType>&)> Listener2;
+  typedef std::function<bool (DataType&)>     Listener;
+  typedef std::function<bool (std::vector<DataType>&)> Listener2;
   typedef lqueue2<DataType>                              Super;
 
   struct ListenerProc
@@ -261,7 +278,7 @@ public:
   lqueue3_bg()
     : stop(false)
   {
-    th_listener.reset( new boost::thread(lp, this) );
+    th_listener.reset( new std::thread(lp, this) );
   }
 
   ~lqueue3_bg()
@@ -274,7 +291,12 @@ public:
   {
     stop = true;
     if(th_listener.get())
-      th_listener->join();
+    {
+      if(th_listener->joinable())
+      {
+        th_listener->join();
+      }
+    }
   }
 
   void
@@ -288,10 +310,11 @@ protected:
   {
     while(!stop)
     {
-      boost::unique_lock<boost::mutex> lock(Super::m_mtx);
+      std::unique_lock<std::mutex> lock(Super::m_mtx);
 
-      boost::posix_time::time_duration td = boost::posix_time::milliseconds(2000);
-      if(!Super::m_pushEvent.timed_wait(lock, td)) // will automatically and atomically unlock mutex while it waits
+      using namespace std::chrono_literals;
+      auto td = 2000ms;
+      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, td)) // will automatically and atomically unlock mutex while it waits
       {
         //std::cout << "no event before timeout\n";
         continue;
@@ -313,7 +336,7 @@ protected:
 
 protected:
   ListenerProc lp;
-  boost::scoped_ptr<boost::thread> th_listener;
-  volatile bool stop;
+  std::unique_ptr<std::thread> th_listener;
+  std::atomic<bool> stop;
   Listener2 mCallback;
 };

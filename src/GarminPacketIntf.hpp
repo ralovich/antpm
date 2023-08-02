@@ -20,7 +20,6 @@
 #include "antdefs.hpp"
 #include <vector>
 #include <string>
-#include <boost/static_assert.hpp>
 
 extern "C" {
 #include "garmintools/garmin.h" // garmin-forerunner-tools
@@ -49,7 +48,7 @@ struct GarminPacket
   const std::string toString8() const;
 };
 #pragma pack(pop)
-BOOST_STATIC_ASSERT(sizeof(GarminPacket)==13);
+static_assert(sizeof(GarminPacket)==13);
 
 struct GarminPacketIntf
 {

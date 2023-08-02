@@ -17,12 +17,9 @@
 // ***** END LICENSE BLOCK *****
 #pragma once
 
-//#include <pthread.h>
-#include <queue>
-#include <boost/thread.hpp>
-#include "antdefs.hpp"
-#include <list>
 #include "Serial.hpp"
+#include "antdefs.hpp"
+#include <memory>
 
 namespace antpm{
 
@@ -51,7 +48,7 @@ private:
 
 public:
   virtual const size_t getQueueLength() const;
-  virtual const char*  getImplName() { return "AntTtyHandler2"; }
+  virtual const char*  getImplName() { return "SerialTty"; }
   virtual bool         isOpen() const;
   virtual bool         setWriteDelay(const size_t ms);
 

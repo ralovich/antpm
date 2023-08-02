@@ -335,7 +335,7 @@ main(int argc, char** argv)
   bool first=true;
   for( ;getline(*in, line); lineno++)
   {
-    vector<string> vs(tokenize(line, " "));
+    vector<string> vs(split(line, ' '));
     //cout << vs.size() << "\n";
 
     if(vs.size()<8 || vs[6]!="=" || vs[7].size()<2 || vs[7][0]!='a' || vs[7][1]!='4')

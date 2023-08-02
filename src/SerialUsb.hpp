@@ -17,9 +17,8 @@
 // ***** END LICENSE BLOCK *****
 #pragma once
 
-#include <queue>
-#include "antdefs.hpp"
 #include "Serial.hpp"
+#include "antdefs.hpp"
 #include <memory>
 
 namespace antpm{

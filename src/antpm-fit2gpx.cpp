@@ -18,8 +18,9 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
+#include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <vector>
 
 #include "AntMessage.hpp"
@@ -28,11 +29,10 @@
 #include "Log.hpp"
 
 #include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/exception/diagnostic_information.hpp>
 
 namespace po = boost::program_options;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 using namespace std;
 using namespace antpm;
 
@@ -57,13 +57,14 @@ find_files(const fs::path & dir_path,         // in this directory,
       std::vector<fs::path> paths2(find_files( itr->path(), ext) );
       paths.insert(paths.end(), paths2.begin(), paths2.end());
     }
-    else if ( fs::extension(*itr) == ext ) // see below
+    else if ( fs::path(*itr).extension() == ext ) // see below
     {
       paths.push_back(*itr);
     }
   }
   return paths;
 }
+
 
 
 int
@@ -167,16 +168,16 @@ main(int argc, char** argv)
       vector<uchar> fitBytes(readFile(in.c_str()));
       std::time_t fileCreationTime; // GMT/UTC
       bool has_ct = FIT::getCreationDate(fitBytes, fileCreationTime);
-      time_t lastWrite             = fs::last_write_time(fs::path(in)); // GMT/UTC
-
-      char tbuf[256];
-      strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&lastWrite));
-
-      char tbuf2[256];
-      strftime(tbuf2, sizeof(tbuf2), "%d-%m-%Y %H:%M:%S", localtime(&fileCreationTime));
-
       if(has_ct)
       {
+        time_t lastWrite = to_time_t(fs::last_write_time(fs::path(in))); // GMT/UTC
+
+        char tbuf[256];
+        strftime(tbuf, sizeof(tbuf), "%d-%m-%Y %H:%M:%S", localtime(&lastWrite));
+
+        char tbuf2[256];
+        strftime(tbuf2, sizeof(tbuf2), "%d-%m-%Y %H:%M:%S", localtime(&fileCreationTime));
+
         time_t diff = (lastWrite-fileCreationTime);
         if(diff>1 || diff<-1)
         {
@@ -184,7 +185,7 @@ main(int argc, char** argv)
                << " new=" << tbuf2
                << "  ---->  old=" << tbuf
                << "\n";
-          fs::last_write_time(fs::path(in), fileCreationTime);
+            fs::last_write_time(fs::path(in), from_time_t<fs::file_time_type>(fileCreationTime));
         }
         else
         {

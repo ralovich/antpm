@@ -28,14 +28,16 @@
 #include <stdlib.h>
 #include <signal.h>
 
+#include <atomic>
 #include <functional>
 #include <algorithm>
-#include <vector>
+#include <condition_variable>
+#include <filesystem>
+#include <mutex>
+#include <queue>
 #include <string>
-
-#include <boost/version.hpp>
-#include <boost/thread/thread_time.hpp>
-#include <boost/filesystem.hpp>
+#include <thread>
+#include <vector>
 
 #include "Log.hpp"
 #include "common.hpp"
@@ -52,8 +54,7 @@
 # define IUCLC 0
 #endif
 
-namespace fs = boost::filesystem;
-using namespace std;
+namespace fs = std::filesystem;
 
 namespace antpm{
 
@@ -61,15 +62,15 @@ struct SerialTtyPrivate
 {
   std::string m_devName;
   int m_fd;
-  boost::thread m_recvTh;
-  mutable boost::mutex m_queueMtx;
-  boost::condition_variable m_condQueue;
+  std::thread m_recvTh;
+  mutable std::mutex m_queueMtx;
+  std::condition_variable m_condQueue;
   std::queue<char> m_recvQueue;
-  volatile int m_recvThKill;
+  std::atomic<bool> m_recvThKill = false;
   size_t       m_writeDelay;
 
-  bool guessDeviceName(vector<string>& guessedNames);
-  bool openDevice(vector<string>& names);
+  bool guessDeviceName(std::vector<std::string>& guessedNames);
+  bool openDevice(std::vector<std::string>& names);
 };
 
 // runs in other thread
@@ -92,64 +93,18 @@ struct SerialTtyIOThread
 };
 
 
-string
+std::string
 find_file_starts_with(const fs::path & dir,
-                      const string& start)
+                      const std::string& start)
 {
   fs::directory_iterator end_iter;
   for( fs::directory_iterator dir_iter(dir) ; dir_iter != end_iter ; ++dir_iter)
   {
     fs::path p = *dir_iter;
-/// from http://www.boost.org/doc/libs/1_49_0/libs/filesystem/v2/doc/index.htm
-
-/// Version 3, a major revision with many new and improved features,
-/// is also available. Version 3 may break some user code written for
-/// Version 2.
-
-// To ease the transition, Boost releases 1.44 through 1.47 will
-// supply both V2 and V3. Version 2 is the default version for Boost
-// release 1.44 and 1.45. Version 3 will be the default starting with
-// release 1.46.
-
-// Define macro BOOST_FILESYSTEM_VERSION as 3 to use Version 3. This
-// will be the default for release 1.46 and later.
-
-// Define macro BOOST_FILESYSTEM_VERSION as 2 to use Version 2. This
-// is the default for release 1.44 and 1.45.
-
-// You may define the BOOST_FILESYSTEM_VERSION macro:
-
-
-// On the build command line; the exact format depends on your
-// compiler or IDE
-
-
-// In your code, before including any filesystem header, #define
-// BOOST_FILESYSTEM_VERSION n
-
-
-// #define BOOST_FILESYSTEM_VERSION n in boost/config/user.hpp. Note
-// #that this approach applies to all uses of Boost.Filesystem.
-
-// Existing code should be moved to version 3 as soon as
-// convenient. New code should be written for version 3.
-
-// Version 2 is deprecated, and will not be included in Boost releases
-// 1.48 and later.
-
-#if (((BOOST_VERSION/100000)==1) && (((BOOST_VERSION / 100) % 1000)<44)) // BOOST_FILESYSTEM_VERSION==2
-    if(std::string(p.leaf()).find(start)==0)
+    if(p.filename().string().find(start)==0)
     {
-      return std::string(p.leaf());
+      return p.filename().string();
     }
-#elif BOOST_FILESYSTEM_VERSION==3
-    if(p.leaf().string().find(start)==0)
-    {
-      return p.leaf().string();
-    }
-#else
-# error "Unsupported boost filesystem version" ##BOOST_FILESYSTEM_VERSION
-#endif
   }
   return "";
 }
@@ -164,7 +119,7 @@ struct InvalidChar
 
 
 bool
-SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
+SerialTtyPrivate::guessDeviceName(std::vector<std::string> &guessedNames)
 {
 #ifdef __linux__
   // check for cp210x kernel module
@@ -206,26 +161,26 @@ SerialTtyPrivate::guessDeviceName(vector<string> &guessedNames)
   else
   {
     LOG(LOG_DBG) << "Detecting in " << driverDir << " ...\n";
-    for(fs::recursive_directory_iterator end, iter(driverDir, fs::symlink_option::recurse); iter != end; )
+    for(fs::recursive_directory_iterator end, iter(driverDir, fs::directory_options::follow_directory_symlink); iter != end; )
     {
-      if(iter.level()>=2)
+      if(iter.depth()>=2)
       {
         iter.pop();
         continue;
       }
-      //cout << iter.level() << ", " << *iter << std::endl;
+      //cout << iter.depth() << ", " << *iter << std::endl;
       fs::path p = iter->path();
       //cout << p.parent_path() << "\n";
-      if(iter.level()==1 && p.leaf()=="interface" && find_file_starts_with(p.parent_path(), "ttyUSB")!="")
+      if(iter.depth()==1 && p.filename()=="interface" && find_file_starts_with(p.parent_path(), "ttyUSB")!="")
       {
         std::vector<unsigned char> vuc(readFile(p.c_str()));
-        string iface="";
+        std::string iface="";
         if(!vuc.empty())
         {
-          iface=string(reinterpret_cast<char*>(&vuc[0]));
+          iface=std::string(reinterpret_cast<char*>(&vuc[0]));
           iface.erase(std::remove_if(iface.begin(),iface.end(),InvalidChar()), iface.end());
         }
-        string ttyUSB = find_file_starts_with(p.parent_path(), "ttyUSB");
+        std::string ttyUSB = find_file_starts_with(p.parent_path(), "ttyUSB");
         LOG(LOG_DBG) << "Found: \"" << iface << "\" as " << ttyUSB << " in " << p << "\n";
         guessedNames.push_back("/dev/"+ttyUSB);
       }
@@ -288,7 +243,7 @@ getFileMode(const char* fname)
 
 
 bool
-SerialTtyPrivate::openDevice(vector<string>& names)
+SerialTtyPrivate::openDevice(std::vector<std::string> &names)
 {
   for(size_t i = 0; i < names.size(); i++)
   {
@@ -316,7 +271,6 @@ SerialTty::SerialTty()
   LOG(LOG_INF) << "Using SerialTty...\n";
 
   m_p->m_fd = -1;
-  m_p->m_recvThKill = 0;
   m_p->m_writeDelay = 0;
 }
 
@@ -337,8 +291,8 @@ SerialTty::~SerialTty()
     }                                                       \
   } while(false)
 
-struct contains : public std::binary_function<vector<string>, string,bool> {
-  inline bool operator() (vector<string> v, string e) const {return find(v.begin(), v.end(), e) != v.end();}
+struct contains : public std::binary_function<std::vector<std::string>, std::string,bool> {
+  inline bool operator() (std::vector<std::string> v, std::string e) const {return find(v.begin(), v.end(), e) != v.end();}
 };
 
 bool
@@ -348,11 +302,11 @@ SerialTty::open()
 
   bool rv = false;
 
-  vector<string> guessedNames;
+  std::vector<std::string> guessedNames;
   m_p->guessDeviceName(guessedNames);
   if(!m_p->openDevice(guessedNames))
   {
-    vector<string> possibleNames;
+    std::vector<std::string> possibleNames;
     possibleNames.push_back("/dev/ttyUSB0");
     possibleNames.push_back("/dev/ttyUSB1");
     possibleNames.push_back("/dev/ttyUSB2");
@@ -368,7 +322,7 @@ SerialTty::open()
 
     possibleNames.erase(remove_if(possibleNames.begin(),
                                   possibleNames.end(),
-                                  bind1st(contains(), guessedNames)),
+                                  bind(contains(), guessedNames, std::placeholders::_1)),
                         possibleNames.end());
 
     m_p->openDevice(possibleNames);
@@ -382,7 +336,8 @@ SerialTty::open()
     //
     // Log off and log on again for the changes to take effect!
     char se[256];
-    strerror_r(m_p->m_fd, se, sizeof(se));
+    auto unused = strerror_r(m_p->m_fd, se, sizeof(se));
+    (void)unused;
     LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and /dev/ttyUSBxxx was created by cp210x!\n"
                         << "\tAlso make sure that /dev/ttyUSBxxx is R+W accessible by your user (usually enabled through udev.rules)!\n";
     LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << se << "\n";
@@ -406,9 +361,9 @@ SerialTty::open()
   tp.c_cc[VTIME] = 0;
   ENSURE_OR_RETURN_FALSE(tcsetattr(m_p->m_fd, TCSANOW, &tp));
 
-  m_p->m_recvThKill = 0;
+  m_p->m_recvThKill = false;
   SerialTtyIOThread recTh;
-  m_p->m_recvTh = boost::thread(recTh, this);
+  m_p->m_recvTh = std::thread(recTh, this);
 
   return true;
 }
@@ -418,10 +373,10 @@ SerialTty::open()
 void
 SerialTty::close()
 {
-  m_p->m_recvThKill = 1;
+  m_p->m_recvThKill = true;
 
   {
-    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
     m_p->m_condQueue.notify_all();
   }
 
@@ -445,7 +400,7 @@ SerialTty::read(char* dst, const size_t sizeBytes, size_t& bytesRead)
   if(!dst)
     return false;
 
-  boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+  std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
 
   size_t s = m_p->m_recvQueue.size();
   s = std::min(s, sizeBytes);
@@ -471,11 +426,12 @@ SerialTty::readBlocking(char* dst, const size_t sizeBytes, size_t& bytesRead)
 
   const size_t timeout_ms = 1000;
   {
-    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
 
     //while(m_recvQueue.empty()) // while - to guard agains spurious wakeups
     {
-      m_p->m_condQueue.timed_wait(lock, boost::posix_time::milliseconds(timeout_ms));
+      using namespace std::chrono_literals;
+      m_p->m_condQueue.wait_for(lock, timeout_ms*1ms);
     }
     size_t s = m_p->m_recvQueue.size();
     s = std::min(s, sizeBytes);
@@ -544,7 +500,7 @@ SerialTty::ioHandler()
 const size_t SerialTty::getQueueLength() const
 {
   size_t len=0;
-  boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+  std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
   len += m_p->m_recvQueue.size();
   return len;
 }
@@ -583,7 +539,7 @@ SerialTty::queueData()
   {}
   else
   {
-    boost::unique_lock<boost::mutex> lock(m_p->m_queueMtx);
+    std::unique_lock<std::mutex> lock(m_p->m_queueMtx);
     for(ssize_t i = 0; i < rb; i++)
       m_p->m_recvQueue.push(buf[i]);
     m_p->m_condQueue.notify_one();

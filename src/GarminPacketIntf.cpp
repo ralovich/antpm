@@ -98,7 +98,7 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
         int16_t  swVersion;
       } ProductDataType;
 #pragma pack(pop)
-      BOOST_STATIC_ASSERT(sizeof(ProductDataType)==4);
+      static_assert(sizeof(ProductDataType)==4);
       typedef struct
       {
         uint16_t productId;
@@ -128,7 +128,7 @@ GarminPacketIntf::interpret(int lastPid, std::vector<uint8_t> data)
         uint16_t data;
       } ProtocolDataType;
 #pragma pack(pop)
-      BOOST_STATIC_ASSERT(sizeof(ProtocolDataType)==3);
+      static_assert(sizeof(ProtocolDataType)==3);
       sstr << "Found following protocol capabilities:\n";
       set<string> caps;
       for(size_t i = 4; i+2 < data.size(); i+=3)

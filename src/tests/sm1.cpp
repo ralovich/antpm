@@ -28,18 +28,15 @@
 #include <string>
 #include <cctype>
 #include <AntFr310XT.hpp>
+#include <thread>
 #include <boost/asio.hpp>
-#include <boost/thread/thread.hpp>
-#include <boost/array.hpp>
 #include <boost/bind.hpp>
 
 #define BOOST_TEST_MODULE sm1
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace antpm;
-//namespace fs = boost::filesystem;
 
 #if defined(BOOST_ASIO_HAS_LOCAL_SOCKETS)
 
@@ -104,7 +101,7 @@ private:
   }
 
   stream_protocol::socket socket_;
-  boost::array<char, 512> data_;
+  std::array<char, 512> data_;
 };
 
 void run(boost::asio::io_service* io_service)
@@ -144,7 +141,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
     filter.start();
 
     // The io_service runs in a background thread to perform filtering.
-    boost::thread bgthread(boost::bind(run, &io_service));
+    std::thread bgthread(std::bind(run, &io_service));
 
     //for (;;)
     {
@@ -173,7 +170,10 @@ BOOST_AUTO_TEST_CASE(test_asio)
     }
 
     io_service.stop();
-    bgthread.join();
+    if(bgthread.joinable())
+    {
+      bgthread.join();
+    }
   }
   catch (std::exception& e)
   {
@@ -325,11 +325,21 @@ BOOST_AUTO_TEST_CASE(test_serial1)
 
 BOOST_AUTO_TEST_CASE(test_serial2)
 {
+  using namespace boost::unit_test;
+  BOOST_TEST_REQUIRE( framework::master_test_suite().argc == 2 );
+  BOOST_TEST_MESSAGE( "'argv[0]' contains " << framework::master_test_suite().argv[0] );
+  BOOST_TEST_MESSAGE( "'argv[1]' contains " << framework::master_test_suite().argv[1] );
+  std::string log_file_to_replay = framework::master_test_suite().argv[1];
+
   antpm::Log::instance()->addSink(std::cout);
   antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
 
+  // TODO replay a set of captured data here
+
   Serial* st = new SerialTester2();
   AntFr310XT watch2(st);
+
+  BOOST_CHECK_EQUAL(watch2.getSMState(), ST_ANTFS_0);
 
   watch2.run();
 

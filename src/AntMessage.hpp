@@ -18,14 +18,13 @@
 #pragma once
 
 #include "antdefs.hpp"
+#include <chrono>
 #include <vector>
 #include <list>
 #include <string>
 #include "common.hpp"
 #include <cassert>
 #include <sstream>
-#include <boost/static_assert.hpp>
-#include <boost/thread/thread_time.hpp> // AntMessage.timestamp
 
 
 namespace antpm{
@@ -99,7 +98,7 @@ struct M_ANTFS_Beacon : public AntMessageContentBase
   const std::string toString() const;
 };
 #pragma pack(pop)
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Beacon)==8);
+static_assert(sizeof(M_ANTFS_Beacon)==8);
 
 
 #pragma pack(push,1)
@@ -225,11 +224,11 @@ struct M_ANTFS_Command_Direct : public M_ANTFS_Command
   uint64_t code;
 };
 #pragma pack(pop)
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command)==8);
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Authenticate)==24);
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Download)==16);
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Pairing)==16);
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Command_Direct)==16);
+static_assert(sizeof(M_ANTFS_Command)==8);
+static_assert(sizeof(M_ANTFS_Command_Authenticate)==24);
+static_assert(sizeof(M_ANTFS_Command_Download)==16);
+static_assert(sizeof(M_ANTFS_Command_Pairing)==16);
+static_assert(sizeof(M_ANTFS_Command_Direct)==16);
 
 #pragma pack(push,1)
 struct M_ANTFS_Response : public AntMessageContentBase
@@ -336,10 +335,10 @@ struct M_ANTFS_Response_Pairing : public M_ANTFS_Response
   uint64_t pairedKey;
 };
 #pragma pack(pop)
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Response)==8);
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Response_Download)==16);
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Response_Download_Footer)==8);
-BOOST_STATIC_ASSERT(sizeof(M_ANTFS_Response_Pairing)==16);
+static_assert(sizeof(M_ANTFS_Response)==8);
+static_assert(sizeof(M_ANTFS_Response_Download)==16);
+static_assert(sizeof(M_ANTFS_Response_Download_Footer)==8);
+static_assert(sizeof(M_ANTFS_Response_Pairing)==16);
 
 #pragma pack(push,1)
 struct M_ANT_Burst : public AntMessageContentBase
@@ -361,14 +360,14 @@ struct M_ANT_Burst : public AntMessageContentBase
   }
 };
 #pragma pack(pop)
-BOOST_STATIC_ASSERT(sizeof(M_ANT_Burst)==9);
+static_assert(sizeof(M_ANT_Burst)==9);
 
 
 
 //
 struct AntMessage{
   bool                       sent;  // sent or received
-  boost::system_time         timestamp;
+  std::chrono::time_point<std::chrono::system_clock> timestamp;
   size_t                     idx;   //
   std::vector<unsigned char> bytes; // the raw message bytes
 
@@ -438,7 +437,7 @@ struct AntFsFile
 struct GFile
 {
   std::vector<uchar> bytes;
-  bool saveToFile(const char* fileName = "antfs.bin");
+  bool saveToFile(const char* fileName);
 };
 
 }
