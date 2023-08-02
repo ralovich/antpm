@@ -96,6 +96,21 @@ FILE(READ "${PROJECT_SOURCE_DIR}/ANTPM_VERSION.inc" ANTPM_VERSION)
 MESSAGE(STATUS "ANTPM_VERSION=\\\"${ANTPM_VERSION}\\\"")
 ADD_DEFINITIONS(-DANTPM_VERSION=${ANTPM_VERSION})
 
+IF(USE_BOOST_TEST)
+
+  if(${VALGRIND_PREFIX})
+    message(STATUS "Valgrind Prefix: ${VALGRIND_PREFIX}")
+  endif()
+  find_program(VALGRIND_PROGRAM NAMES valgrind PATH /usr/bin /usr/local/bin ${VALGRIND_PREFIX}/bin)
+  IF(VALGRIND_PROGRAM)
+    message(STATUS "Found Valgrind: ${VALGRIND_PROGRAM}")
+    SET(MEMORYCHECK_COMMAND:FILEPATH=${VALGRIND_PROGRAM})
+    # You can add additional options by specifying MEMORYCHECK_COMMAND_OPTIONS and MEMORYCHECK_SUPPRESSIONS_FILE. 
+  ENDIF()
+
+  enable_testing()
+ENDIF()
+  
 SET(SRCS
   antdefs.hpp antdefs.cpp
   w_inttypes.h w_stdint.h stdintfwd.hpp
@@ -203,17 +218,5 @@ ENDIF()
 # INCLUDE(CPack)
 
 IF(USE_BOOST_TEST)
-
-  if(${VALGRIND_PREFIX})
-    message(STATUS "Valgrind Prefix: ${VALGRIND_PREFIX}")
-  endif()
-  find_program(VALGRIND_PROGRAM NAMES valgrind PATH /usr/bin /usr/local/bin ${VALGRIND_PREFIX}/bin)
-  IF(VALGRIND_PROGRAM)
-    message(STATUS "Found Valgrind: ${VALGRIND_PROGRAM}")
-    SET(MEMORYCHECK_COMMAND:FILEPATH=${VALGRIND_PROGRAM})
-    # You can add additional options by specifying MEMORYCHECK_COMMAND_OPTIONS and MEMORYCHECK_SUPPRESSIONS_FILE. 
-  ENDIF()
-
-  enable_testing()
   ADD_SUBDIRECTORY(tests)
 ENDIF()

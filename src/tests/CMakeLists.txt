@@ -39,7 +39,7 @@ TARGET_LINK_LIBRARIES(lq1
 
 
 IF(VALGRIND_PROGRAM)
-  function(add_my_test name binary)
+  function(ADD_MY_TEST name binary)
     #set(memcheck_command "${CMAKE_MEMORYCHECK_COMMAND} ${CMAKE_MEMORYCHECK_COMMAND_OPTIONS}")
     #separate_arguments(memcheck_command)
     add_test(${name} ${binary} ${ARGN})
@@ -64,7 +64,7 @@ ADD_MY_TEST(testDeviceSettings2 testDeviceSettings --help)
 
 ADD_MY_TEST(testDateTime2 testDateTime --help)
 
-#ADD_MY_TEST(testDownload ../antpm-downloader)
+ADD_MY_TEST(testDownload ../antpm-downloader)
 
 ADD_MY_TEST(testFit2Gpx ../antpm-fit2gpx)
 
