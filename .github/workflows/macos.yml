@@ -15,6 +15,9 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      - name: Build system ID
+        run: uname -a
+
       - name: Install build-deps
         run: brew install pkg-config libusb cmake ninja boost libxml2
 
