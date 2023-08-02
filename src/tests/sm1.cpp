@@ -328,6 +328,8 @@ BOOST_AUTO_TEST_CASE(test_serial2)
   antpm::Log::instance()->addSink(std::cout);
   antpm::Log::instance()->setLogReportingLevel(antpm::LOG_DBG3);
 
+  // TODO replay a set of captured data here
+
   Serial* st = new SerialTester2();
   AntFr310XT watch2(st);
 
