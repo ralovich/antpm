@@ -4,6 +4,18 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
+option(macos_native "don't look for non apple system paths" ON) # https://gitlab.kitware.com/cmake/cmake/-/issues/21918
+if(macos_native)
+  if(APPLE)
+    set(CMAKE_IGNORE_PATH)
+    # Fink installs in /sw, and MacPort in /opt/local and Brew in /usr/local (x86-64) and /opt/homebrew (arm64)
+    foreach(_prefix /sw /opt/local /usr/local /opt/homebrew)
+      list(APPEND CMAKE_IGNORE_PATH ${_prefix}/bin ${_prefix}/include ${_prefix}/lib)
+    endforeach()
+  else()
+    message(STATUS "Option 'macos_native' is only for MacOS systems. Ignoring it.")
+  endif()
+endif()
 
 PROJECT(antpm C CXX)
 set(CMAKE_CXX_STANDARD 14)
