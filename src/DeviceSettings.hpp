@@ -40,7 +40,7 @@ typedef std::pair<uint16_t, FITEntity> DatabaseEntity;
 class DeviceSettings
 {
 public:
-  DeviceSettings(const char* devId);
+  DeviceSettings(const std::string& devName, const std::string& devSN);
 
   void loadDefaultValues();
   const std::string getConfigFileName() const;
@@ -63,7 +63,8 @@ public:
   std::time_t  LastTransferredTime; // last timepoint, communication happened with the device, represented as GMT/UTC
   size_t       SerialWriteDelayMs;
 private:
-  std::string mDevId;
+  std::string mDevName;
+  std::string mDevSN;
 };
 
 }
