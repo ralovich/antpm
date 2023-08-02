@@ -437,7 +437,7 @@ struct AntFsFile
 struct GFile
 {
   std::vector<uchar> bytes;
-  bool saveToFile(const char* fileName = "antfs.bin");
+  bool saveToFile(const char* fileName);
 };
 
 }

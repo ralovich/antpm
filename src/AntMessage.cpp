@@ -681,12 +681,10 @@ AntMessage::saveAsAntParse(std::ostream& os, const Container& messages)
   CHECK_RETURN_FALSE(os.good());
 
   std::chrono::time_point<std::chrono::system_clock> t0;
-  //boost::system_time t0;
   for(typename Container::const_iterator i=messages.begin(); i!= messages.end(); i++)
   {
     if(i==messages.begin())
       t0=i->timestamp;
-    //boost::system_time t1 = i->timestamp;
     std::chrono::time_point<std::chrono::system_clock> t1 = i->timestamp;
     auto td = t1 - t0;
     t0 = t1;
@@ -798,7 +796,6 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   if(1 != fwrite(&bytes[0], bytes.size(), 1 , f)) { LOG(LOG_ERR) << "truncated fwrite\n"; fclose(f); return false; }
   fclose(f);
 
-  //FIT fit;
   std::time_t ct=0;
   CHECK_RETURN_FALSE(FIT::getCreationDate(bytes, ct));
   char fit_timestamp[256];
@@ -811,7 +808,7 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
 }
 
 bool
-GFile::saveToFile(const char* fileName /* = "antfs.bin" */)
+GFile::saveToFile(const char* fileName)
 {
   logger() << "Saving '" << fileName << "'...\n";
   if(bytes.empty()) { LOG(LOG_ERR) << "nothing to save\n"; return false; }
