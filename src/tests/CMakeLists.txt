@@ -75,5 +75,8 @@ ADD_MY_TEST(testUsbmon2AntFilter ../antpm-usbmon2ant --op filter ${CMAKE_CURRENT
 ADD_MY_TEST(testUsbmon2AntCount  ../antpm-usbmon2ant --op count  ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 
 
-ADD_TEST(testsm1 sm1 --log_level=all -- ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
-ADD_MY_TEST(testlq1 lq1 --log_level=all)
+ADD_MY_TEST(testStateMachineAsio sm1 --build_info --log_level=all --run_test test_asio)
+ADD_TEST(testStateMachine0 sm1 --build_info --log_level=all --run_test test_serial0)
+ADD_TEST(testStateMachine1 sm1 --build_info --log_level=all --run_test test_serial1)
+ADD_TEST(testStateMachine2 sm1 --build_info --log_level=all --run_test test_serial2 -- ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
+ADD_MY_TEST(testLockedQueue lq1 --log_level=all)
