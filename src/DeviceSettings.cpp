@@ -35,8 +35,9 @@ namespace fs=boost::filesystem;
 namespace antpm {
 
 
-DeviceSettings::DeviceSettings(const char *devId)
-  : mDevId(devId)
+DeviceSettings::DeviceSettings(const std::string &devName, const std::string &devSN)
+  : mDevName(devName)
+  , mDevSN(devSN)
 {
   loadDefaultValues();
 }
@@ -64,7 +65,7 @@ DeviceSettings::getConfigFileName() const
 const std::string
 DeviceSettings::getFolder() const
 {
-  return getConfigFolder() + "/" + mDevId + "/";
+  return getConfigFolder() + "/" + mDevSN + "/";
 }
 
 // std::vector<DatabaseEntity>
@@ -217,6 +218,8 @@ bool
 DeviceSettings::saveToFile(const char *fname)
 {
   boost::property_tree::ptree pt;
+  pt.put("antpm.DeviceName", mDevName);
+  pt.put("antpm.DeviceSN", mDevSN);
   pt.put("antpm.MaxFileDownloads", MaxFileDownloads);
   pt.put("antpm.LastUserProfileTime", time2str(LastUserProfileTime));
   pt.put("antpm.LastTransferredTime", time2str(LastTransferredTime));
