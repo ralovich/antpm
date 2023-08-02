@@ -95,6 +95,11 @@ struct Producer
 
   void kill_consumers()
   {
+    while(!q.empty() || !q_bg.empty() || !q4.empty())
+    {
+      std::this_thread::yield();
+    }
+
     die_receiver = true;
     q.kill();
     q_bg.kill();
