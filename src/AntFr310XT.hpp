@@ -63,7 +63,7 @@ protected:
   std::unique_ptr<AntMessenger> m_antMessenger;
   typedef enum { LINK,AUTHENTICATION,TRANSPORT,BUSY} StateANTFS;
   StateANTFS clientState;
-  int state;
+  std::atomic<int> state;
   std::mutex stateMtx;
   std::atomic<bool> m_eventThKill = false;
   int m_restartCount;
