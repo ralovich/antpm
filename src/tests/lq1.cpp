@@ -88,6 +88,11 @@ struct Producer
     });
   }
 
+  void kill_producer()
+  {
+    die_producer = true;
+  }
+
   void kill_consumers()
   {
     die_receiver = true;
@@ -143,7 +148,7 @@ BOOST_AUTO_TEST_CASE(test_lqueue1)
   std::this_thread::sleep_for( 100ms );
 
 
-  p.die_producer = true;
+  p.kill_producer();
   if(th.joinable())
   {
     th.join();

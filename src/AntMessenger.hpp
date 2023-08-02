@@ -92,7 +92,6 @@ protected:
   }
 private:
   std::string m_logFileName;
-  //std::list<AntMessage> m_l;
   lqueue2<AntMessage>m_l;
   int cnt;
 };

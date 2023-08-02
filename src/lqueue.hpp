@@ -29,6 +29,9 @@
 #include <thread>
 
 
+//! Mutex protected list template. Allows pushing elements
+//! of data into the underlying container from multiple,
+//! concurrent threads.
 template <typename DataType>
 class lqueue2
 {
