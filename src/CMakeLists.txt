@@ -4,7 +4,7 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-option(macos_native "don't look for non apple system paths" ON) # https://gitlab.kitware.com/cmake/cmake/-/issues/21918
+option(macos_native "don't look for non apple system paths" OFF) # https://gitlab.kitware.com/cmake/cmake/-/issues/21918
 if(macos_native)
   if(APPLE)
     set(CMAKE_IGNORE_PATH)
