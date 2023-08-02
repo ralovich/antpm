@@ -804,18 +804,8 @@ AntFsFile::saveToFile(const char* fileName /* = "antfs.bin" */)
   char fit_timestamp[256];
   strftime(fit_timestamp, sizeof(fit_timestamp), "%d-%m-%Y %H:%M:%S", localtime(&ct));
   LOG_VAR(fit_timestamp);
-
-  //const auto fileTime = std::filesystem::last_write_time(filePath);
-  //const auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(fileTime);
-  //const auto time = std::chrono::system_clock::to_time_t(systemTime);
-  using namespace std::chrono;
-  std::chrono::time_point<std::chrono::system_clock> ctime = std::chrono::system_clock::from_time_t(ct);
-  std::filesystem::file_time_type ftime = time_point_cast<std::filesystem::file_time_type::clock::duration>(ctime-system_clock::now()+std::filesystem::file_time_type::clock::now());
-  //system_clock::time_point sctp = time_point_cast<system_clock::duration>(ftime - std::filesystem::file_time_type::clock::now()
-  //                                                    + system_clock::now());
-  //ftime = std::chrono::time_point_cast<std::filesystem::file_time_type>(ctime);
-  //ftime = clock_time_conversion<file_clock, system_clock>{}(ctime);
-  std::filesystem::last_write_time(std::filesystem::path(fileName), ftime);
+  namespace fs = std::filesystem;
+  fs::last_write_time(fs::path(fileName), from_time_t<fs::file_time_type>(ct));
 
   return true;
 }

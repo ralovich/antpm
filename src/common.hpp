@@ -17,6 +17,7 @@
 // ***** END LICENSE BLOCK *****
 #pragma once
 
+#include <chrono>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -120,5 +121,30 @@ enum
 
 bool
 isAntpm405Override();
+
+
+// https://stackoverflow.com/a/61067330/12291413
+template <typename TP>
+std::time_t to_time_t(const TP& tp)
+{
+  using namespace std::chrono;
+  auto sctp = time_point_cast<system_clock::duration>(tp - TP::clock::now()
+                                                      + system_clock::now());
+  return system_clock::to_time_t(sctp);
+}
+template <typename TP>
+TP from_time_t(const std::time_t& tt)
+{
+#if 0 // would require c++20
+  //const auto fileTime = std::filesystem::last_write_time(filePath);
+  //const auto systemTime = std::chrono::clock_cast<std::chrono::system_clock>(fileTime);
+  //const auto time = std::chrono::system_clock::to_time_t(systemTime);
+#else
+  using namespace std::chrono;
+  auto sctp = system_clock::from_time_t(tt);
+  auto tp = time_point_cast<typename TP::clock::duration>(sctp - system_clock::now() + TP::clock::now());
+  return tp;
+#endif
+}
 
 }
