@@ -27,6 +27,7 @@
 #include <mutex>
 #include <queue>
 #include <thread>
+#include <boost/core/demangle.hpp>
 
 
 //! Mutex protected list template. Allows pushing elements
@@ -38,6 +39,12 @@ class lqueue2
 public:
   typedef std::list<DataType> DataList;
 public:
+  virtual ~lqueue2()
+  {
+    std::scoped_lock lock(m_mtx);
+    fprintf(stdout, "%s %s remaining ql=%d\n", __FUNCTION__, boost::core::demangle(typeid(this).name()).c_str(), static_cast<int>(m_q.size()));
+  }
+
   bool empty() const
   {
     std::scoped_lock lock(m_mtx);
