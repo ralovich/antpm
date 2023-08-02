@@ -336,7 +336,8 @@ SerialTty::open()
     //
     // Log off and log on again for the changes to take effect!
     char se[256];
-    (void)strerror_r(m_p->m_fd, se, sizeof(se));
+    auto unused = strerror_r(m_p->m_fd, se, sizeof(se));
+    (void)unused;
     LOG(antpm::LOG_ERR) << "Opening serial port failed! Make sure cp210x kernel module is loaded, and /dev/ttyUSBxxx was created by cp210x!\n"
                         << "\tAlso make sure that /dev/ttyUSBxxx is R+W accessible by your user (usually enabled through udev.rules)!\n";
     LOG(antpm::LOG_ERR) << "error=" << m_p->m_fd << ", strerror=" << se << "\n";
