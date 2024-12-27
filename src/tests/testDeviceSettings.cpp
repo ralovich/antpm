@@ -29,14 +29,9 @@
 #include <string>
 #include <iostream>
 #include "common.hpp"
-#include <boost/thread/thread_time.hpp>
-#include <boost/foreach.hpp>
-
-#include <boost/filesystem.hpp>
 
 
 #define BOOST_TEST_MODULE DeviceSettings
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
@@ -106,7 +101,7 @@ BOOST_AUTO_TEST_CASE(convert)
 
 BOOST_AUTO_TEST_CASE(load_save)
 {
-  boost::scoped_ptr<DeviceSettings> m_ds;
+  std::unique_ptr<DeviceSettings> m_ds;
   std::string clientName = "TestDevice";
   uint clientSN = 1279010136;
   const char* fname = TEST_ROOT"/config.ini";
@@ -116,7 +111,7 @@ BOOST_AUTO_TEST_CASE(load_save)
   m_ds.reset(new DeviceSettings(clientName, toStringDec<uint>(clientSN)));
   assert(m_ds.get());
   m_ds->loadDefaultValues();
-  boost::filesystem::remove(fname_tmp);
+  std::filesystem::remove(fname_tmp);
   BOOST_CHECK(m_ds->saveToFile(fname_tmp));
 
 
@@ -156,7 +151,7 @@ BOOST_AUTO_TEST_CASE(load_db)
 
   for(size_t i = 0; i < devices.size(); i++)
   {
-    boost::scoped_ptr<DeviceSettings> ds;
+    std::unique_ptr<DeviceSettings> ds;
     //ds.reset(new DeviceSettings(toStringDec<uint>(clientSN).c_str()));
     ds.reset(new DeviceSettings("UnknownName", devices[i]));
     assert(ds.get());
