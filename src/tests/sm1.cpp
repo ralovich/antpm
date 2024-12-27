@@ -45,7 +45,7 @@ using boost::asio::local::stream_protocol;
 class AntHostMessenger
 {
 public:
-  AntHostMessenger(boost::asio::io_service& io_service)
+  AntHostMessenger(boost::asio::io_context& io_service)
     : socket_(io_service)
   {
   }
@@ -104,7 +104,7 @@ private:
   std::array<char, 512> data_;
 };
 
-void run(boost::asio::io_service* io_service)
+void run(boost::asio::io_context* io_service)
 {
   try
   {
@@ -131,7 +131,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
     //SerialTester1* st = new SerialTester1();
     //AntFr310XT watch2(st);
 
-    boost::asio::io_service io_service;
+    boost::asio::io_context io_service;
     std::cout << "io_service=" << &io_service << endl;
 
     // Create filter and establish a connection to it.
