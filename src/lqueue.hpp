@@ -92,6 +92,7 @@ protected:
   mutable std::mutex m_mtx;
   std::condition_variable m_pushEvent;
   DataList m_q;
+  std::chrono::milliseconds td{1000};
 };
 
 
@@ -145,8 +146,7 @@ public:
       std::unique_lock<std::mutex> lock(Super::m_mtx);
 
       using namespace std::chrono_literals;
-      auto td = 2000ms;
-      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, td)) // will automatically and atomically unlock mutex while it waits
+      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, Super::td)) // will automatically and atomically unlock mutex while it waits
       {
         //std::cout << "no event before timeout\n";
         //printf("no event before timeout\n");
@@ -313,8 +313,7 @@ protected:
       std::unique_lock<std::mutex> lock(Super::m_mtx);
 
       using namespace std::chrono_literals;
-      auto td = 2000ms;
-      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, td)) // will automatically and atomically unlock mutex while it waits
+      if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, Super::td)) // will automatically and atomically unlock mutex while it waits
       {
         //std::cout << "no event before timeout\n";
         continue;
