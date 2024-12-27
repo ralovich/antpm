@@ -291,7 +291,12 @@ SerialTty::~SerialTty()
     }                                                       \
   } while(false)
 
+// No need to inherit from binary_function for c++11 or later
+#if __cplusplus >= 201103L
+struct contains {
+#else
 struct contains : public std::binary_function<std::vector<std::string>, std::string,bool> {
+#endif
   inline bool operator() (std::vector<std::string> v, std::string e) const {return find(v.begin(), v.end(), e) != v.end();}
 };
 
