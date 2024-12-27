@@ -129,25 +129,6 @@ getDateString()
   //QString filename = QDateTime::currentDateTime().toString("yyyy_MM_dd_hh_mm_ss");
   //QByteArray ba=filename.toLatin1();
   //return ba.constData();
-#if 0
-  std::ostringstream msg;
-  const boost::posix_time::ptime now=boost::posix_time::second_clock::local_time();
-  boost::posix_time::time_facet*const f=new boost::posix_time::time_facet("%Y_%m_%d_%H_%M_%S");
-  msg.imbue(std::locale(msg.getloc(),f));
-  try
-  {
-    msg << now;
-  }
-  catch(boost::exception &e)
-  {
-    std::cerr << boost::diagnostic_information(e) << std::endl;
-  }
-  catch(std::exception& e)
-  {
-    std::cerr << e.what() << std::endl;
-  }
-  return msg.str();
-#endif
   std::time_t t = std::time(nullptr);
   std::tm tm = *std::localtime(&t);
 
