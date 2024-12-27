@@ -61,6 +61,7 @@ const std::string
 toStringDec(const T& val, const int width = -1, const char fill = ' ');
 
 std::vector<std::string> split(const std::string& s, char delimiter);
+bool ends_with(const std::string& str, const std::string& ending);
 
 extern
 const std::string

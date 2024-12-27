@@ -123,6 +123,13 @@ std::vector<std::string> split(const std::string& s, char delimiter)
   return tokens;
 }
 
+bool ends_with(const std::string& str, const std::string& ending)
+{
+    if (ending.size() > str.size())
+        return false;
+    return std::equal(ending.rbegin(), ending.rend(), str.rbegin());
+}
+
 const std::string
 getDateString()
 {

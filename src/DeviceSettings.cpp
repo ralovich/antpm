@@ -20,17 +20,15 @@
 #include "DeviceSettings.hpp"
 #include <ctime>
 #include <cstring> // memset
+#include <filesystem>
 #include "common.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
 //#include <boost/date_time/posix_time/posix_time.hpp>
 #include "Log.hpp"
 
-#include <boost/filesystem.hpp>
-#include <boost/range/iterator_range.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 
-namespace fs=boost::filesystem;
+namespace fs=std::filesystem;
 
 namespace antpm {
 
@@ -96,16 +94,16 @@ DeviceSettings::getDatabaseFiles(size_t count) const
   }
   //std::cout << p << " is a directory containing:\n";
 
-  for(auto& entry : boost::make_iterator_range(fs::directory_iterator(p), {}))
+  for(auto& entry : fs::directory_iterator(p))
   {
     if(!fs::is_directory(entry))
     {
       continue;
     }
     //std::cout << entry << "\n";
-    for(auto& fit : boost::make_iterator_range(fs::directory_iterator(entry), {}))
+    for(auto& fit : fs::directory_iterator(entry))
     {
-      if(boost::algorithm::ends_with(fit.path().string(), ".fit"))
+      if(ends_with(fit.path().string(), ".fit"))
       {
         int value=0;
         sscanf(fit.path().stem().c_str(), "%x", &value);
@@ -199,7 +197,7 @@ DeviceSettings::getDatabases(const char* root)
     return devices;
   }
 
-  for(auto& entry : boost::make_iterator_range(fs::directory_iterator(p), {}))
+  for(auto& entry : fs::directory_iterator(p))
   {
     entry.path();
     
