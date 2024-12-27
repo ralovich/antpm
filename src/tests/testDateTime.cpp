@@ -29,20 +29,16 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <filesystem>
 #include "common.hpp"
-#include <boost/thread/thread_time.hpp>
-#include <boost/foreach.hpp>
-
-#include <boost/filesystem.hpp>
 
 
 #define BOOST_TEST_MODULE DateTime
-//#include <boost/test/included/unit_test.hpp>
 #include <boost/test/unit_test.hpp>
 
 using namespace std;
 using namespace antpm;
-namespace fs = boost::filesystem;
+namespace fs = std::filesystem;
 
 DEFAULT_LOG_INSTANTIATOR
 
@@ -60,7 +56,7 @@ BOOST_AUTO_TEST_CASE(load_fit_date)
   GPX gpx;
   BOOST_CHECK(fit.parse(fitData, gpx));
 
-  time_t lastWrite             = fs::last_write_time(fs::path(in));
+  time_t lastWrite             = to_time_t(fs::last_write_time(fs::path(in)));
   time_t fileCreationTimestamp = fit.getCreationTimestamp();
   time_t first                 = fit.getFirstTimestamp();
   time_t last                  = fit.getLastTimestamp();
