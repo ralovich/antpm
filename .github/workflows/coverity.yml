@@ -9,6 +9,7 @@ on:
 jobs:
   coverity:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
     - name: Install APT build-deps
       if: runner.os == 'Linux'
