@@ -1348,7 +1348,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
     }
   }
 
-  std::remove_if(tstamps.begin(), tstamps.end(), isZero);
+  (void)std::remove_if(tstamps.begin(), tstamps.end(), isZero);
   std::sort(tstamps.begin(), tstamps.end());
 //        for(size_t i = 0; i < tstamps.size(); i++)
 //        {
