@@ -7,7 +7,7 @@ on:
 
 jobs:
   coverity:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
     - name: Install APT build-deps
       if: runner.os == 'Linux'
@@ -26,11 +26,11 @@ jobs:
         token: ${{ secrets.COVERITY_SCAN_TOKEN }}
         working-directory: ${{github.workspace}}/build
 
-    - name: Coverity Build Log
-      run: cat ${{github.workspace}}/build/cov-int/build-log.txt
+    # - name: Coverity Build Log
+    #   run: cat ${{github.workspace}}/build/cov-int/build-log.txt
 
-    - name: Archive code coverage results
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverity-report
-        path: ${{github.workspace}}/build/cov-int.tgz
+    # - name: Archive code coverage results
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: coverity-report
+    #     path: ${{github.workspace}}/build/cov-int.tgz
