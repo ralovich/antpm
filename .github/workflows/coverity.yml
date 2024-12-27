@@ -3,8 +3,9 @@ name: Coverity Scan
 # We only want to test official release code, not every pull request.
 on:
   push:
-    branches: [main, coverity-2024]
-
+    branches: [main]
+  schedule:
+    - cron: "25 4 * * *" # Daily at 04:25 UTC
 jobs:
   coverity:
     runs-on: ubuntu-latest
