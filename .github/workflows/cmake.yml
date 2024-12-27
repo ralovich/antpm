@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-        os: [macos-latest, ubuntu-latest, ubuntu-20.04, macos-14, macos-13]
+        os: [macos-latest, ubuntu-latest, ubuntu-20.04, macos-14, macos-13, windows-2022]
   
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
@@ -36,6 +36,10 @@ jobs:
     - name: Install Homebrew build-deps
       if: runner.os == 'macOS'
       run: brew install pkg-config libusb cmake ninja boost libxml2
+
+    - name: Install Windows build-deps
+      if: runner.os == 'Windows'
+      run: choco install boost-msvc-14.3 zadig
     
     - uses: actions/checkout@v3
 
