@@ -105,7 +105,7 @@ DeviceSettings::getDatabaseFiles(size_t count) const
     {
       if(ends_with(fit.path().string(), ".fit"))
       {
-        int value=0;
+        unsigned int value=0;
         sscanf(fit.path().stem().c_str(), "%x", &value);
         //std::cout << "\t" << fit.path().stem() << std::endl;
         if(value == 0) // skip directory file
