@@ -52,9 +52,9 @@ struct Producer
   std::atomic<size_t> num_produced = 0;
 
   std::atomic<bool> die_receiver = false;
-  size_t num_received_fg = 0;
-  size_t num_received_fg4 = 0;
-  size_t num_received_bg = 0;
+  std::atomic<size_t> num_received_fg = 0;
+  std::atomic<size_t> num_received_fg4 = 0;
+  std::atomic<size_t> num_received_bg = 0;
 
   void operator() ()
   {
@@ -116,7 +116,7 @@ struct Producer
   bool
   onDataArrivedFg(const std::vector<int>& v)
   {
-    cout << "fg: " << v.size() << endl;
+    printf("fg: %zu\n", v.size());
     num_received_fg += v.size();
     return true;
   }
@@ -124,7 +124,7 @@ struct Producer
   bool
   onDataArrivedBg(const std::vector<double>& v)
   {
-    cout << "bg: " << v.size() << endl;
+    printf("bg: %zu\n", v.size());
     num_received_bg += v.size();
     return true;
   }
