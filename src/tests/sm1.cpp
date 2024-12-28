@@ -30,7 +30,7 @@
 #include <AntFr310XT.hpp>
 #include <thread>
 #include <boost/asio.hpp>
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 
 #define BOOST_TEST_MODULE sm1
 #include <boost/test/unit_test.hpp>
