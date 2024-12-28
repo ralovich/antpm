@@ -126,7 +126,7 @@ void ZeroFileContent::cullFitFile(const uint16_t idx, const size_t file_size_byt
     {
       ZeroFileRecord& zfRecord(zfRecords[file_idx]);
 
-      uint16_t index = zfRecord.index;
+      // uint16_t index = zfRecord.index;
       
       //if(index == idx)
       //{
@@ -142,9 +142,9 @@ void ZeroFileContent::cullFitFile(const uint16_t idx, const size_t file_size_byt
       return false;
     };
   
-  size_t nw = waypointsFiles.size();
-  size_t na = activityFiles.size();
-  size_t nc = courseFiles.size();
+  // size_t nw = waypointsFiles.size();
+  // size_t na = activityFiles.size();
+  // size_t nc = courseFiles.size();
 
   waypointsFiles.erase(std::remove_if(waypointsFiles.begin(), waypointsFiles.end(),
                                       remover), waypointsFiles.end());
