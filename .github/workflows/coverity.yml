@@ -5,7 +5,7 @@ on:
   push:
     branches: [main]
   schedule:
-    - cron: "25 4 * * *" # Daily at 04:25 UTC
+    - cron: "25 4 * * 6" # Daily at 04:25 UTC
 jobs:
   coverity:
     runs-on: ubuntu-latest
