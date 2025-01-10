@@ -806,7 +806,7 @@ AntFr310XT::handleEvents()
     // R   3.258 MESG_BURST_DATA_ID chan=0x00, seq=1, last=yes 322e383000000000 2.80....
     uint64_t code = 0xfe00000000000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
     // GPS version
 //    S  48.159 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_CmdDirect fd=0xffff, offset=0x0000, data=0x0000
@@ -825,7 +825,7 @@ AntFr310XT::handleEvents()
 //    R   3.124 MESG_BURST_DATA_ID chan=0x00, seq=3, last=yes 322e313000000000 2.10....
     code = 0x06000200ff000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
     // 06000200f8000000 = capabilities
 //    S   6.746 MESG_BURST_DATA_ID chan=0x00, seq=0, last=no  ANTFS_CMD(0x44) ANTFS_CmdDirect fd=0xffff, offset=0x0000, data=0x0000
@@ -862,35 +862,35 @@ AntFr310XT::handleEvents()
 //    R   3.122 MESG_BURST_DATA_ID chan=0x00, seq=3, last=yes f60344f903000000 ..D.....
     code = 0x06000200f8000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
     // 0x060002001b000000 pid=0x001b=27 L001_Pid_Records
     code = 0x060002001b000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
     // 0x06000200de030000 pid=0x03de=990 L001_Pid_Run
     code = 0x06000200de030000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
 
     // 0x0600020095000000 pid=0x0095=149 L001_Pid_Lap
     code = 0x0600020095000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
 
     // 0x0600020063000000 pid=0x0063=99 L001_Pid_Trk_Hdr
     code = 0x0600020063000000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
 
     // 0x06000200e6050000 pid=0x05e6=1510 ????_Pid_Unknown
     code = 0x06000200e6050000;
     CHECK_RETURN_FALSE_LOG_OK(m_antMessenger->ANTFS_Direct(chan, SwapDWord(code), data));
-    {GFile file0; file0.bytes=data; file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
+    {GFile file0(data); file0.saveToFile((folder+toString(code, 16, '0')+".bin").c_str());}
 
 
     // just exit
