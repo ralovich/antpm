@@ -82,7 +82,7 @@ double GarminConvert::weight(uint16_t weight)
     return ((double)weight / 10);
 }
 
-string GarminConvert::gmTime(const uint32_t time)
+string GarminConvert::gmTime(const time_t time)
 {
     time_t t = time;
     t += GARMIN_EPOCH; // Garmin epoch offset
@@ -92,7 +92,7 @@ string GarminConvert::gmTime(const uint32_t time)
     return tbuf;
 }
 
-string GarminConvert::localTime(const uint32_t time)
+string GarminConvert::localTime(const time_t time)
 {
     time_t t = time;
     t += GARMIN_EPOCH; // Garmin epoch offset

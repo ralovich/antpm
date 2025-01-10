@@ -52,8 +52,8 @@ public:
     static double length(uint32_t centimeters);
     static double speed(uint16_t speed);
     static double weight(uint16_t weight);
-    static std::string gmTime(const uint32_t time);
-    static std::string localTime(const uint32_t time);
+    static std::string gmTime(const time_t time);
+    static std::string localTime(const time_t time);
     static uint32_t    gOffsetTime(const uint32_t time);
     static std::string gTime(uint32_t time);
     static std::string gString(uint8_t *str, int maxSize);
