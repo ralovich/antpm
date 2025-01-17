@@ -60,6 +60,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         vcpkg install libusb
+        Get-ChildItem -Recurse C:/vcpkg/installed
         Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
         Get-ChildItem -Recurse C:/vcpkg/packages/boost*
         Get-ChildItem -Recurse C:/vcpkg/packages/boost-property-tree_x64-windows
