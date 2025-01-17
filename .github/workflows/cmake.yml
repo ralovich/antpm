@@ -42,7 +42,7 @@ jobs:
       run: |
         #Invoke-WebRequest $myDownloadUrl -OutFile c:\file.ext
         #Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip
-        Invoke-WebRequest https://sourceforge.net/projects/boost/files/boost/1.43.0/boost_1_43_0.7z/download -OutFile boost_1_43_0.7z
+        Invoke-WebRequest -UserAgent "Wget" -Uri "https://sourceforge.net/projects/boost/files/boost/1.43.0/boost_1_43_0.7z/download" -OutFile boost_1_43_0.7z
         7z x boost_1_43_0.7z
         #Get-Location
         Get-ChildItem boost_1_43_0
