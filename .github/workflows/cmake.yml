@@ -39,8 +39,9 @@ jobs:
 
     - name: Install Windows build-deps
       if: runner.os == 'Windows'
-      run: choco install boost-msvc-14.3 zadig
-           vcpkg install libusb
+      run: |
+        vcpkg install libusb
+        choco install zadig boost-msvc-14.3
     
     - uses: actions/checkout@v3
 
