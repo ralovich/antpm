@@ -41,10 +41,11 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         #Invoke-WebRequest $myDownloadUrl -OutFile c:\file.ext
-        Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip
-        7z x boost-1.43.0.zip
+        #Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip
+        Invoke-WebRequest https://sourceforge.net/projects/boost/files/boost/1.43.0/boost_1_43_0.7z/download -OutFile boost_1_43_0.7z
+        7z x boost_1_43_0.7z
         #Get-Location
-        Get-ChildItem boost-boost-1.43.0
+        Get-ChildItem boost_1_43_0
         #Get-ChildItem boost-1.43.0
 
     # - name: Get boost under Windows
