@@ -43,8 +43,8 @@ jobs:
         #Invoke-WebRequest $myDownloadUrl -OutFile c:\file.ext
         Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip
         7z x boost-1.43.0.zip
-        Get-Location
-        Get-ChildItem boost
+        #Get-Location
+        Get-ChildItem boost-boost-1.43.0
         Get-ChildItem boost-1.43.0
 
     - name: Get boost under Windows
