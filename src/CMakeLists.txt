@@ -47,7 +47,7 @@ IF(MSVC)
     IF(NOT DEP_ROOT)
         SET(DEP_ROOT "DEP_ROOT-NOTFOUND" CACHE PATH "dependency root path")
     ENDIF()
-    SET(LIBUSB_ROOT "C:/vcpkg/packages/libusb_x64-windows" CACHE PATH "Libusb PATH")
+    SET(LIBUSB_ROOT "C:/vcpkg/installed/x64-windows" CACHE PATH "Libusb PATH")
     #SET(BOOST_ROOT "${DEP_ROOT}\\boost_1_43_0" CACHE PATH "Boost PATH" )
     SET(BOOST_ROOT "${CMAKE_SOURCE_DIR}/../boost_1_43_0/boost" CACHE PATH "Boost PATH" )
 
