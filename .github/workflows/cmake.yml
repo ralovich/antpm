@@ -74,6 +74,8 @@ jobs:
         #Get-ChildItem -Recurse C:/vcpkg/packages/boost-program-options_x64-windows
         #Get-ChildItem -Recurse C:/vcpkg/packages/boost-test_x64-windows
         choco install boost-msvc-14.3
+        Get-ChildItem c:\local\boost_1_87_0
+        echo "c:\local\boost_1_87_0\lib64-msvc-14.3" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Checkout sources
       uses: actions/checkout@v3
