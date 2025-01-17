@@ -49,7 +49,8 @@ jobs:
         #Get-ChildItem boost-1.43.0
         Invoke-WebRequest -UserAgent "Wget" -Uri https://github.com/userdocs/boost/releases/download/boost-1.87.0/boost_1_87_0-msvc-14.3-64.exe -OutFile boost_1_87_0-msvc-14.3-64.exe
         Get-ChildItem .
-        boost_1_87_0-msvc-14.3-64.exe /VERYSILENT # installs into c:\local\boost_1_87_0
+        Start-Process -FilePath "boost_1_87_0-msvc-14.3-64.exe" -ArgumentList "/VERYSILENT"
+        # boost_1_87_0-msvc-14.3-64.exe /VERYSILENT # installs into c:\local\boost_1_87_0
 
     # - name: Get boost under Windows
     #   uses: actions/checkout@v3
