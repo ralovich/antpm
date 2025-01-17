@@ -43,7 +43,7 @@
 #ifdef _WIN32
 #define VC_EXTRALEAN 1
 #define NOMINMAX 1
-#include "lusb0_usb.h"
+#include  <libusb.h>
 #else
 #include <errno.h>
 #include <libusb.h>

@@ -24,7 +24,9 @@
 #include "common.hpp"
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/ini_parser.hpp>
-//#include <boost/date_time/posix_time/posix_time.hpp>
+#ifdef _WIN32
+#include <boost/date_time/posix_time/posix_time.hpp>
+#endif
 #include "Log.hpp"
 
 
@@ -48,8 +50,13 @@ DeviceSettings::loadDefaultValues()
   y2k.tm_hour = 0;   y2k.tm_min = 0; y2k.tm_sec = 0;
   y2k.tm_year = 100; y2k.tm_mon = 0; y2k.tm_mday = 1;
   y2k.tm_isdst = -1;
+#ifndef _WIN32
   LastUserProfileTime = ::mktime(&y2k) - timezone;
   LastTransferredTime = ::mktime(&y2k) - timezone;
+#else
+  LastUserProfileTime = ::mktime(&y2k) - _timezone;
+  LastTransferredTime = ::mktime(&y2k) - _timezone;
+#endif
   SerialWriteDelayMs = 3;
 }
 
@@ -106,7 +113,7 @@ DeviceSettings::getDatabaseFiles(size_t count) const
       if(ends_with(fit.path().string(), ".fit"))
       {
         unsigned int value=0;
-        sscanf(fit.path().stem().c_str(), "%x", &value);
+        sscanf(fit.path().stem().string().c_str(), "%x", &value);
         //std::cout << "\t" << fit.path().stem() << std::endl;
         if(value == 0) // skip directory file
         {
@@ -147,7 +154,11 @@ DeviceSettings::str2time(const char* from)
   tm = boost::posix_time::to_tm( t );
 #endif
   std::time_t myt  = ::mktime(&tm);
+#ifndef _WIN32
   std::time_t mytz = timezone;
+#else
+  std::time_t mytz = _timezone;
+#endif
   return myt - mytz;
 }
 
@@ -199,8 +210,6 @@ DeviceSettings::getDatabases(const char* root)
 
   for(auto& entry : fs::directory_iterator(p))
   {
-    entry.path();
-    
     if(!fs::is_directory(entry) || !is_number(entry.path().stem().string()))
     {
       continue;
