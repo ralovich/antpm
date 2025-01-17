@@ -41,6 +41,7 @@ jobs:
       if: runner.os == 'Windows'
       with:
         repository: boostorg/boost
+        ref: 'boost-1.43.0'
         path: ./boost_checkout
         submodules: recursive
 
