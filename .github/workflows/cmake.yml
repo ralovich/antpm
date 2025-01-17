@@ -37,10 +37,17 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install pkg-config libusb cmake ninja boost libxml2
 
+    - uses: actions/checkout@v3
+      if: runner.os == 'Windows'
+      with:
+        repository: boostorg/boost@boost-1.43.0
+        path: ./boost_checkout
+        submodules: recursive
+
     - name: Install Windows build-deps
       if: runner.os == 'Windows'
       run: |
-        vcpkg install libusb boost-test boost-program-options boost-property-tree
+        vcpkg install libusb
         Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
         Get-ChildItem -Recurse C:/vcpkg/packages/boost*
         Get-ChildItem -Recurse C:/vcpkg/packages/boost-property-tree_x64-windows
