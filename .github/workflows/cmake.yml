@@ -41,7 +41,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         #Invoke-WebRequest $myDownloadUrl -OutFile c:\file.ext
-        Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip
+        Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip
         7z x boost-1.43.0.zip
         Get-Location
         Get-ChildItem boost
