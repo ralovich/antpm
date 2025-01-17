@@ -55,6 +55,7 @@ else (LIBUSB_1_LIBRARIES AND LIBUSB_1_INCLUDE_DIRS)
       /usr/local/include
       /opt/local/include
       /sw/include
+      ${LIBUSB_ROOT}/include
 	PATH_SUFFIXES
 	  libusb-1.0
   )

@@ -41,6 +41,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         vcpkg install libusb boost-test boost-program-options boost-property-tree
+        Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
         choco install zadig
     
     - uses: actions/checkout@v3
