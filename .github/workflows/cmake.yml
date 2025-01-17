@@ -40,8 +40,12 @@ jobs:
     - name: Install Windows build-deps
       if: runner.os == 'Windows'
       run: |
-        vcpkg install libusb boost
+        vcpkg install libusb boost-test boost-program-options boost-property-tree
         Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
+        Get-ChildItem -Recurse C:/vcpkg/packages/boost*
+        Get-ChildItem -Recurse C:/vcpkg/packages/boost-property-tree_x64-windows
+        Get-ChildItem -Recurse C:/vcpkg/packages/boost-program-options_x64-windows
+        Get-ChildItem -Recurse C:/vcpkg/packages/boost-test_x64-windows
     
     - uses: actions/checkout@v3
 
