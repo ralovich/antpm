@@ -41,7 +41,7 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         vcpkg install libusb
-        choco install zadig boost-msvc-14.3
+        choco install zadig
     
     - uses: actions/checkout@v3
 
