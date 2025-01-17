@@ -37,7 +37,18 @@ jobs:
       if: runner.os == 'macOS'
       run: brew install pkg-config libusb cmake ninja boost libxml2
 
-    - uses: actions/checkout@v3
+    - name: Download boost under Windows
+      if: runner.os == 'Windows'
+      run: |
+        #Invoke-WebRequest $myDownloadUrl -OutFile c:\file.ext
+        Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip
+        7z x boost-1.43.0.zip
+        Get-Location
+        Get-ChildItem boost
+        Get-ChildItem boost-1.43.0
+
+    - name: Get boost under Windows
+      uses: actions/checkout@v3
       if: runner.os == 'Windows'
       with:
         repository: boostorg/boost
