@@ -39,7 +39,7 @@ jobs:
 
     - name: Install Windows build-deps
       if: runner.os == 'Windows'
-      run: choco install boost-msvc-14.3 zadig
+      run: choco install boost-msvc-14.3 zadig --debug
     
     - uses: actions/checkout@v3
 
