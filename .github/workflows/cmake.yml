@@ -21,7 +21,7 @@ jobs:
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    timeout-minutes: 15
 
     steps:
     - name: Build system ID
@@ -41,12 +41,14 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         #Invoke-WebRequest $myDownloadUrl -OutFile c:\file.ext
-        #Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip
-        Invoke-WebRequest -UserAgent "Wget" -Uri "https://sourceforge.net/projects/boost/files/boost/1.43.0/boost_1_43_0.7z/download" -OutFile boost_1_43_0.7z
-        7z x boost_1_43_0.7z
+        #Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip # empty
+        #Invoke-WebRequest -UserAgent "Wget" -Uri "https://sourceforge.net/projects/boost/files/boost/1.43.0/boost_1_43_0.7z/download" -OutFile boost_1_43_0.7z
+        #7z x boost_1_43_0.7z
         #Get-Location
-        Get-ChildItem boost_1_43_0
+        #Get-ChildItem boost_1_43_0
         #Get-ChildItem boost-1.43.0
+        Invoke-WebRequest -UserAgent "Wget" -Uri https://github.com/userdocs/boost/releases/download/boost-1.87.0/boost_1_87_0-msvc-14.3-64.exe -OutFile boost_1_87_0-msvc-14.3-64.exe
+        boost_1_87_0-msvc-14.3-64.exe /VERYSILENT # installs into c:\local\boost_1_87_0
 
     # - name: Get boost under Windows
     #   uses: actions/checkout@v3
@@ -62,12 +64,13 @@ jobs:
       run: |
         vcpkg install libusb
         Get-ChildItem -Recurse C:/vcpkg/installed
-        Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
-        Get-ChildItem -Recurse C:/vcpkg/packages/boost*
-        Get-ChildItem -Recurse C:/vcpkg/packages/boost-property-tree_x64-windows
-        Get-ChildItem -Recurse C:/vcpkg/packages/boost-program-options_x64-windows
-        Get-ChildItem -Recurse C:/vcpkg/packages/boost-test_x64-windows
-    
+        #Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
+        #Get-ChildItem -Recurse C:/vcpkg/packages/boost*
+        #Get-ChildItem -Recurse C:/vcpkg/packages/boost-property-tree_x64-windows
+        #Get-ChildItem -Recurse C:/vcpkg/packages/boost-program-options_x64-windows
+        #Get-ChildItem -Recurse C:/vcpkg/packages/boost-test_x64-windows
+        #choco install boost-msvc-14.3
+
     - name: Checkout sources
       uses: actions/checkout@v3
 
