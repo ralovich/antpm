@@ -49,7 +49,7 @@ IF(MSVC)
     ENDIF()
     SET(LIBUSB_ROOT "C:/vcpkg/packages/libusb_x64-windows" CACHE PATH "Libusb PATH")
     #SET(BOOST_ROOT "${DEP_ROOT}\\boost_1_43_0" CACHE PATH "Boost PATH" )
-    SET(BOOST_ROOT "C:/vcpkg/packages/boost" CACHE PATH "Boost PATH" )
+    SET(BOOST_ROOT "${CMAKE_SOURCE_DIR}/../boost-boost-1.43.0" CACHE PATH "Boost PATH" )
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
   SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MD")
