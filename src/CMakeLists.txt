@@ -210,7 +210,7 @@ INSTALL(TARGETS antpm-fit2gpx RUNTIME DESTINATION bin)
 
 add_custom_target(dist COMMAND ${CMAKE_MAKE_PROGRAM} package_source)
 
-IF(USE_GANT)
+IF(USE_GANT AND NOT WIN32)
   ADD_SUBDIRECTORY(gant)
 ENDIF()
 
