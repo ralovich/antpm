@@ -66,7 +66,7 @@ jobs:
     - name: Install Windows build-deps
       if: runner.os == 'Windows'
       run: |
-        vcpkg install libusb
+        vcpkg install libusb libxml2
         Get-ChildItem -Recurse C:/vcpkg/installed
         #Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
         #Get-ChildItem -Recurse C:/vcpkg/packages/boost*
