@@ -40,7 +40,7 @@ jobs:
     - name: Install Windows build-deps
       if: runner.os == 'Windows'
       run: |
-        vcpkg install libusb
+        vcpkg install libusb boost-test boost-program-options boost-property-tree
         choco install zadig
     
     - uses: actions/checkout@v3
