@@ -45,16 +45,16 @@ jobs:
         7z x boost-1.43.0.zip
         #Get-Location
         Get-ChildItem boost-boost-1.43.0
-        Get-ChildItem boost-1.43.0
+        #Get-ChildItem boost-1.43.0
 
-    - name: Get boost under Windows
-      uses: actions/checkout@v3
-      if: runner.os == 'Windows'
-      with:
-        repository: boostorg/boost
-        ref: 'boost-1.43.0'
-        path: ./boost_checkout
-        submodules: recursive
+    # - name: Get boost under Windows
+    #   uses: actions/checkout@v3
+    #   if: runner.os == 'Windows'
+    #   with:
+    #     repository: boostorg/boost
+    #     ref: 'boost-1.43.0'
+    #     path: ./boost_checkout
+    #     submodules: recursive
 
     - name: Install Windows build-deps
       if: runner.os == 'Windows'
