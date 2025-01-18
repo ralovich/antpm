@@ -54,10 +54,10 @@ jobs:
         g++-14  || true
         #`brew --prefix gcc` -v
         echo "before find..."
-        find /usr -name "gcc*" || true
-        find /opt -name "gcc*" || true
+        #find /usr -name "gcc*" || true
+        #find /opt -name "gcc*" || true
         echo "ABC"
-        find `brew --prefix gcc` -name "gcc" || true
+        #find `brew --prefix gcc` -name "gcc" || true
         echo "after find..."
         ls -lasR `brew --prefix gcc` || true
     
@@ -67,6 +67,7 @@ jobs:
       env:
         CC:   ${{ runner.os == 'macOS' && matrix.compiler.c == 'gcc' && 'gcc-14' || matrix.compiler.c }}
         CXX:  ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && 'g++-14' || matrix.compiler.cpp }}
+        CXXFLAGS: ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && '-lstdc++' || '' }}
         #CC:   ${{ matrix.compiler.c }}
         #CXX:  ${{ matrix.compiler.cpp }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
