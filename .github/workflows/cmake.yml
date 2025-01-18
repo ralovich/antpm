@@ -27,7 +27,7 @@ jobs:
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 10
+    #timeout-minutes: 10
 
     steps:
     - name: Build system ID
@@ -41,7 +41,23 @@ jobs:
 
     - name: Install Homebrew build-deps
       if: runner.os == 'macOS'
-      run: brew install pkg-config libusb cmake ninja boost libxml2 gcc
+      run: |
+        brew install pkg-config libusb cmake ninja boost libxml2 gcc@14
+        brew info gcc
+        brew --prefix gcc
+        #brew ls -v gcc
+        file `brew --prefix gcc`
+        which g++-14
+        file `which g++-14`
+        g++-14  || true
+        #`brew --prefix gcc` -v
+        echo "before find..."
+        find /usr -name "gcc*" || true
+        find /opt -name "gcc*" || true
+        echo "ABC"
+        find `brew --prefix gcc` -name "gcc" || true
+        echo "after find..."
+        ls -lasR `brew --prefix gcc` || true
     
     - uses: actions/checkout@v3
 
