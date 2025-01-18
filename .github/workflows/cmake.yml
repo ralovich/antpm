@@ -67,7 +67,7 @@ jobs:
       env:
         CC:   ${{ runner.os == 'macOS' && matrix.compiler.c == 'gcc' && 'gcc-14' || matrix.compiler.c }}
         CXX:  ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && 'g++-14' || matrix.compiler.cpp }}
-        CXXFLAGS: ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && '-lstdc++' || '' }}
+        CXXFLAGS: ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && '-stdlib=libc++' || '' }}
         #CC:   ${{ matrix.compiler.c }}
         #CXX:  ${{ matrix.compiler.cpp }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
