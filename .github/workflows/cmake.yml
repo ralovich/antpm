@@ -63,9 +63,10 @@ jobs:
 
     - name: Configure CMake
       env:
-        ABC:  ${{ runner.os == 'macOS' && matrix.compiler.c == 'gcc' && 'gcc-14' || matrix.compiler.c }}
-        CC:   ${{ matrix.compiler.c }}
-        CXX:  ${{ matrix.compiler.cpp }}
+        CC:   ${{ runner.os == 'macOS' && matrix.compiler.c == 'gcc' && 'gcc-14' || matrix.compiler.c }}
+        CXX:  ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && 'g++-14' || matrix.compiler.cpp }}
+        #CC:   ${{ matrix.compiler.c }}
+        #CXX:  ${{ matrix.compiler.cpp }}
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/src -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE
