@@ -122,7 +122,7 @@ void ZeroFileContent::cullFitFilesDate()
 void ZeroFileContent::cullFitFile(const uint16_t idx, const size_t file_size_bytes)
 {
   //logger() << "0x" << toString<ushort>(idx,4,'0') << " " << file_size_bytes << " bytes\n";
-  auto remover = [this,idx,file_size_bytes](uint16_t file_idx)
+  auto remover = [&](uint16_t file_idx)
     {
       ZeroFileRecord& zfRecord(zfRecords[file_idx]);
 
