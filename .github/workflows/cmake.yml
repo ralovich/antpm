@@ -89,6 +89,12 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j
 
+    - name: Env
+      if: runner.os == 'Windows'
+      run: |
+        echo $env:path
+        echo $env:GITHUB_PATH
+      
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
