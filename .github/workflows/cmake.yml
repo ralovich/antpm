@@ -22,6 +22,7 @@ jobs:
           - macos-13
         # https://stackoverflow.com/a/68940067
         compiler: [ {cpp: g++, c: gcc}, {cpp: clang++, c: clang} ]
+      fail-fast: false
 
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
@@ -37,7 +38,7 @@ jobs:
 
     - name: Install APT build-deps
       if: runner.os == 'Linux'
-      run: sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-filesystem-dev libboost-program-options-dev libboost-test-dev  valgrind clang
+      run: sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-program-options-dev libboost-test-dev  valgrind clang
 
     - name: Install Homebrew build-deps
       if: runner.os == 'macOS'
