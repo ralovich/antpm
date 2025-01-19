@@ -23,8 +23,12 @@ jobs:
         # https://stackoverflow.com/a/68940067
         compiler: [ {cpp: g++, c: gcc}, {cpp: clang++, c: clang} ]
         exclude:
-          - os: ${{ matrix.compiler.c == 'gcc' && 'macos-latest' }}
-          - os: ${{ matrix.compiler.c == 'gcc' && 'macos-13' }}
+          - os: macos-latest
+            compiler: {cpp: g++, c: gcc}
+          - os: macos-13
+            compiler: {cpp: g++, c: gcc}
+          #- os: ${{ matrix.compiler.c == 'gcc' && 'macos-latest' }}
+          #- os: ${{ matrix.compiler.c == 'gcc' && 'macos-13' }}
       fail-fast: false
     continue-on-error: ${{ matrix.os == 'macOS' && matrix.compiler.c == 'gcc' }}
       
