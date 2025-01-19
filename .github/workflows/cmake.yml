@@ -67,14 +67,14 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         vcpkg install libusb
-        Get-ChildItem -Recurse C:/vcpkg/installed
+        #Get-ChildItem -Recurse C:/vcpkg/installed
         #Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
         #Get-ChildItem -Recurse C:/vcpkg/packages/boost*
         #Get-ChildItem -Recurse C:/vcpkg/packages/boost-property-tree_x64-windows
         #Get-ChildItem -Recurse C:/vcpkg/packages/boost-program-options_x64-windows
         #Get-ChildItem -Recurse C:/vcpkg/packages/boost-test_x64-windows
         choco install boost-msvc-14.3
-        Get-ChildItem c:\local\boost_1_87_0
+        Get-ChildItem -Recurse c:\local\boost_1_87_0
         echo "c:\local\boost_1_87_0\lib64-msvc-14.3" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Checkout sources
@@ -92,12 +92,12 @@ jobs:
     - name: Env
       if: runner.os == 'Windows'
       run: |
-        echo $env:path
-        echo $env:GITHUB_PATH
+        echo "PATH="$env:path
+        echo "GITHUB_PATH="$env:GITHUB_PATH
       
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure -j 4 --timeout 120
+      run: ctest -C ${{env.BUILD_TYPE}} --rerun-failed --output-on-failure -j 4 --timeout 120 -VV
 
