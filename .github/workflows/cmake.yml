@@ -70,6 +70,8 @@ jobs:
       env:
         CC:   ${{ runner.os == 'macOS' && matrix.compiler.c == 'gcc' && 'gcc-14' || matrix.compiler.c }}
         CXX:  ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && 'g++-14' || matrix.compiler.cpp }}
+        # https://stackoverflow.com/questions/22228208/using-g-with-libc
+        # g++ -std=c++0x -nostdinc++ -nodefaultlibs -lc -isystem <path_to>/include/c++/v1 -lc++ -lc++abi -lgcc_s.10.5
         CXXFLAGS: ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && '-stdlib=libc++' || '' }}
         #CC:   ${{ matrix.compiler.c }}
         #CXX:  ${{ matrix.compiler.cpp }}
