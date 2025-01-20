@@ -44,13 +44,7 @@ set(CMAKE_CXX_FLAGS_RELEASE        "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG=1")
 set(CMAKE_C_FLAGS_RELEASE          "${CMAKE_C_FLAGS_RELEASE} -DNDEBUG=1")
 
 IF(MSVC)
-    IF(NOT DEP_ROOT)
-        SET(DEP_ROOT "DEP_ROOT-NOTFOUND" CACHE PATH "dependency root path")
-    ENDIF()
     SET(LIBUSB_ROOT "C:/vcpkg/installed/x64-windows" CACHE PATH "Libusb PATH")
-    #SET(BOOST_ROOT "${DEP_ROOT}\\boost_1_43_0" CACHE PATH "Boost PATH" )
-    #SET(BOOST_ROOT "${CMAKE_SOURCE_DIR}/../boost_1_43_0" CACHE PATH "Boost PATH" )
-    #SET(BOOST_ROOT "c:/git/vcpkg/installed/x64-windows/include/" CACHE PATH "Boost PATH" )
     SET(BOOST_ROOT "c:/local/boost_1_87_0"  CACHE PATH "Boost PATH" )
 
   SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
