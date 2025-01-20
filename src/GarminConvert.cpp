@@ -104,8 +104,8 @@ string GarminConvert::localTime(const time_t time)
 
 
 /// returns in GMT/UTC timestamp
-uint32_t
-GarminConvert::gOffsetTime(const uint32_t time)
+time_t
+GarminConvert::gOffsetTime(const time_t time)
 {
   return time + GARMIN_EPOCH; // Garmin epoch offset
 }

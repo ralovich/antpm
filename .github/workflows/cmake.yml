@@ -20,6 +20,8 @@ jobs:
           - ubuntu-latest
           - ubuntu-20.04
           - macos-13
+          - windows-2025
+          - windows-2022
         # https://stackoverflow.com/a/68940067
         compiler: [ {cpp: g++, c: gcc}, {cpp: clang++, c: clang} ]
         exclude:
@@ -27,9 +29,11 @@ jobs:
             compiler: {cpp: g++, c: gcc}
           - os: macos-13
             compiler: {cpp: g++, c: gcc}
-      fail-fast: false
-    continue-on-error: ${{ matrix.os == 'macOS' && matrix.compiler.c == 'gcc' }}
-      
+          - os: windows-2025
+            compiler: {cpp: g++, c: gcc}
+          - os: windows-2022
+            compiler: {cpp: g++, c: gcc}
+  
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
@@ -50,33 +54,61 @@ jobs:
       if: runner.os == 'macOS'
       run: |
         brew install pkg-config libusb cmake ninja boost libxml2 gcc@14
-        brew info gcc
         brew --prefix gcc
-        #brew ls -v gcc
-        file `brew --prefix gcc`
-        which g++-14
-        file `which g++-14`
-        g++-14  || true
-        #`brew --prefix gcc` -v
-        echo "before find..."
-        #find /usr -name "gcc*" || true
-        #find /opt -name "gcc*" || true
-        echo "ABC"
-        #find `brew --prefix gcc` -name "gcc" || true
-        echo "after find..."
-        ls -lasR `brew --prefix gcc` || true
     
-    - uses: actions/checkout@v3
+    # - name: Download boost under Windows
+    #   if: runner.os == 'Windows'
+    #   run: |
+    #     #Invoke-WebRequest $myDownloadUrl -OutFile c:\file.ext
+    #     #Invoke-WebRequest https://github.com/boostorg/boost/archive/refs/tags/boost-1.43.0.zip -OutFile boost-1.43.0.zip # empty
+    #     #Invoke-WebRequest -UserAgent "Wget" -Uri "https://sourceforge.net/projects/boost/files/boost/1.43.0/boost_1_43_0.7z/download" -OutFile boost_1_43_0.7z
+    #     #7z x boost_1_43_0.7z
+    #     #Get-Location
+    #     #Get-ChildItem boost_1_43_0
+    #     #Get-ChildItem boost-1.43.0
+    #     Invoke-WebRequest -UserAgent "Wget" -Uri https://github.com/userdocs/boost/releases/download/boost-1.87.0/boost_1_87_0-msvc-14.3-64.exe -OutFile boost_1_87_0-msvc-14.3-64.exe
+    #     Get-ChildItem .
+    #     #Start-Process -FilePath "boost_1_87_0-msvc-14.3-64.exe" -ArgumentList "/VERYSILENT"
+    #     # boost_1_87_0-msvc-14.3-64.exe /VERYSILENT # installs into c:\local\boost_1_87_0
+    #     .\boost_1_87_0-msvc-14.3-64.exe /VERYSILENT | Write-Output
+    #     Get-ChildItem c:\local\boost_1_87_0
 
-    - name: Configure CMake
+    # - name: Get boost under Windows
+    #   uses: actions/checkout@v3
+    #   if: runner.os == 'Windows'
+    #   with:
+    #     repository: boostorg/boost
+    #     ref: 'boost-1.43.0'
+    #     path: ./boost_checkout
+    #     submodules: recursive
+
+    - name: Install Windows build-deps
+      if: runner.os == 'Windows'
+      run: |
+        vcpkg install libusb
+        echo "C:\vcpkg\installed\x64-windows\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+        #Get-ChildItem -Recurse C:/vcpkg/installed
+        choco install boost-msvc-14.3
+        #Get-ChildItem -Recurse c:\local\boost_1_87_0
+        echo "c:\local\boost_1_87_0\lib64-msvc-14.3" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+    - name: Checkout sources
+      uses: actions/checkout@v3
+
+    - name: Configure CMake Unix
+      if: runner.os == 'macOS' || runner.os == 'Linux'
       env:
         CC:   ${{ runner.os == 'macOS' && matrix.compiler.c == 'gcc' && 'gcc-14' || matrix.compiler.c }}
         CXX:  ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && 'g++-14' || matrix.compiler.cpp }}
         # https://stackoverflow.com/questions/22228208/using-g-with-libc
         # g++ -std=c++0x -nostdinc++ -nodefaultlibs -lc -isystem <path_to>/include/c++/v1 -lc++ -lc++abi -lgcc_s.10.5
         CXXFLAGS: ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && '-stdlib=libc++' || '' }}
-        #CC:   ${{ matrix.compiler.c }}
-        #CXX:  ${{ matrix.compiler.cpp }}
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/src -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE
+
+    - name: Configure CMake Windows
+      if: runner.os == 'Windows'
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/src -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE
@@ -85,6 +117,11 @@ jobs:
       # Build your program with the given configuration
       run: cmake --build ${{github.workspace}}/build --config ${{env.BUILD_TYPE}} -j
 
+    - name: Env
+      if: runner.os == 'Windows'
+      run: |
+        echo "PATH="$env:path
+      
     - name: Test
       working-directory: ${{github.workspace}}/build
       # Execute tests defined by the CMake configuration.

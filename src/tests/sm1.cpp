@@ -125,6 +125,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
 
   BOOST_CHECK(true);
 
+#ifndef _WIN32
   try
   {
     //SerialTester st;
@@ -180,6 +181,7 @@ BOOST_AUTO_TEST_CASE(test_asio)
     std::cerr << "Exception: " << e.what() << "\n";
     std::exit(1);
   }
+#endif
 }
 
 
