@@ -141,7 +141,7 @@ void TrackSeg::putToFile(ofstream &file)
 }
 
 
-Track::Track(string &p_name) : name(p_name)
+Track::Track(const string &p_name) : name(p_name)
 {
 }
 
@@ -176,7 +176,7 @@ GPX::~GPX()
 {
 }
 
-void GPX::newTrack(string name)
+void GPX::newTrack(const string &name)
 {
     Track track(name);
     tracks.push_back(track);
@@ -194,7 +194,7 @@ void GPX::newWayPoint()
     wayPoints.push_back(wayPoint);
 }
 
-bool GPX::writeToFile(string fileName)
+bool GPX::writeToFile(const string& fileName)
 {
     ofstream file(fileName.c_str());
     if (!file.is_open())

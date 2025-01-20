@@ -95,7 +95,7 @@ public:
 class Track
 {
 public:
-    Track(std::string &name);
+    Track(const std::string &name);
     ~Track();
 
     void newTrackSeg();
@@ -112,11 +112,11 @@ public:
     GPX();
     ~GPX();
 
-    void newTrack(std::string name);
+    void newTrack(const std::string& name);
     void newTrackSeg();
     void newWayPoint();
 
-    bool writeToFile(std::string fileName);
+    bool writeToFile(const std::string& fileName);
 
 public:
     std::vector<WayPoint> wayPoints;
