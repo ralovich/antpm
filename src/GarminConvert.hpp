@@ -54,7 +54,7 @@ public:
     static double weight(uint16_t weight);
     static std::string gmTime(const time_t time);
     static std::string localTime(const time_t time);
-    static uint32_t    gOffsetTime(const uint32_t time);
+    static time_t      gOffsetTime(const time_t time);
     static std::string gTime(uint32_t time);
     static std::string gString(uint8_t *str, int maxSize);
     static std::string gHex(uint8_t *buf, size_t size);

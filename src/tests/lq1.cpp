@@ -61,7 +61,7 @@ struct Producer
     while(!die_producer)
     {
       _q.push(234.5F);
-      q.push(27+num_produced);
+      q.push(static_cast<int>(27+num_produced));
       q_bg.push(435.5543);
       q4.push(static_cast<short>(num_produced));
       num_produced++;
