@@ -69,11 +69,6 @@ jobs:
         vcpkg install libusb
         echo "C:\vcpkg\installed\x64-windows\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
         #Get-ChildItem -Recurse C:/vcpkg/installed
-        #Get-ChildItem -Recurse C:/vcpkg/packages/libusb_x64-windows
-        #Get-ChildItem -Recurse C:/vcpkg/packages/boost*
-        #Get-ChildItem -Recurse C:/vcpkg/packages/boost-property-tree_x64-windows
-        #Get-ChildItem -Recurse C:/vcpkg/packages/boost-program-options_x64-windows
-        #Get-ChildItem -Recurse C:/vcpkg/packages/boost-test_x64-windows
         choco install boost-msvc-14.3
         #Get-ChildItem -Recurse c:\local\boost_1_87_0
         echo "c:\local\boost_1_87_0\lib64-msvc-14.3" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
@@ -94,7 +89,6 @@ jobs:
       if: runner.os == 'Windows'
       run: |
         echo "PATH="$env:path
-        echo "GITHUB_PATH="$env:GITHUB_PATH
       
     - name: Test
       working-directory: ${{github.workspace}}/build
