@@ -534,7 +534,7 @@ AntMessage::interpret2(std::list<uchar>& q, std::vector<AntMessage>& messages)
       q.pop_front();
     }
     //m.idx = packetIdx++;
-    messages.push_back(m);
+    messages.push_back(std::move(m));
   }
 
   return true;
