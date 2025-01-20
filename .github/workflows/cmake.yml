@@ -15,7 +15,24 @@ jobs:
     strategy:
       matrix:
         # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-        os: [macos-latest, ubuntu-latest, ubuntu-20.04, macos-14, macos-13, windows-2025, windows-2022]
+        os:
+          - macos-latest
+          - ubuntu-latest
+          - ubuntu-20.04
+          - macos-13
+          - windows-2025
+          - windows-2022
+        # https://stackoverflow.com/a/68940067
+        compiler: [ {cpp: g++, c: gcc}, {cpp: clang++, c: clang} ]
+        exclude:
+          - os: macos-latest
+            compiler: {cpp: g++, c: gcc}
+          - os: macos-13
+            compiler: {cpp: g++, c: gcc}
+          - os: windows-2025
+            compiler: {cpp: g++, c: gcc}
+          - os: windows-2022
+            compiler: {cpp: g++, c: gcc}
   
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
@@ -31,12 +48,14 @@ jobs:
 
     - name: Install APT build-deps
       if: runner.os == 'Linux'
-      run: sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-filesystem-dev libboost-program-options-dev libboost-test-dev  valgrind
+      run: sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-program-options-dev libboost-test-dev  valgrind clang
 
     - name: Install Homebrew build-deps
       if: runner.os == 'macOS'
-      run: brew install pkg-config libusb cmake ninja boost libxml2
-
+      run: |
+        brew install pkg-config libusb cmake ninja boost libxml2 gcc@14
+        brew --prefix gcc
+    
     # - name: Download boost under Windows
     #   if: runner.os == 'Windows'
     #   run: |
@@ -76,7 +95,20 @@ jobs:
     - name: Checkout sources
       uses: actions/checkout@v3
 
-    - name: Configure CMake
+    - name: Configure CMake Unix
+      if: runner.os == 'macOS' || runner.os == 'Linux'
+      env:
+        CC:   ${{ runner.os == 'macOS' && matrix.compiler.c == 'gcc' && 'gcc-14' || matrix.compiler.c }}
+        CXX:  ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && 'g++-14' || matrix.compiler.cpp }}
+        # https://stackoverflow.com/questions/22228208/using-g-with-libc
+        # g++ -std=c++0x -nostdinc++ -nodefaultlibs -lc -isystem <path_to>/include/c++/v1 -lc++ -lc++abi -lgcc_s.10.5
+        CXXFLAGS: ${{ runner.os == 'macOS' && matrix.compiler.cpp == 'g++' && '-stdlib=libc++' || '' }}
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/src -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE
+
+    - name: Configure CMake Windows
+      if: runner.os == 'Windows'
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: cmake -B ${{github.workspace}}/build -S ${{github.workspace}}/src -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE
