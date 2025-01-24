@@ -150,11 +150,10 @@ public:
       {
         //std::cout << "no event before timeout\n";
         //printf("no event before timeout\n");
-        continue;
+        if(Super::m_q.empty())
+          continue; // spurious wakeup
       }
 
-      if(Super::m_q.empty())
-        continue; // spurious wakeup
       size_t s = Super::m_q.size();
       std::vector<DataType> v(s);
       for(size_t i = 0; i < s; i++)
@@ -316,11 +315,10 @@ protected:
       if(std::cv_status::timeout == Super::m_pushEvent.wait_for(lock, Super::td)) // will automatically and atomically unlock mutex while it waits
       {
         //std::cout << "no event before timeout\n";
-        continue;
+        if(Super::m_q.empty())
+          continue; // spurious wakeup
       }
 
-      if(Super::m_q.empty())
-        continue; // spurious wakeup
       size_t s = Super::m_q.size();
       std::vector<DataType> v(s);
       for(size_t i = 0; i < s; i++)
