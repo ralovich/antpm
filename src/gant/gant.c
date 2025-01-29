@@ -670,7 +670,7 @@ void decode(ushort bloblen, ushort pkttype, ushort pktlen, int dsize, uchar * da
       cad = data[doff + i + 21];
       u1 = data[doff + i + 22];
       u2 = data[doff + i + 23];
-      DEBUG_OUT(2, "lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %d %s alt %f dist %f %02x %02x%02x%02x%02x", lat, lon, hr, cad, u1, u2, (int)tv, tbuf, alt, dist, data[doff + i + 3], data[doff + i + 16], data[doff + i + 17], data[doff + i + 18], data[doff + i + 19]);
+      DEBUG_OUT(2, "lat %.10g lon %.10g hr %d cad %d u1 %d u2 %d tv %lld %s alt %f dist %f %02x %02x%02x%02x%02x", lat, lon, hr, cad, u1, u2, (long long)tv, tbuf, alt, dist, data[doff + i + 3], data[doff + i + 16], data[doff + i + 17], data[doff + i + 18], data[doff + i + 19]);
       /*  track pause only if following trackpoint is aswell 'timemarker' with utopic distance */
       if (track_pause && dist > (float)40000000)
       {

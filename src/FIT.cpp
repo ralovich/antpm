@@ -1100,7 +1100,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
           uint32_t fileCreationTime=0;
           int8_t fileType=INT8_MAX;
 
-          uint32_t time;
+          uint32_t time=0;
 
           for (int i=0; i<rd.rfx.fieldsNum; i++)
           {
