@@ -635,7 +635,7 @@ ANT_AssignChannelEventFunction(uchar chan, CHANNEL_EVENT_FUNC rf, uchar* rbuf)
   cbufp = rbuf;
 }
 
-int ANT_fd()
+int ANT_fd(void)
 {
   return fd;
 }

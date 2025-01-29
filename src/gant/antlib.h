@@ -25,6 +25,6 @@ uchar ANT_OpenChannel(uchar chan);
 uchar ANT_CloseChannel(uchar chan);
 void ANT_AssignResponseFunction(RESPONSE_FUNC rf, uchar* rbuf);
 void ANT_AssignChannelEventFunction(uchar chan, CHANNEL_EVENT_FUNC rf, uchar* rbuf);
-int ANT_fd();
+int ANT_fd(void);
 
 #endif
