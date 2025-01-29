@@ -70,7 +70,7 @@ ZeroFileContent::getFitFileTime(const uint16_t idx)
 void ZeroFileContent::cullFitFiles(const std::multimap<uint16_t, std::pair<string, size_t> >& db_files)
 {
   LOG_VAR(db_files.size());
-  for(auto it : db_files)
+  for(const auto& it : db_files)
   {
     cullFitFile(it.first, it.second.second);
   }
