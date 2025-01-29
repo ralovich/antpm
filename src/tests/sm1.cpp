@@ -153,11 +153,13 @@ BOOST_AUTO_TEST_CASE(test_asio)
       request = "abcdef";
 
       // Send request to filter.
-      boost::asio::write(socket, boost::asio::buffer(request));
+      size_t rv = boost::asio::write(socket, boost::asio::buffer(request));
+      BOOST_CHECK(rv == request.size());
 
       // Wait for reply from filter.
       std::vector<char> reply(request.size());
-      boost::asio::read(socket, boost::asio::buffer(reply));
+      rv = boost::asio::read(socket, boost::asio::buffer(reply));
+      BOOST_CHECK(rv == reply.size());
 
       // Show reply to user.
       std::cout << "Result: ";
