@@ -201,7 +201,7 @@ AntFr310XT::stop()
   //   what():  boost thread: trying joining itself: Resource deadlock avoided
   //m_eventTh.join();
 
-  m_antMessenger->kill();
+  if(m_antMessenger) m_antMessenger->kill();
   if(m_serial && m_serial->isOpen())
   {
     if(state>ST_ANTFS_LINKING)

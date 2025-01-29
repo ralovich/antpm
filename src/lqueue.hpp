@@ -134,7 +134,7 @@ public:
   void
   setOnDataArrivedCallback(Listener2 l)
   {
-    mCallback = l;
+    mCallback = std::move(l);
   }
 
 public:
@@ -302,7 +302,7 @@ public:
   void
   setOnDataArrivedCallback(Listener2 l)
   {
-    mCallback = l;
+    mCallback = std::move(l);
   }
 
 protected:

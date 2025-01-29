@@ -1088,7 +1088,7 @@ AntMessenger::assemblePackets(std::list<uchar>& q)
     m_rpackQueue2.push(m);
     if(m_cb)
     {
-      m_cb->onAntReceived(m);
+      m_cb->onAntReceived(std::move(m));
     }
 
   }

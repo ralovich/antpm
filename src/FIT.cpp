@@ -1077,7 +1077,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
           rd.rf.push_back(rf);
         }
 
-        recDefMap[rh.normalHeader.localMessageType] = rd;
+        recDefMap[rh.normalHeader.localMessageType] = std::move(rd);
       }
       else
       {
@@ -1204,7 +1204,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 0: // Name
                   {
                     string name = GarminConvert::gString(ptr, 16);
-                    gpx.wayPoints.back().name = name;
+                    gpx.wayPoints.back().name = std::move(name);
                     break;
                   }
                   case 1: // Latitude
