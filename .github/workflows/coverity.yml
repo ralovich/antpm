@@ -3,9 +3,11 @@ name: Coverity Scan
 # We only want to test official release code, not every pull request.
 on:
   push:
-    branches: [main]
-  schedule:
-    - cron: "25 4 * * 6" # Daily at 04:25 UTC
+    branches:
+      - '*'
+#    branches: [main]
+#  schedule:
+#    - cron: "25 4 * * 6" # Daily at 04:25 UTC
 jobs:
   coverity:
     runs-on: ubuntu-latest
@@ -13,7 +15,9 @@ jobs:
     steps:
     - name: Install APT build-deps
       if: runner.os == 'Linux'
-      run: sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-filesystem-dev libboost-program-options-dev libboost-test-dev  valgrind
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-filesystem-dev libboost-program-options-dev libboost-test-dev  valgrind
 
     - uses: actions/checkout@v3
 
