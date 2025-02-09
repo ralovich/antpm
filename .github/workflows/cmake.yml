@@ -95,7 +95,7 @@ jobs:
         echo "c:\local\boost_1_87_0\lib64-msvc-14.3" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Checkout sources
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Configure CMake Unix
       if: runner.os == 'macOS' || runner.os == 'Linux'
