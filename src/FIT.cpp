@@ -1240,7 +1240,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   {
                     string name("Course_");
                     name += GarminConvert::gString(ptr, 16);
-                    gpx.tracks.back().name = name;
+                    gpx.tracks.back().name = std::move(name);
                     break;
                   }
                 }

@@ -154,6 +154,8 @@ DeviceSettings::str2time(const char* from)
   tm = boost::posix_time::to_tm( t );
 #endif
   std::time_t myt  = ::mktime(&tm);
+  if(myt < 0)
+    return 0;
 #ifndef _WIN32
   std::time_t mytz = timezone;
 #else
