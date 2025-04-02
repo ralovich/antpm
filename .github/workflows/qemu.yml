@@ -1,0 +1,30 @@
+name: QEMU to run s390x-focal
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Setup multiarch/qemu-user-static
+      run: |
+        docker run --rm --privileged multiarch/qemu-user-static:register --reset
+    - name: ubuntu-core:s390x-focal
+      uses: docker://multiarch/ubuntu-core:s390x-focal
+      with:
+        args: >
+          bash -c
+          "uname -a &&
+          lscpu | grep Endian &&
+          apt-get -y update &&
+          DEBIAN_FRONTEND=noninteractive apt-get -y install python3 git cmake g++ pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-program-options-dev libboost-test-dev valgrind &&
+          python3 --version &&
+          python3 -c 'import sys; print(sys.byteorder)' &&
+          git clone https://github.com/ralovich/antpm &&
+          cd antpm &&
+          cmake -B build -S src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE &&
+          cmake --build build --config Release -j &&
+          (cd build && ctest -C Release --rerun-failed --output-on-failure -j 4 --timeout 120)
+          "
