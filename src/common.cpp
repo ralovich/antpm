@@ -340,7 +340,7 @@ getVersionString()
 #else
   "unknow_compiler"
 #endif
-      + (little_endian ? std::string(" LE") : std::string(" BE"));
+      + (little_endian ? std::string(" LittleEndian") : std::string(" BigEndian"));
 #undef DO_STRINGIZE
 #undef STRINGIZE
 }

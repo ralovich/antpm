@@ -46,6 +46,8 @@
 
 #include "common.hpp"
 
+#include <boost/endian/conversion.hpp>
+
 using namespace std;
 
 namespace antpm{
@@ -863,6 +865,7 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
     case BT_Int16:
     {
       int16_t val = *(int16_t *)ptr;
+      boost::endian::little_to_native_inplace(val);
       if (val == 0x7FFF)
       {
         strstrm << "undefined";
@@ -877,6 +880,7 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
     case BT_Uint16z:
     {
       uint16_t val = *(uint16_t *)ptr;
+      boost::endian::little_to_native_inplace(val);
       if (val == 0xFFFF)
       {
         strstrm << "undefined";
@@ -922,6 +926,7 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
     case BT_Int32:
     {
       int32_t val = *(int32_t *)ptr;
+      boost::endian::little_to_native_inplace(val);
       if (val == 0x7FFFFFFF)
       {
         strstrm << "undefined";
@@ -947,6 +952,7 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
     case BT_Uint32z:
     {
       uint32_t val = *(uint32_t *)ptr;
+      boost::endian::little_to_native_inplace(val);
       if (val == 0xFFFFFFFF)
       {
         strstrm << "undefined";
@@ -998,7 +1004,7 @@ string FIT::getDataString(uint8_t *ptr, uint8_t size, uint8_t baseType, uint8_t 
 bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
 {
   ostringstream strstrm;
-    
+
   LOG(LOG_DBG2) << "Parsing FIT file\n";
 
   FITHeader fitHeader;
@@ -1007,6 +1013,11 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
 
   uint8_t *ptr = &fitData.front();
   memcpy(&fitHeader, ptr, sizeof(fitHeader));
+  boost::endian::little_to_native_inplace(fitHeader.headerSize);
+  boost::endian::little_to_native_inplace(fitHeader.protocolVersion);
+  boost::endian::little_to_native_inplace(fitHeader.profileVersion);
+  boost::endian::little_to_native_inplace(fitHeader.dataSize);
+  boost::endian::little_to_native_inplace(fitHeader.headerCRC);
 
   // FIT header CRC
   uint16_t crc = 0;
@@ -1030,6 +1041,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
   }
 
   uint16_t fitCRC = *(uint16_t *)(ptr+fitHeader.dataSize);
+  boost::endian::little_to_native_inplace(fitCRC);
   if (crc != fitCRC /*&& fitCRC != 0*/)
   {
     LOG(LOG_WARN) << hex << uppercase << setw(4) << setfill('0') << "Invalid FIT CRC (" << crc << "!=" << fitCRC << ")\n";
@@ -1062,6 +1074,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
 
         RecordFixed rfx;
         memcpy(&rfx, ptr, sizeof(rfx));
+        boost::endian::little_to_native_inplace(rfx.globalNum);
         ptr += sizeof(rfx);
         bytes -= sizeof(rfx);
 
@@ -1126,6 +1139,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 4: // Creation Time
                   {
                     fileCreationTime = *(uint32_t*)ptr;
+                    boost::endian::little_to_native_inplace(fileCreationTime);
                     mCreationTimestamp = fileCreationTime;
                     break;
                   }
@@ -1139,6 +1153,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 253: // Timestamp
                   {
                     time = *(uint32_t*)ptr;
+                    boost::endian::little_to_native_inplace(time);
                     // TODO: add to gpx?
                     tstamps.push_back(time);
                     break;
@@ -1153,6 +1168,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 253: // Timestamp
                   {
                     time = *(uint32_t*)ptr;
+                    boost::endian::little_to_native_inplace(time);
                     gpx.tracks.back().trackSegs.back().trackPoints[time].time = time;
                     tstamps.push_back(time);
                     break;
@@ -1160,18 +1176,21 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 0: // Latitude
                   {
                     int32_t latitude = *(int32_t*)ptr;
+                    boost::endian::little_to_native_inplace(latitude);
                     gpx.tracks.back().trackSegs.back().trackPoints[time].latitude = latitude;
                     break;
                   }
                   case 1: // Longitude
                   {
                     uint32_t longitude = *(int32_t*)ptr;
+                    boost::endian::little_to_native_inplace(longitude);
                     gpx.tracks.back().trackSegs.back().trackPoints[time].longitude = longitude;
                     break;
                   }
                   case 2: // Altitude
                   {
                     uint16_t altitude = *(uint16_t*)ptr;
+                    boost::endian::little_to_native_inplace(altitude);
                     gpx.tracks.back().trackSegs.back().trackPoints[time].altitude = altitude;
                     break;
                   }
@@ -1197,6 +1216,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 253: // Timestamp
                   {
                     time = *(uint32_t*)ptr;
+                    boost::endian::little_to_native_inplace(time);
                     gpx.wayPoints.back().time = time;
                     tstamps.push_back(time);
                     break;
@@ -1210,12 +1230,14 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 1: // Latitude
                   {
                     int32_t latitude = *(int32_t*)ptr;
+                    boost::endian::little_to_native_inplace(latitude);
                     gpx.wayPoints.back().latitude = latitude;
                     break;
                   }
                   case 2: // Longitude
                   {
                     int32_t longitude = *(int32_t*)ptr;
+                    boost::endian::little_to_native_inplace(longitude);
                     gpx.wayPoints.back().longitude = longitude;
                     break;
                   }
@@ -1226,6 +1248,7 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   case 4: // Altitude
                   {
                     uint16_t altitude = *(uint16_t*)ptr;
+                    boost::endian::little_to_native_inplace(altitude);
                     gpx.wayPoints.back().altitude = altitude;
                     break;
                   }
@@ -1274,8 +1297,10 @@ bool FIT::parse(vector<uint8_t> &fitData, GPX &gpx)
                   }
                   case 6: // Average Speed
                   {
+                    uint16_t as = *(uint16_t*)ptr;
+                    boost::endian::little_to_native_inplace(as);
                     // unit: m/s * 1000
-                    double speed = (double)(*(uint16_t*)ptr) / 1000;
+                    double speed = (double)(as) / 1000.0;
                     strstrm << speed;
                                         
                     break;

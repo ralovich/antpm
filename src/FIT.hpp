@@ -44,10 +44,11 @@
 #include <map>
 #include <sstream>
 #include <ctime>
-
+#include <boost/endian/arithmetic.hpp>
 
 namespace antpm{
 
+using namespace boost::endian;
 
 #pragma pack(1)
 struct FITHeader
@@ -59,27 +60,44 @@ struct FITHeader
     uint8_t signature[4];
     uint16_t headerCRC;
 };
+static_assert(sizeof(FITHeader) == 14);
 
 struct RecordNormalHeader
 {
+#if !defined (__BIG_ENDIAN_BITFIELD)
     uint8_t localMessageType:4;
     uint8_t reserved:2;
     uint8_t messageType:1;
     uint8_t headerType:1;
+#else
+    uint8_t headerType:1;
+    uint8_t messageType:1;
+    uint8_t reserved:2;
+    uint8_t localMessageType:4;
+#endif
 };
+static_assert(sizeof(RecordNormalHeader) == 1);
 
 struct RecordCompressedTimeStampHeader
 {
+#if !defined (__BIG_ENDIAN_BITFIELD)
     uint8_t timeOffset:5;
     uint8_t localMessageType:2;
     uint8_t headerType:1;
+#else
+    uint8_t headerType:1;
+    uint8_t localMessageType:2;
+    uint8_t timeOffset:5;
+#endif
 };
+static_assert(sizeof(RecordCompressedTimeStampHeader) == 1);
 
 union RecordHeader
 {
     RecordNormalHeader normalHeader;
     RecordCompressedTimeStampHeader ctsHeader;
 };
+static_assert(sizeof(RecordHeader) == 1);
 
 struct RecordFixed
 {
@@ -88,6 +106,7 @@ struct RecordFixed
     uint16_t globalNum;
     uint8_t fieldsNum;
 };
+static_assert(sizeof(RecordFixed) == 5);
 
 struct RecordField
 {
@@ -95,19 +114,28 @@ struct RecordField
     uint8_t size;
     uint8_t baseType;
 };
+static_assert(sizeof(RecordField) == 3);
 
 struct BaseTypeBits
 {
+#if !defined (__BIG_ENDIAN_BITFIELD)
     uint8_t baseTypeNum:5;
     uint8_t reserved:2;
     uint8_t endianAbility:1;
+#else
+    uint8_t endianAbility:1;
+    uint8_t reserved:2;
+    uint8_t baseTypeNum:5;
+#endif
 };
+static_assert(sizeof(BaseTypeBits) == 1);
 
 union BaseType
 {
     BaseTypeBits bits;
     uint8_t byte;
 };
+static_assert(sizeof(BaseType) == 1);
 
 struct ZeroFileRecord
 {
@@ -118,6 +146,7 @@ struct ZeroFileRecord
     uint8_t fileDataTypeFlags;
     struct
     {
+#if !defined (__BIG_ENDIAN_BITFIELD)
         uint8_t reserved:2;
         uint8_t crypto:1;
         uint8_t append:1;
@@ -125,10 +154,20 @@ struct ZeroFileRecord
         uint8_t erase:1;
         uint8_t write:1;
         uint8_t read:1;
+#else
+        uint8_t read:1;
+        uint8_t write:1;
+        uint8_t erase:1;
+        uint8_t archive:1;
+        uint8_t append:1;
+        uint8_t crypto:1;
+        uint8_t reserved:2;
+#endif
     } generalFileFlags;
     uint32_t fileSize;
     uint32_t timeStamp;
 };
+static_assert(sizeof(ZeroFileRecord) == 16);
 
 struct DirectoryHeader
 {
