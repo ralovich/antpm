@@ -1,4 +1,4 @@
-name: QEMU to run s390x-focal
+name: QEMU to run BigEndian s390x Linux
 
 on:
   push:
@@ -11,20 +11,39 @@ jobs:
     - name: Setup multiarch/qemu-user-static
       run: |
         docker run --rm --privileged multiarch/qemu-user-static:register --reset
-    - name: ubuntu-core:s390x-focal
+    - name: s390x-linux
       uses: docker://multiarch/ubuntu-core:s390x-focal
+      #uses: docker://s390x/ubuntu:latest
       with:
         args: >
           bash -c
           "uname -a &&
           lscpu | grep Endian &&
           apt-get -y update &&
-          DEBIAN_FRONTEND=noninteractive apt-get -y install python3 git cmake g++ pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-program-options-dev libboost-test-dev valgrind &&
-          python3 --version &&
-          python3 -c 'import sys; print(sys.byteorder)' &&
+          DEBIAN_FRONTEND=noninteractive apt-get -y install git cmake g++ pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-program-options-dev libboost-test-dev valgrind &&
           git clone https://github.com/ralovich/antpm &&
           cd antpm &&
           cmake -B build -S src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE &&
           cmake --build build --config Release -j &&
           (cd build && ctest -C Release --rerun-failed --output-on-failure -j 4 --timeout 120)
           "
+        platforms: linux/s390x
+
+  secondtry:
+    runs-on: ubuntu-latest
+    steps:
+    - name: secondtry
+      run: >
+        docker run --rm --privileged multiarch/qemu-user-static:register --reset &&
+        docker run --rm --platform linux/s390x s390x/ubuntu:latest
+        bash -c
+        "uname -a &&
+        lscpu | grep Endian &&
+        apt-get -y update &&
+        DEBIAN_FRONTEND=noninteractive apt-get -y install git cmake g++ pkg-config libusb-1.0-0-dev libxml2-dev libboost-dev libboost-exception-dev libboost-program-options-dev libboost-test-dev valgrind &&
+        git clone https://github.com/ralovich/antpm &&
+        cd antpm &&
+        cmake -B build -S src -DCMAKE_BUILD_TYPE=Release -DUSE_BOOST_TEST=TRUE -DUSE_GANT=TRUE &&
+        cmake --build build --config Release -j &&
+        (cd build && ctest -C Release --rerun-failed --output-on-failure -j 4 --timeout 120)
+        "
