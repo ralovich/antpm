@@ -109,7 +109,7 @@ BOOL CtrlHandler( DWORD fdwCtrlType )
       return FALSE;
   }
 }
-#elif (defined(__linux) || defined(__APPLE__))
+#elif (defined(__linux) || defined(__APPLE__) || defined(__GNU__))
 void my_handler(int s)
 {
   printf("Caught signal %d\nantpm teardown initiated\n\n",s);
@@ -127,7 +127,7 @@ main(int argc, char** argv)
   {
     printf( "\nERROR: Could not set control handler...");
   }
-#elif (defined(__linux) || defined(__APPLE__))
+#elif (defined(__linux) || defined(__APPLE__) || defined(__GNU__))
   signal(SIGINT, my_handler);
 #endif
 
