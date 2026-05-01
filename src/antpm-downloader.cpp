@@ -109,7 +109,7 @@ BOOL CtrlHandler( DWORD fdwCtrlType )
       return FALSE;
   }
 }
-#elif (defined(__linux) || defined(__APPLE__) || defined(__GNU__))
+#elif (defined(__linux) || defined(__APPLE__) || defined(__GNU__) || defined(__OpenBSD__))
 void my_handler(int s)
 {
   printf("Caught signal %d\nantpm teardown initiated\n\n",s);
