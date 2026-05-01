@@ -21,6 +21,7 @@
 * It generally helps to keep the watch close (20-30 cm) to the USB2ANT dongle while communicating.
 
 ** TODO
+* spurious deadlock: What happens if lqueue3_bg::Super::m_pushEvent.wait_for() is called after the other thread is done with m_pushEvent.notify_all(). In this case the notification we are waiting for never arrives.
 * when State=Busy broadcast is sent, maybe adjust timeout in waitForBursts??
 * run fit2gpx after downloads finish
 * capture ant agent log: for downloading all, for erasing, for uploading
