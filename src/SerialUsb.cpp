@@ -191,7 +191,7 @@ struct SerialUsbPrivate
     ssize_t cnt = libusb_get_device_list(NULL, &list);
     if(cnt < 0)
     {
-      LOG_USB_WARN("libusb_get_device_list", cnt);
+      LOG_USB_WARN("libusb_get_device_list", static_cast<int>(cnt));
       return NULL;
     }
     
