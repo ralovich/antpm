@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component>
+  <id>com.github.ralovich.antpm</id>
+  <metadata_license>MIT</metadata_license>
+  <name>antpm</name>
+  <summary>ANT+ information retrieval client for Garmin GPS products</summary>
+  <description>
+    <p>This software uses the Garmin ANT+ proprietary USB keys and
+    communication protocol to retrieve information (such as GPS
+    traces) from some Garmin Forerunner watches such as Forerunner 405
+    and 310XT.</p>
+
+    <p>The underlying ANT+minus implements the ANT/ANT+/ANT-FS
+    protocols to provide these tools: garmin-ant-downloader,
+    antpm-downloader, antpm-fit2gpx, and antpm-usbmon2ant.</p>
+
+    <p>ANT+minus is a userspace implementation of a wire protocol
+    similar to the ANT/ANT+/ANT-FS protocols. The goal is to be able
+    to communicate with any ANT capable device in order to
+    e.g. retrieve sports tracks. The C++ implementation is currently
+    available under both Linux and win.  Communication with watches
+    other than the 310XT might work, but are untested. Please report
+    your experience to help improving the software.</p>
+
+    <p>The software was originally named "gant" but renamed when packaged
+    to avoid confusion with existing Java software.</p>
+  </description>
+  <url type="homepage">https://github.com/ralovich/antpm</url>
+  <provides>
+    <modalias>usb:v0FCFp1004d*</modalias>
+    <modalias>usb:v0FCFp1008d*</modalias>
+    <modalias>usb:v0FCFp1009d*</modalias>
+  </provides>
+</component>
