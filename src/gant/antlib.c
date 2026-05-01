@@ -449,7 +449,7 @@ ANT_Init(uchar devno)
 {
   char dev[40];
 
-  sprintf(dev, "/dev/ttyUSB%d", devno);
+  snprintf(dev, sizeof(dev), "/dev/ttyUSB%d", devno);
   return ANT_Initf(dev);
 }
 
