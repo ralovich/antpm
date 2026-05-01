@@ -6,8 +6,8 @@ EAPI=4
 inherit cmake-utils git-2
 
 DESCRIPTION="Userspace implementation of a wire protocol similar to the ANT/ANT+/ANT-FS protocols"
-HOMEPAGE="https://code.google.com/p/antpm/"
-EGIT_REPO_URI="https://code.google.com/p/antpm/"
+HOMEPAGE="https://github.com/ralovich/antpm"
+EGIT_REPO_URI="https://github.com/ralovich/antpm"
 
 LICENSE="GPL-2"
 SLOT="0"

@@ -60,8 +60,8 @@ Make sure that the USB2ANT stick is connected to the machine\.
 Make sure cp210x driver was assigned to your USB2ANT\. Verify by "dmesg | grep tty" and look for a line similar to: "[ 3274.854726] usb 6-2: cp210x converter now attached to ttyUSB0". Also make sure "ls /dev/ttyUSB*" lists your device node.
 .PP
 Your user must be able to access the /dev/ttyUSB0 device. This can be achieved e.g. by the installing the
-.UR http://antpm.googlecode.com/git/scripts/80-ant-stick.rules
-.BR http://antpm.googlecode.com/git/scripts/80-ant-stick.rules
+.UR https://github.com/ralovich/antpm/blob/master/scripts/80-ant-stick.rules
+.BR https://github.com/ralovich/antpm/blob/master/scripts/80-ant-stick.rules
 udev rule into \fI/etc/udev/rules.d\fP. Restart udev. Verify by "cat /dev/ttyUSB0".
 .PP
 Install the antpm binary package.
@@ -86,8 +86,8 @@ To convert the downloaded .fit files to a more commonly used .gpx format, issue 
 .SH HOW TO SUBMIT A BUG-REPORT
 .PP
 Please open a bug report at
-.UR "http://code.google.com/p/antpm"
-.BR "http://code.google.com/p/antpm"
+.UR "https://github.com/ralovich/antpm"
+.BR "https://github.com/ralovich/antpm"
 .PP
 In your report please include:
 .LP
@@ -152,5 +152,5 @@ environment variable is honored to override the default config folder.
 was written by Kristóf Ralovich. This man page is Copyright ©
 2010-2013 Kristóf Ralovich.
 .SH "SEE ALSO"
-.UR "http://code.google.com/p/antpm"
-.BR "http://code.google.com/p/antpm"
+.UR "https://github.com/ralovich/antpm"
+.BR "https://github.com/ralovich/antpm"

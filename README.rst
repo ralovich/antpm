@@ -1,5 +1,5 @@
 =========
-`ANT+minus <http://code.google.com/p/antpm>`_
+`ANT+minus <https://github.com/ralovich/antpm>`_
 =========
 
 Userspace implementation of a wire protocol similar to the

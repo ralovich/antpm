@@ -5,11 +5,11 @@ pkgver=1.15
 pkgrel=1
 pkgdesc='Userspace implementation of a wire protocol similar to the ANT/ANT+/ANT-FS protocols'
 arch=('i686' 'x86_64')
-url="http://code.google.com/p/antpm/"
+url="https://github.com/ralovich/antpm"
 license=('GPL3')
 depends=('libxml2' 'boost-libs')
 makedepends=('boost' 'cmake')
-source=("http://antpm.googlecode.com/files/antpm_${pkgver}.orig.tar.gz")
+source=("https://github.com/ralovich/antpm/archive/refs/tags/${pkgver}.tar.gz")
 
 build() {
 	cd "${srcdir}/src"
