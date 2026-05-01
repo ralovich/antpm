@@ -1,6 +1,6 @@
 #!/bin/bash
 
-VER=`cat src/VERSION | head -n 1`
+VER=`cat src/ANTPM_VERSION.inc | head -n 1`
 GIT_VER=`git log | head -1 | awk '{print $2 }'`
 
 echo 'VER='$VER

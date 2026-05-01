@@ -21,7 +21,7 @@ scripts/origsrc-file-list
 scripts/vs2008-64.bat
 scripts/vs2008.bat
 scripts/vs2012-64.bat
-src/VERSION
+src/ANTPM_VERSION.inc
 src/cmake/Findlibusb-1.0.cmake
 src/cmake/FindLIBUSB.cmake
 src/tests/0046.fit
@@ -66,7 +66,6 @@ src/FIT.hpp
 src/AntMessage.cpp
 src/FIT.cpp
 src/GPX.hpp
-src/SmartPtrFwd.hpp
 src/Serial.hpp
 src/Serial.cpp
 src/common.hpp
