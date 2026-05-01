@@ -18,16 +18,12 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - ubuntu-20.04
-          - macos-13
           - windows-2025
           - windows-2022
         # https://stackoverflow.com/a/68940067
         compiler: [ {cpp: g++, c: gcc}, {cpp: clang++, c: clang} ]
         exclude:
           - os: macos-latest
-            compiler: {cpp: g++, c: gcc}
-          - os: macos-13
             compiler: {cpp: g++, c: gcc}
           - os: windows-2025
             compiler: {cpp: g++, c: gcc}
