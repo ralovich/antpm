@@ -1185,7 +1185,7 @@ uchar chevent(uchar chan, uchar event)
         pair.atype = 4;
         pair.phase = 2;
         pair.id = myid;
-        bzero(pair.devname, sizeof pair.devname);
+        memset(pair.devname, 0, sizeof(pair.devname));
         /* if (peerdev <= 9999999) // only allow 7 digits */
         /* sprintf(pair.devname, "%u", peerdev); */
         strncpy(pair.devname, fname, sizeof(pair.devname)-1);
