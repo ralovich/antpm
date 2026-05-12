@@ -1185,7 +1185,7 @@ uchar chevent(uchar chan, uchar event)
         pair.atype = 4;
         pair.phase = 2;
         pair.id = myid;
-        bzero(pair.devname, sizeof pair.devname);
+        memset(pair.devname, 0, sizeof(pair.devname));
         /* if (peerdev <= 9999999) // only allow 7 digits */
         /* sprintf(pair.devname, "%u", peerdev); */
         strncpy(pair.devname, fname, sizeof(pair.devname)-1);
@@ -1334,9 +1334,10 @@ int main(int ac, char *av[])
   if (getenv("HOME"))
   {
     const char* h = getenv("HOME");
-    authfile = malloc(strlen(h) + strlen("/.gant") + 1);
+    size_t str_len = strlen(h) + strlen("/.gant") + 1;
+    authfile = malloc(str_len);
     if (authfile)
-      sprintf(authfile, "%s/.gant", h);
+      snprintf(authfile, str_len, "%s/.gant", h);
   }
   progname = av[0];
   while ((c = getopt(ac, av, "a:f:d:i:m:pvD:rnzh")) != -1)
