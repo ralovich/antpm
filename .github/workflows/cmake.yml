@@ -18,13 +18,13 @@ jobs:
         os:
           - macos-latest
           - ubuntu-latest
-          - windows-2025
+          - windows-2025-vs2026
         # https://stackoverflow.com/a/68940067
         compiler: [ {cpp: g++, c: gcc}, {cpp: clang++, c: clang} ]
         exclude:
           - os: macos-latest
             compiler: {cpp: g++, c: gcc}
-          - os: windows-2025
+          - os: windows-2025-vs2026
             compiler: {cpp: g++, c: gcc}
   
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
