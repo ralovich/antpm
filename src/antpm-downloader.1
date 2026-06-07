@@ -62,6 +62,7 @@ Make sure cp210x driver was assigned to your USB2ANT\. Verify by "dmesg | grep t
 Your user must be able to access the /dev/ttyUSB0 device. This can be achieved e.g. by the installing the
 .UR https://github.com/ralovich/antpm/blob/master/scripts/80-ant-stick.rules
 .BR https://github.com/ralovich/antpm/blob/master/scripts/80-ant-stick.rules
+.UE
 udev rule into \fI/etc/udev/rules.d\fP. Restart udev. Verify by "cat /dev/ttyUSB0".
 .PP
 Install the antpm binary package.
