@@ -32,7 +32,7 @@
 
 #ifdef _WIN32
 # include <Windows.h>
-#elif defined(__linux)
+#elif defined(__linux) || defined(__GNU__)
 # include <signal.h>
 #endif
 
