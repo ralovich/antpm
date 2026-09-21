@@ -4,3 +4,5 @@
 /src/tests/config_tmp.ini
 /DeviceSettings.xml
 CMakeFiles
+*.user
+target*
