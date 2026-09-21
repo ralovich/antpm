@@ -67,6 +67,11 @@ ADD_MY_TEST(testDateTime2 testDateTime --help)
 ADD_MY_TEST(testDownload ../antpm-downloader)
 
 ADD_MY_TEST(testFit2Gpx ../antpm-fit2gpx)
+add_test(testFit2Gpx0046 ../antpm-fit2gpx -F ${CMAKE_CURRENT_SOURCE_DIR})
+add_test(NAME remove_gpx
+    COMMAND ${CMAKE_COMMAND} -E rm -f ${CMAKE_CURRENT_SOURCE_DIR}/0046.gpx
+)
+set_tests_properties(remove_gpx PROPERTIES DEPENDS "testFit2Gpx0046")
 
 ADD_MY_TEST(testUsbmon2AntParse  ../antpm-usbmon2ant --op parse  ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
 ADD_MY_TEST(testUsbmon2AntDump   ../antpm-usbmon2ant --op dump   ${CMAKE_CURRENT_SOURCE_DIR}/2012_12_21_antagent1.usbmon)
