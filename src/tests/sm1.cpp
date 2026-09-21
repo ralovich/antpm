@@ -300,7 +300,6 @@ namespace antpm
     lqueue3<uint8_t> m_q; // FIFO for bytes written into this "serial port" with write() method
     lqueue4<uint8_t> m_q_r; // FIFO for bytes produced by this "serial port", to be emptied by read()
   };
-
 }
 
 BOOST_AUTO_TEST_CASE(test_serial0)
@@ -312,7 +311,6 @@ BOOST_AUTO_TEST_CASE(test_serial0)
   AntFr310XT watch2(st);
 
   watch2.run();
-
 }
 
 BOOST_AUTO_TEST_CASE(test_serial1)
@@ -324,7 +322,6 @@ BOOST_AUTO_TEST_CASE(test_serial1)
   AntFr310XT watch2(st);
 
   watch2.run();
-
 }
 
 BOOST_AUTO_TEST_CASE(test_serial2)
@@ -346,6 +343,5 @@ BOOST_AUTO_TEST_CASE(test_serial2)
   BOOST_CHECK_EQUAL(watch2.getSMState(), ST_ANTFS_0);
 
   watch2.run();
-
 }
 
